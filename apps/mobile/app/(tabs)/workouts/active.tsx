@@ -130,9 +130,6 @@ export default function ActiveSessionScreen() {
 
   const groups = groupByExercise(sets);
   const volume = Math.round(sessionVolume(sets));
-  const elapsed = startedAt
-    ? formatDuration(Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000))
-    : '';
 
   return (
     <KeyboardAvoidingView
@@ -145,7 +142,7 @@ export default function ActiveSessionScreen() {
         <View style={styles.summaryRow}>
           <Text style={styles.summaryText}>{sets.length} sets</Text>
           <Text style={styles.summaryText}>{volume.toLocaleString()} volume</Text>
-          <Text style={styles.summaryText}>{elapsed}</Text>
+          <SessionElapsed startedAt={startedAt} />
         </View>
 
         <Pressable

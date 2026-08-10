@@ -1,18 +1,16 @@
 /**
  * Rest timer readout.
  *
- * The one place in the app with a ticking interval. It re-renders itself once a second
- * and holds no workout state — the store keeps only the epoch-ms start, so a re-render of
- * the parent (logging a set, editing a field) can never restart or skip the count.
- *
- * `restElapsed` does the arithmetic and is unit-tested with an injected clock; this
- * component only supplies `Date.now()`.
+ * Holds no workout state — the store keeps only the epoch-ms start, so a parent re-render
+ * (logging a set, editing a field) can never restart or skip the count. `useNow` supplies
+ * the ticking clock; `restElapsed` does the arithmetic and is unit-tested with an injected
+ * clock, so nothing here needs testing beyond what it renders.
  */
 
-import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { formatRest, restElapsed } from '@/domain/workouts';
+import { useNow } from '@/hooks/useNow';
 import { colors, fontSize, spacing } from '@/theme';
 
 type Props = {
@@ -23,22 +21,10 @@ type Props = {
 };
 
 export function RestTimer({ startedAt, targetSeconds = 90 }: Props) {
-  const [elapsed, setElapsed] = useState(() =>
-    startedAt === null ? 0 : restElapsed(startedAt, Date.now()),
-  );
-
-  useEffect(() => {
-    if (startedAt === null) {
-      setElapsed(0);
-      return;
-    }
-    // Recompute from the start timestamp rather than incrementing a counter: intervals
-    // drift, and are throttled outright while the app is backgrounded.
-    setElapsed(restElapsed(startedAt, Date.now()));
-    const id = setInterval(() => setElapsed(restElapsed(startedAt, Date.now())), 1000);
-    return () => clearInterval(id);
-  }, [startedAt]);
-
+  const now = useNow();
+  // Derived from the start timestamp on every tick rather than incremented: counters drift,
+  // and intervals are throttled outright while the app is backgrounded.
+  const elapsed = startedAt === null ? 0 : restElapsed(startedAt, now);
   const reached = startedAt !== null && elapsed >= targetSeconds;
 
   return (
