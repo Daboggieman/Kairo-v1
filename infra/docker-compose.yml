@@ -1,0 +1,69 @@
+# Local development stack for the Kairo backend.
+#
+# The mobile app is local-first this phase and does not need any of this — bring it up
+# only when working on `apps/backend`:
+#
+#   docker compose -f infra/docker-compose.yml up -d postgres
+#   cd apps/backend && alembic upgrade head && uvicorn app.main:app --reload
+#
+# NOTE: this file has not been run — the development machine it was written on has the
+# docker CLI but no daemon and no compose plugin. It is YAML-valid and the images/env
+# names match `apps/backend/.env.example`, but treat the first `up` as unverified.
+
+name: kairo
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-kairo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kairo}
+      POSTGRES_DB: ${POSTGRES_DB:-kairo}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      # `backend` waits on this rather than racing Postgres' startup — the server
+      # briefly accepts connections during init before it is actually ready.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kairo} -d ${POSTGRES_DB:-kairo}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    # Unused until Celery arrives in Phase 2 (`06-roadmap.md` puts background jobs there),
+    # but Phase 0 asks for the full stack to exist so the later addition is config-only.
+    image: redis:7-alpine
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ../apps/backend
+      dockerfile: Dockerfile
+    # Optional: `up -d postgres` alone is enough to run the API from the host with
+    # `uvicorn --reload`, which is the faster loop. This service is for a full stack.
+    profiles: ["full"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-kairo}:${POSTGRES_PASSWORD:-kairo}@postgres:5432/${POSTGRES_DB:-kairo}
+      REDIS_URL: redis://redis:6379/0
+      DEBUG: "true"
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      # Bind-mounted for reload-on-save; drop this in any real deployment.
+      - ../apps/backend:/app
+
+volumes:
+  postgres-data:

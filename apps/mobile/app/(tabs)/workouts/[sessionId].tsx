@@ -11,9 +11,8 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import type { WorkoutSession } from '@/db/types';
+import type { WorkoutSession, WorkoutSetWithExercise } from '@/db/types';
 import { getSession, listSetsWithExercises } from '@/db/workouts';
-import type { WorkoutSetWithExercise } from '@/db/types';
 import { formatDuration, sessionDurationSeconds, sessionVolume } from '@/domain/workouts';
 import { colors, fontSize, radius, spacing } from '@/theme';
 

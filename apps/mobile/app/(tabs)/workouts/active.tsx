@@ -24,15 +24,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
 import { RestTimer } from '@/components/RestTimer';
+import { SessionElapsed } from '@/components/SessionElapsed';
 import type { WeightUnit } from '@/db/types';
 import { lastSetForExercise } from '@/db/workouts';
-import {
-  formatDuration,
-  groupByExercise,
-  nextSetNumber,
-  sessionVolume,
-  suggestNextSet,
-} from '@/domain/workouts';
+import { groupByExercise, nextSetNumber, sessionVolume, suggestNextSet } from '@/domain/workouts';
 import { useWorkoutStore } from '@/store/workoutStore';
 import { colors, fontSize, radius, spacing, TAP_TARGET } from '@/theme';
 

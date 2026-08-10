@@ -15,6 +15,12 @@ venv/
 .ruff_cache/
 .mypy_cache/
 
+# Local dev database — the backend defaults to SQLite when no DATABASE_URL is set
+# (see apps/backend/app/core/config.py). Recreate it with `alembic upgrade head`.
+*.db
+*.db-shm
+*.db-wal
+
 # --- Environment / secrets ---
 # .env.example files ARE committed; real .env files are never committed.
 .env

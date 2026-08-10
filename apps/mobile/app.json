@@ -6,14 +6,12 @@
     "orientation": "portrait",
     "scheme": "kairo",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.daboggieman.kairo"
     },
     "android": {
-      "package": "com.daboggieman.kairo",
-      "edgeToEdgeEnabled": true
+      "package": "com.daboggieman.kairo"
     },
     "web": {
       "bundler": "metro",

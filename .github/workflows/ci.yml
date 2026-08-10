@@ -1,0 +1,95 @@
+# CI for the Kairo monorepo.
+#
+# Two independent jobs, each scoped to its own app with a path filter, so a mobile-only
+# change does not spin up Postgres and a backend-only change does not install node_modules.
+#
+# The backend job is where the Postgres path actually gets exercised: local development
+# runs against SQLite (see `apps/backend/app/core/config.py`), so without this service
+# container a Postgres-specific migration or query could break unnoticed.
+
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+# A new push to the same branch makes the in-flight run obsolete.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mobile:
+    name: Mobile (Expo)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npx eslint .
+
+      - name: Test
+        run: npx jest --ci
+
+  backend:
+    name: Backend (FastAPI)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/backend
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: kairo
+          POSTGRES_PASSWORD: kairo
+          POSTGRES_DB: kairo_test
+        ports:
+          - 5432:5432
+        # Without this the job races Postgres' startup and the first connection fails.
+        options: >-
+          --health-cmd "pg_isready -U kairo -d kairo_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql+psycopg://kairo:kairo@localhost:5432/kairo_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -e ".[dev]"
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Migrate (Postgres)
+        # Proves the migrations apply to the real target, not just the SQLite fallback.
+        run: alembic upgrade head
+
+      - name: Test
+        # The suite builds its own in-memory SQLite engine per test (see tests/conftest.py),
+        # so this is independent of DATABASE_URL above by design.
+        run: pytest -q
