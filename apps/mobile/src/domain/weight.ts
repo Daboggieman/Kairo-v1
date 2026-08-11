@@ -16,10 +16,8 @@
 
 import type { BodyWeightEntry, WeightUnit } from '@/db/types';
 
+import { dayNumber, toDayKey, todayNumber } from './dates';
 import { LB_PER_KG, toKg } from './workouts';
-
-/** Milliseconds in a day, for converting a date into an integer day index. */
-const MS_PER_DAY = 86_400_000;
 
 /** The window `04-feature-specs.md` asks for. */
 export const TREND_WINDOW_DAYS = 7;
@@ -38,34 +36,6 @@ export type DailyWeight = {
 
 /** A point on the smoothed overlay. `value` is kg, like everything else here. */
 export type TrendPoint = { day: number; value: number };
-
-/**
- * Local calendar day for an ISO timestamp, as `YYYY-MM-DD`.
- *
- * Local rather than UTC deliberately: the history list renders dates with
- * `toLocaleDateString`, so bucketing in UTC would put a 7am weigh-in in Sydney on the row
- * above the date the user sees next to it.
- */
-export function toDayKey(iso: string): string {
-  const date = new Date(iso);
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${date.getFullYear()}-${month}-${day}`;
-}
-
-/**
- * `YYYY-MM-DD` to an integer day index. Parsed as UTC midnight — the key has already had
- * the timezone resolved out of it by `toDayKey`, so re-applying a local offset here would
- * shift days near a DST boundary.
- */
-export function dayNumber(dayKey: string): number {
-  return Math.round(Date.parse(`${dayKey}T00:00:00.000Z`) / MS_PER_DAY);
-}
-
-/** Inverse of `dayNumber`, for labelling the x axis. */
-export function dayKeyFromNumber(day: number): string {
-  return new Date(day * MS_PER_DAY).toISOString().slice(0, 10);
-}
 
 /**
  * Collapses entries into one point per calendar day, oldest first.
@@ -157,7 +127,10 @@ export function summarise(
   nowMs: number,
   periodDays = 30,
 ): TrendSummary {
-  const today = Math.floor(nowMs / MS_PER_DAY);
+  // `todayNumber` rather than `nowMs / MS_PER_DAY`: the points were bucketed by *local*
+  // calendar day, so a UTC-derived cutoff would compare two different calendars and shift
+  // the window by a day for anyone not on UTC.
+  const today = todayNumber(nowMs);
   const cutoff = today - (periodDays - 1);
   const inPeriod = points.filter((point) => point.day >= cutoff);
   const trendInPeriod = trend.filter((point) => point.day >= cutoff);
@@ -180,7 +153,7 @@ export function summarise(
  * carries a fully-formed window instead of restarting from a partial one at the range edge.
  */
 export function withinDays<T extends { day: number }>(points: T[], nowMs: number, days: number): T[] {
-  const cutoff = Math.floor(nowMs / MS_PER_DAY) - (days - 1);
+  const cutoff = todayNumber(nowMs) - (days - 1);
   return points.filter((point) => point.day >= cutoff);
 }
 

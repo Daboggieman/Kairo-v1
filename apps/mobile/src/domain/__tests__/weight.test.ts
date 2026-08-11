@@ -14,14 +14,11 @@ import type { BodyWeightEntry } from '@/db/types';
 
 import {
   dailyWeights,
-  dayKeyFromNumber,
-  dayNumber,
   displayUnit,
   formatDelta,
   goalDelta,
   movingAverage,
   summarise,
-  toDayKey,
   toDisplayWeight,
   withinDays,
 } from '../weight';
@@ -50,25 +47,6 @@ function entry(
 function at(date: string): number {
   return Date.parse(`${date}T12:00:00.000Z`);
 }
-
-describe('toDayKey / dayNumber', () => {
-  it('reduces a timestamp to its calendar day', () => {
-    expect(toDayKey('2026-08-11T06:30:00.000Z')).toBe('2026-08-11');
-    expect(toDayKey('2026-08-11T23:59:59.000Z')).toBe('2026-08-11');
-  });
-
-  it('numbers consecutive days consecutively', () => {
-    expect(dayNumber('2026-08-11') - dayNumber('2026-08-10')).toBe(1);
-  });
-
-  it('round-trips through dayKeyFromNumber', () => {
-    expect(dayKeyFromNumber(dayNumber('2026-08-11'))).toBe('2026-08-11');
-  });
-
-  it('spans a month boundary as one day', () => {
-    expect(dayNumber('2026-09-01') - dayNumber('2026-08-31')).toBe(1);
-  });
-});
 
 describe('dailyWeights', () => {
   it('averages several weigh-ins on the same day into one point', () => {
