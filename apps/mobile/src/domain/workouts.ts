@@ -6,7 +6,12 @@
 
 import type { WeightUnit, WorkoutSet, WorkoutSetWithExercise } from '@/db/types';
 
-const LB_PER_KG = 2.20462262;
+/**
+ * Exported because the history query in `src/db/workouts.ts` has to do the same lb->kg
+ * normalisation in SQL that `setVolume` does here — two hardcoded copies of the factor
+ * would be free to drift apart.
+ */
+export const LB_PER_KG = 2.20462262;
 
 export function kgToLb(kg: number): number {
   return kg * LB_PER_KG;

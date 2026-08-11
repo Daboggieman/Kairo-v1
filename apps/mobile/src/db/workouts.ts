@@ -8,6 +8,8 @@
 
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import { LB_PER_KG } from '@/domain/workouts';
+
 import {
   Exercise,
   ExerciseRow,
@@ -85,14 +87,34 @@ export async function addSet(db: SQLiteDatabase, set: WorkoutSetRow): Promise<vo
 export async function listSessions(
   db: SQLiteDatabase,
   limit = 50,
-): Promise<WorkoutSessionSummary[]> {  const rows = await db.getAllAsync<WorkoutSessionSummaryRow>(
+): Promise<WorkoutSessionSummary[]> {
+  const rows = await db.getAllAsync<WorkoutSessionSummaryRow>(
     `SELECT s.*,
             COUNT(st.id)                                        AS set_count,
-            COALESCE(SUM(st.reps * st.weight), 0)               AS total_volume,
-            COALESCE(GROUP_CONCAT(DISTINCT e.name), '')         AS exercise_names
+            -- Volume is normalised to kg here for the same reason setVolume() does it in
+            -- the domain layer: a session logged in lb would otherwise report ~2.2x the
+            -- volume the detail screen shows for the same sets. LB_PER_KG is interpolated
+            -- from the domain module so the factor has one definition; it is a numeric
+            -- constant, never user input.
+            COALESCE(SUM(
+              st.reps * (CASE WHEN st.weight_unit = 'lb'
+                              THEN st.weight / ${LB_PER_KG}
+                              ELSE st.weight END)
+            ), 0)                                               AS total_volume,
+            -- SQLite rejects a separator argument alongside DISTINCT ("DISTINCT
+            -- aggregates must have exactly one argument"), so the dedupe happens in an
+            -- inner subquery and the two-argument GROUP_CONCAT runs outside it. The '|'
+            -- separator is what toWorkoutSessionSummary splits on; a comma would be
+            -- ambiguous because commas occur inside real exercise names.
+            COALESCE((
+              SELECT GROUP_CONCAT(name, '|')
+              FROM (SELECT DISTINCT e2.name
+                      FROM exercises e2
+                      JOIN workout_sets st2 ON st2.exercise_id = e2.id
+                     WHERE st2.session_id = s.id)
+            ), '')                                              AS exercise_names
      FROM workout_sessions s
-     LEFT JOIN workout_sets st  ON st.session_id  = s.id
-     LEFT JOIN exercises e      ON e.id           = st.exercise_id
+     LEFT JOIN workout_sets st ON st.session_id = s.id
      GROUP BY s.id
      ORDER BY s.started_at DESC
      LIMIT ?`,

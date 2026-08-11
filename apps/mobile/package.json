@@ -12,7 +12,10 @@
     "test": "jest"
   },
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "testMatch": [
+      "**/*.test.[jt]s?(x)"
+    ]
   },
   "dependencies": {
     "expo": "latest",

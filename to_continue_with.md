@@ -31,9 +31,9 @@ as the deployment target (no Docker/Postgres was available on the dev machine).
 - `npx tsc --noEmit` → **0 errors** (tsconfig has `"types": ["jest", "node", "react"]`
   pinned so jest globals resolve without importing them in tests).
 - `npx eslint .` → **clean** (flat config, `eslint-config-expo/flat`).
-- `npm test` → **29 passed** (pure domain logic only; see "test coverage" below).
-- `npx expo export --platform android` → **bundled successfully** (1287 modules) — every
-  import resolves and the router tree is valid end-to-end. Output deleted afterwards.
+- `npm test` → **83 passed** across 3 suites (domain, db query layer, store).
+- `npx expo export --platform android` → **bundled successfully** — every import resolves
+  and the router tree is valid end-to-end. Output deleted afterwards.
 - Flow: Home tab → Workouts history → Start/Resume → pick exercise (modal library, seeded
   30 exercises, search + add-custom) → pre-filled weight/reps from last time
   (`suggestNextSet`) → log sets (writes through to SQLite immediately) → rest timer
@@ -66,10 +66,12 @@ as the deployment target (no Docker/Postgres was available on the dev machine).
   has not been run.
 - **Run the CI once**: after the first push, confirm `.github/workflows/ci.yml` is green —
   particularly the backend job's Postgres service container (migration + tests).
-- **Test coverage** (deliberately scoped this pass): only `src/domain/workouts.ts` is
-  unit-tested (29 tests). `src/db/*` and `src/store/workoutStore.ts` are typed but have no
-  SQLite-backed tests. A later pass should add in-memory SQLite tests for the query layer
-  (`src/db/workouts.ts`) and store actions — the patterns are in `apps/backend/tests/`.
+- **Test coverage** — done for the workouts module: `src/db/workouts.ts` (38 tests) and
+  `src/store/workoutStore.ts` (16 tests) now run against a real in-memory SQLite engine via
+  `node:sqlite` (Node 22 built-in — same engine expo-sqlite uses). See "Test harness" below
+  for how. The harness + patterns (`src/db/__tests__/testDb.ts`) are ready for the next
+  module (weight, tasks, macros): each new query file gets a `__tests__/` suite that
+  imports `createTestDb()`.
 - **Screen-level polish** (manual, on-device): rest-timer target ("long enough" turns
   green at 90s), notes field on finish, RPE field, set-deletion/edit, and the Home
   dashboard are all consciously deferred per `04-feature-specs.md`.
@@ -91,10 +93,45 @@ alembic upgrade head    # c7080c2dd1c6 (idempotent)
 cd apps/mobile
 npm run typecheck       # tsc --noEmit, 0 errors
 npm run lint            # eslint ., clean
-npm test                # 29 passed
+npm test                # 83 passed (3 suites)
 npx expo-doctor         # 20/20
-npx expo export --platform android   # ~83s, 1287 modules
+npx expo export --platform android   # bundles clean
 ```
+
+## Test harness (mobile)
+
+`src/db/__tests__/testDb.ts` exposes `createTestDb()`: a thin adapter that presents Node's
+built-in `node:sqlite` through the subset of the `SQLiteDatabase` interface the query layer
+uses (`execAsync`, `runAsync`, `getAllAsync`, `getFirstAsync`, `prepareAsync`). Tests get
+the real schema from `migrations.ts` and the real seed data, so SQL is exercised as written
+rather than mocked.
+
+Three things to know before extending it:
+
+- `jest.testMatch` in `package.json` is narrowed to `**/*.test.[jt]s?(x)`. jest-expo's
+  default treats every file under `__tests__/` as a suite, which made the shared
+  `testDb.ts` helper fail as an empty test file. Colocated helpers are fine now.
+- Because the harness runs the app's own `migrate()`, it inherits its
+  `PRAGMA foreign_keys = ON` — so tests catch FK violations the app would hit. The store is
+  a zustand module singleton: reset its state in `beforeEach`, or a `sessionId` from the
+  previous test leaks into a fresh database and surfaces as a confusing FK error.
+- `expo-crypto`'s `randomUUID` has no jest implementation; the store suite mocks it with a
+  counter. `Date.now()` is pinned with `jest.useFakeTimers()`.
+
+## Bugs found and fixed by these tests
+
+Both were in `listSessions()` in `src/db/workouts.ts` — the History screen's query. Neither
+was reachable from the domain tests, which is what made the SQLite-backed pass worth doing.
+
+- **`exercise_names` was silently truncated.** `GROUP_CONCAT(DISTINCT e.name)` ignores a
+  custom separator (SQLite rejects a second argument alongside `DISTINCT`), so the query
+  emitted comma-joined names while the mapper split on `'|'` — every session collapsed to
+  one long pseudo-name. Fixed by moving the `DISTINCT` into a subquery so the
+  two-argument `GROUP_CONCAT(name, '|')` can run outside it.
+- **`total_volume` mixed lb and kg.** The SQL summed `reps * weight` raw, while the detail
+  screen's `setVolume()` normalises lb to kg — so a session logged in lb reported ~2.2x the
+  volume of the same session's detail view. The SQL now applies the same conversion, with
+  `LB_PER_KG` exported from `src/domain/workouts.ts` so the factor has one definition.
 
 ## Repo hygiene notes
 
