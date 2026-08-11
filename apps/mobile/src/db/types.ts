@@ -36,6 +36,15 @@ export type WorkoutSetRow = {
   rest_seconds: number | null;
 };
 
+export type BodyWeightEntryRow = {
+  id: string;
+  user_id: string;
+  recorded_at: string;
+  weight: number;
+  weight_unit: string;
+  note: string | null;
+};
+
 export type Exercise = {
   id: string;
   name: string;
@@ -76,6 +85,15 @@ export type WorkoutSessionSummary = WorkoutSession & {
   exerciseNames: string[];
 };
 
+export type BodyWeightEntry = {
+  id: string;
+  userId: string;
+  recordedAt: string;
+  weight: number;
+  weightUnit: WeightUnit;
+  note: string | null;
+};
+
 export function toExercise(row: ExerciseRow): Exercise {
   return {
     id: row.id,
@@ -107,5 +125,16 @@ export function toWorkoutSet(row: WorkoutSetRow): WorkoutSet {
     weightUnit: row.weight_unit === 'lb' ? 'lb' : 'kg',
     rpe: row.rpe,
     restSeconds: row.rest_seconds,
+  };
+}
+
+export function toBodyWeightEntry(row: BodyWeightEntryRow): BodyWeightEntry {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    recordedAt: row.recorded_at,
+    weight: row.weight,
+    weightUnit: row.weight_unit === 'lb' ? 'lb' : 'kg',
+    note: row.note,
   };
 }

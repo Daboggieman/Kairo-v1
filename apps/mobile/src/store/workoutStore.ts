@@ -19,16 +19,17 @@ import { randomUUID } from 'expo-crypto';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { create } from 'zustand';
 
+import { LOCAL_USER_ID } from '@/constants';
 import * as db from '@/db/workouts';
 import type { Exercise, WeightUnit, WorkoutSetWithExercise } from '@/db/types';
 import { nextSetNumber } from '@/domain/workouts';
 
 /**
- * Single-user until Phase 2 adds auth, but `user_id` is on the row from day one
- * (`02-data-model.md`) so multi-user is a data change, not a schema change. This constant
- * is the one place that assumption lives.
+ * Re-exported for the screens that already import it from here. The definition moved to
+ * `@/constants` once the weight module needed it too — a weight screen importing a user id
+ * from the workout store would be an odd dependency to inherit.
  */
-export const LOCAL_USER_ID = 'local-user';
+export { LOCAL_USER_ID };
 
 /** What a screen hands over to log a set; ids, numbering and timestamps are derived here. */
 export type NewSet = {

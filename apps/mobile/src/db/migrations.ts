@@ -12,8 +12,11 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import {
+  CREATE_BODY_WEIGHT_ENTRIES,
   CREATE_EXERCISES,
   CREATE_INDEXES,
+  CREATE_USER_PREFERENCES,
+  CREATE_WEIGHT_INDEXES,
   CREATE_WORKOUT_SESSIONS,
   CREATE_WORKOUT_SETS,
 } from './schema';
@@ -33,6 +36,14 @@ const MIGRATIONS: Migration[] = [
       await db.execAsync(CREATE_WORKOUT_SETS);
       await db.execAsync(CREATE_INDEXES);
       await seedExercises(db);
+    },
+  },
+  {
+    version: 2,
+    up: async (db) => {
+      await db.execAsync(CREATE_BODY_WEIGHT_ENTRIES);
+      await db.execAsync(CREATE_USER_PREFERENCES);
+      await db.execAsync(CREATE_WEIGHT_INDEXES);
     },
   },
 ];

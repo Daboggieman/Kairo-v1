@@ -13,12 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, fontSize, radius, spacing } from '@/theme';
 
-const UPCOMING = [
-  'Weight & progress charts',
-  'Daily tasks & streaks',
-  'Macro tracking',
-  'Motivational quotes',
-];
+const UPCOMING = ['Daily tasks & streaks', 'Macro tracking', 'Motivational quotes'];
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -34,6 +29,13 @@ export default function HomeScreen() {
         <View>
           <Text style={styles.cardTitle}>Workouts</Text>
           <Text style={styles.cardBody}>Log a session, review your history.</Text>
+        </View>
+      </Link>
+
+      <Link href="/weight" style={styles.card}>
+        <View>
+          <Text style={styles.cardTitle}>Weight</Text>
+          <Text style={styles.cardBody}>Log a weigh-in, watch the 7-day trend.</Text>
         </View>
       </Link>
 
