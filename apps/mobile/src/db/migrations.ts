@@ -1,9 +1,9 @@
 /**
  * Versioned migrations, applied via `PRAGMA user_version`.
  *
- * The pattern matters more than today's single entry: three more P0 modules
- * (weight, tasks, macros) will each append a migration here, and the app ships to a
- * real phone where dropping the database to change the schema is not an option.
+ * The pattern matters more than any single entry: the remaining P0 module (macros) will
+ * append another one here, and the app ships to a real phone where dropping the database to
+ * change the schema is not an option.
  *
  * To add one: append to MIGRATIONS and bump SCHEMA_VERSION in `schema.ts`. Never edit
  * an existing entry — a device that already ran it will not run it again.
@@ -15,6 +15,9 @@ import {
   CREATE_BODY_WEIGHT_ENTRIES,
   CREATE_EXERCISES,
   CREATE_INDEXES,
+  CREATE_TASK_COMPLETIONS,
+  CREATE_TASK_INDEXES,
+  CREATE_TASKS,
   CREATE_USER_PREFERENCES,
   CREATE_WEIGHT_INDEXES,
   CREATE_WORKOUT_SESSIONS,
@@ -44,6 +47,14 @@ const MIGRATIONS: Migration[] = [
       await db.execAsync(CREATE_BODY_WEIGHT_ENTRIES);
       await db.execAsync(CREATE_USER_PREFERENCES);
       await db.execAsync(CREATE_WEIGHT_INDEXES);
+    },
+  },
+  {
+    version: 3,
+    up: async (db) => {
+      await db.execAsync(CREATE_TASKS);
+      await db.execAsync(CREATE_TASK_COMPLETIONS);
+      await db.execAsync(CREATE_TASK_INDEXES);
     },
   },
 ];

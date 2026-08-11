@@ -45,6 +45,22 @@ export type BodyWeightEntryRow = {
   note: string | null;
 };
 
+export type TaskRow = {
+  id: string;
+  user_id: string;
+  title: string;
+  recurrence_rule: string;
+  created_at: string;
+  archived: number;
+};
+
+export type TaskCompletionRow = {
+  id: string;
+  task_id: string;
+  completed_date: string;
+  completed_at: string;
+};
+
 export type Exercise = {
   id: string;
   name: string;
@@ -94,6 +110,24 @@ export type BodyWeightEntry = {
   note: string | null;
 };
 
+export type Task = {
+  id: string;
+  userId: string;
+  title: string;
+  /** Compact rule string; parse with `parseRecurrence` in `src/domain/tasks.ts`. */
+  recurrenceRule: string;
+  createdAt: string;
+  archived: boolean;
+};
+
+export type TaskCompletion = {
+  id: string;
+  taskId: string;
+  /** Local calendar day, `YYYY-MM-DD`. */
+  completedDate: string;
+  completedAt: string;
+};
+
 export function toExercise(row: ExerciseRow): Exercise {
   return {
     id: row.id,
@@ -136,5 +170,25 @@ export function toBodyWeightEntry(row: BodyWeightEntryRow): BodyWeightEntry {
     weight: row.weight,
     weightUnit: row.weight_unit === 'lb' ? 'lb' : 'kg',
     note: row.note,
+  };
+}
+
+export function toTask(row: TaskRow): Task {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    title: row.title,
+    recurrenceRule: row.recurrence_rule,
+    createdAt: row.created_at,
+    archived: row.archived === 1,
+  };
+}
+
+export function toTaskCompletion(row: TaskCompletionRow): TaskCompletion {
+  return {
+    id: row.id,
+    taskId: row.task_id,
+    completedDate: row.completed_date,
+    completedAt: row.completed_at,
   };
 }

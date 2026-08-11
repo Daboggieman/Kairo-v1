@@ -8,7 +8,7 @@
  */
 
 /** Bumped whenever a migration is appended in `migrations.ts`. */
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export const CREATE_EXERCISES = `
 CREATE TABLE IF NOT EXISTS exercises (
@@ -81,3 +81,64 @@ CREATE TABLE IF NOT EXISTS user_preferences (
 export const CREATE_WEIGHT_INDEXES = `
 CREATE INDEX IF NOT EXISTS idx_weight_user_recorded
   ON body_weight_entries(user_id, recorded_at DESC);`;
+
+/* -------------------------------------------------------------------------- */
+/* Migration 3 — daily tasks & streaks                                        */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * `recurrence_rule` is a compact string parsed by `src/domain/tasks.ts` — `daily`,
+ * `weekdays`, `weekends`, `weekly:1,3,5`, `interval:3`.
+ *
+ * `02-data-model.md` suggests "daily/weekdays/custom RRULE". A full RRULE parser is a
+ * dependency and a large surface for a habit list whose realistic vocabulary is those five
+ * shapes, so the string stays hand-rolled and the *parser* is the contract. It is stored as
+ * text rather than normalised into columns because Phase 2 sync then moves one opaque value
+ * instead of reconciling a set of flags.
+ */
+export const CREATE_TASKS = `
+CREATE TABLE IF NOT EXISTS tasks (
+  id              TEXT PRIMARY KEY NOT NULL,
+  user_id         TEXT NOT NULL,
+  title           TEXT NOT NULL,
+  recurrence_rule TEXT NOT NULL DEFAULT 'daily',
+  created_at      TEXT NOT NULL,
+  archived        INTEGER NOT NULL DEFAULT 0
+);`;
+
+/**
+ * One row per task per day it was completed.
+ *
+ * `completed_date` is the local calendar day (`YYYY-MM-DD`, from `dayKeyFromDate`) and
+ * `completed_at` the instant — the same split as `body_weight_entries`, for the same reason:
+ * the day is what the streak counts, the instant is worth keeping.
+ *
+ * The UNIQUE constraint is the point of the table. A habit is either done today or it is not,
+ * so a double-tap must not be able to log it twice and inflate a count — `setCompletion` can
+ * then be a plain INSERT OR IGNORE and the toggle is idempotent, which also means Phase 2
+ * sync replaying an event is harmless.
+ *
+ * No materialised `Streak` table, though `02-data-model.md` floats one. Streaks are derived in
+ * `src/domain/tasks.ts` from these rows: for one user with tens of tasks the walk is trivial,
+ * and a stored counter is a second source of truth that drifts the moment a completion is
+ * deleted or arrives out of order over sync.
+ */
+export const CREATE_TASK_COMPLETIONS = `
+CREATE TABLE IF NOT EXISTS task_completions (
+  id             TEXT PRIMARY KEY NOT NULL,
+  task_id        TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+  completed_date TEXT NOT NULL,
+  completed_at   TEXT NOT NULL,
+  UNIQUE (task_id, completed_date)
+);`;
+
+/**
+ * The Today list filters on `(user_id, archived)`; the streak walk reads one task's dates
+ * newest-first. The UNIQUE constraint above already indexes `(task_id, completed_date)`
+ * ascending, so this index exists for the descending scan.
+ */
+export const CREATE_TASK_INDEXES = `
+CREATE INDEX IF NOT EXISTS idx_tasks_user_archived ON tasks(user_id, archived);
+CREATE INDEX IF NOT EXISTS idx_completions_task_date
+  ON task_completions(task_id, completed_date DESC);
+CREATE INDEX IF NOT EXISTS idx_completions_date ON task_completions(completed_date);`;
