@@ -13,19 +13,20 @@ Phase 0 (monorepo scaffold) and all four Phase 1/P0 modules — **workout loggin
 are implemented and verified.
 
 Phase 1/P0 is now complete as a coherent daily app: Home aggregates all four local modules.
-The first manual device smoke test is complete for the Today/tasks workflow. Two additional
-device findings were fixed in code and need one focused retest before the **Phase 2 sync + auth
-foundation** begins.
+The full manual device smoke test is complete, including the Today/tasks workflow, locale
+decimal inputs, and real bottom-tab icons. The project is ready for the **Phase 2 sync + auth
+foundation**.
 
-**Git**: `master`; `HEAD` and `origin/master` were both `984901c` before this work. The
-macro module, Home dashboard, and this handoff update are currently **uncommitted
-working-tree changes**.
+**Git**: `master`; `HEAD` and `origin/master` are both `b08aabf`. The locale-decimal fix,
+tab icons and their dependencies, regression tests, and this handoff update are currently
+**uncommitted working-tree changes**.
 Confirm the real state with `git status --short` and `git log --oneline origin/master..HEAD`.
 
 The last pushed commits are:
 
 | Commit | What |
 |---|---|
+| `b08aabf` | Macro/nutrition v4 storage and UI, Home dashboard composition, tests, and handoff |
 | `44c140d` | `refactor(dates)` — extract `src/domain/dates.ts`, fix two UTC/local window bugs in weight |
 | `9d641d3` | `feat(tasks)` — the whole tasks module, migration v3, three screens, 97 new tests |
 | `984901c` | `docs` — tasks-module handoff |
@@ -68,10 +69,10 @@ Verified at the end of this session:
 
 - `npm run typecheck` (`tsc --noEmit`) → **0 errors**.
 - `npm run lint` (`eslint .`) → **clean**, 0 errors 0 warnings.
-- `npm test` → **334 passed across 13 suites**. New: decimal-input parsing (15), macros domain (14), macros query
-  layer (20), and dashboard composition (10).
-- `npx expo-doctor` → **20/20 checks passed**.
-- `npx expo export --platform android` → **successful**, 1,425 modules bundled. The emitted
+- `npm test` → **334 passed across 13 suites**. New: decimal-input parsing (15), macros
+  domain (14), macros query layer (20), and dashboard composition (10).
+- `npx expo-doctor` → **21/21 checks passed**.
+- `npx expo export --platform android` → **successful**, 1,437 modules bundled. The emitted
   `dist/` was deleted afterwards.
 
 Module flows that work:
@@ -112,17 +113,20 @@ The device run reported two defects outside the fully passing Today/tasks workfl
   Macros, Workouts, and Weight. `@expo/vector-icons` and its required `expo-font` peer/config
   plugin are declared directly.
 
-The device must retest these paths before Phase 2:
+The focused device retest passed:
 
 1. Create Chicken breast (165 kcal, 31 g protein, 0 g carbs, 3.6 g fat per 100 g), enter
-   quantity `1,5` (or the device's decimal separator), and verify `247.5 kcal`, `46.5 g`
-   protein, `0.0 g` carbs, `5.4 g` fat, plus a `1.5 × 100 g` serving row.
+   quantity `1,5` (or the device's decimal separator), and verify the underlying `247.5 kcal`
+   contribution (displayed as approximately `248 kcal`), `46.5 g` protein, `0.0 g` carbs,
+   `5.4 g` fat, plus a `1.5 × 100 g` serving row.
 2. Log weight `75,5` and verify the stored/displayed value is `75.5`, then compare Home's
    value with the smoothed Weight trend after multiple dated entries.
 3. Log an active-workout set at `62,5` and verify the set displays/stores `62.5`.
 4. Enter decimal values in macro targets and the weight goal and verify save, reload, and
    validation behaviour.
 5. Confirm all five bottom tabs show real icons rather than placeholder rectangles.
+
+All five checks passed on the physical device. The decimal-input and icon findings are closed.
 
 The physical migration scenario was not available on this device because it had no prior
 Kairo data; the populated v3-to-v4 migration remains covered by the automated SQLite suite.
@@ -371,13 +375,13 @@ Decisions worth keeping:
 
 Ordered by what a next session should probably do first.
 
-1. **Focused manual retest for the resolved findings above.** Today/tasks, macro day
-   navigation, custom-food flow, Home cards, workout lifecycle, and the remaining smoke-test
-   paths passed in the first run. The decimal-separator cases and real tab icons still need
-   confirmation on the physical device.
+1. **Focused manual retest — complete.** Today/tasks, macro day navigation, custom-food flow,
+   Home cards, workout lifecycle, locale decimal cases, and real tab icons passed on the
+   physical device. The migration scenario remains automated-only because this device had no
+   prior Kairo data.
 2. **Confirm CI after committing and pushing.** `.github/workflows/ci.yml` had three
-   successful runs as of the previous handoff. The uncommitted macro work cannot have been
-   checked yet, and
+  successful runs as of the previous handoff. The uncommitted manual-finding fixes cannot
+  have been checked yet, and
    **`gh` is not installed in this environment** (`gh: command not found`), so it could not
    be verified from here — check the Actions tab, or install `gh`. The backend job's
    Postgres service container is the only real exercise of the Postgres path.

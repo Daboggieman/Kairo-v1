@@ -23,12 +23,37 @@ The current automated baseline is:
 
 - TypeScript typecheck: clean
 - ESLint: clean
-- Jest: 319 tests passed across 12 suites
-- Expo Doctor: 20/20 checks passed
-- Android production export: successful
+- Jest: 334 tests passed across 13 suites
+- Expo Doctor: 21/21 checks passed
+- Android production export: successful (1,437 modules)
 
 The physical test is for native behavior, persistence, navigation, layout, keyboard use,
 SQLite migration behavior, force-close recovery, and touch ergonomics. It is not a web test.
+
+
+0. FOCUSED RETEST AFTER THE FIRST DEVICE RUN
+---------------------------------------------
+
+The first run fully passed the Today/tasks workflow. The following two findings were fixed
+before this retest:
+
+1. Confirm the five bottom tabs show real icons for Home, Today, Macros, Workouts, and Weight.
+   Placeholder rectangles with an `X` indicate that the new build was not loaded or that the
+   icon/font dependency is still broken.
+
+2. In Macros, create Chicken breast using the existing fixture and type the quantity with the
+   device's locale separator, especially `1,5`. The entry must show `1.5 × 100 g`; the
+   underlying contribution is 247.5 kcal, displayed as approximately 248 kcal, with 46.5 g
+   protein, 0.0 g carbs, and 5.4 g fat. Repeat with a saved-food quantity of `0,5`.
+
+3. In Weight, log `75,5` and verify it remains 75.5 in the history and Home trend. Add enough
+   dated entries to confirm Home uses the smoothed trend value rather than the latest raw value.
+
+4. In an active workout, log a set with weight `62,5` and verify the stored/displayed set is
+   62.5. Also enter decimal values in Macro targets and Goal weight and verify save/reload.
+
+If any of these fail, record the exact field text, displayed result, device locale, and the
+commit SHA before changing source code.
 
 
 1. IMPORTANT TESTING RULES
@@ -133,8 +158,8 @@ Expected results:
 
 - `npm run typecheck` exits with code 0.
 - `npm run lint` exits with code 0 and no warnings.
-- Jest reports 319 tests passed across 12 suites.
-- Expo Doctor reports 20/20 checks passed.
+- Jest reports 334 tests passed across 13 suites.
+- Expo Doctor reports 21/21 checks passed.
 
 If any command fails, stop the device test and capture the full command output. Do not hide a
 preflight failure by changing dependencies during the test.

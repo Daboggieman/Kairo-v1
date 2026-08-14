@@ -27,7 +27,9 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="home-outline" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="home-outline" color={color} size={size} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -35,7 +37,13 @@ export default function TabsLayout() {
         options={{
           title: 'Today',
           headerShown: false,
-          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="checkbox-marked-circle-outline" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons
+              name="checkbox-marked-circle-outline"
+              color={color}
+              size={size}
+            />
+          ),
         }}
       />
       <Tabs.Screen
@@ -43,7 +51,9 @@ export default function TabsLayout() {
         options={{
           title: 'Macros',
           headerShown: false,
-          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="food-apple-outline" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="food-apple-outline" color={color} size={size} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -51,7 +61,9 @@ export default function TabsLayout() {
         options={{
           title: 'Workouts',
           headerShown: false,
-          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="dumbbell" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="dumbbell" color={color} size={size} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -59,7 +71,9 @@ export default function TabsLayout() {
         options={{
           title: 'Weight',
           headerShown: false,
-          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="scale-bathroom" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="scale-bathroom" color={color} size={size} />
+          ),
         }}
       />
     </Tabs>
