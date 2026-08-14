@@ -1,30 +1,32 @@
 # Continue with
 
-Handoff for the Kairo v1 sessions so far: Phase 0 scaffold, then Workouts, Weight and
-Tasks. Read before continuing.
+Handoff for the Kairo v1 sessions so far: Phase 0 scaffold, then Workouts, Weight, Tasks
+and Macros. Read before continuing.
 
-Last updated: **2026-08-11**, after the tasks module landed.
+Last updated: **2026-08-14**, after the macro module and Home dashboard landed.
 
 ## Status
 
-Phase 0 (monorepo scaffold) and the first three Phase 1 modules — **workout logging**,
-**weight/progress charts** and **daily tasks & streaks** — are implemented and verified.
+Phase 0 (monorepo scaffold) and all four Phase 1/P0 modules — **workout logging**,
+**weight/progress charts**, **daily tasks & streaks**, and **macro/nutrition tracking** —
+are implemented and verified.
 
-By roadmap order (`docs/06-roadmap.md`), the next module is **macro tracking**, which is
-the last P0 module. After that the Home dashboard has something real to aggregate, and
-Phase 2 (backend sync + auth) begins.
+Phase 1/P0 is now complete as a coherent daily app: Home aggregates all four local modules.
+After a manual device smoke test, the next implementation task is the **Phase 2 sync + auth
+foundation**.
 
-**Git**: `master`, pushed to `origin/master` (`https://github.com/Daboggieman/Kairo-v1`).
-Three commits went in this session:
+**Git**: `master`; `HEAD` and `origin/master` were both `984901c` before this work. The
+macro module, Home dashboard, and this handoff update are currently **uncommitted
+working-tree changes**.
+Confirm the real state with `git status --short` and `git log --oneline origin/master..HEAD`.
+
+The last pushed commits are:
 
 | Commit | What |
 |---|---|
 | `44c140d` | `refactor(dates)` — extract `src/domain/dates.ts`, fix two UTC/local window bugs in weight |
 | `9d641d3` | `feat(tasks)` — the whole tasks module, migration v3, three screens, 97 new tests |
-| (this doc) | `docs` — this handoff |
-
-Confirm the real state with `git log --oneline origin/master..HEAD` rather than trusting
-this table.
+| `984901c` | `docs` — tasks-module handoff |
 
 Two corrections to what the previous version of this file claimed:
 
@@ -52,10 +54,10 @@ Postgres as the deployment target.
   `TODO(phase-2)` noting the endpoints are unauthenticated by design until then.
 - `alembic/env.py` reads `DATABASE_URL` from `app.core.config` (single source of truth).
 
-**Not re-run this session** — the tasks module is mobile-only and touches no backend file,
+**Not re-run this session** — the macro module is mobile-only and touches no backend file,
 so these numbers are carried over from the previous verification. Re-run them before
-trusting them (see "Verification commands"). The backend still has **no tasks endpoints**;
-it is a workouts-only API, which is fine until Phase 2.
+trusting them (see "Verification commands"). The backend still has **no tasks, weight, or
+nutrition endpoints**; it is a workouts-only API, which is fine until Phase 2.
 
 ### Mobile — implemented and verified
 `apps/mobile/`, Expo SDK 57 + Expo Router (file-based) + expo-sqlite + Zustand.
@@ -64,19 +66,18 @@ Verified at the end of this session:
 
 - `npm run typecheck` (`tsc --noEmit`) → **0 errors**.
 - `npm run lint` (`eslint .`) → **clean**, 0 errors 0 warnings.
-- `npm test` → **275 passed across 9 suites** (was 163 across 6). New: tasks domain (68),
-  tasks query layer (29), dates (12).
-
-**Not re-run this session, and worth running first thing next session:**
-
-- `npx expo-doctor` — last run 20/20, before the tasks module existed.
-- `npx expo export --platform android` — the cheapest end-to-end proof that every import
-  resolves and the router tree is valid, which matters because this session added four new
-  route files. Delete the emitted `dist/` afterwards. Nothing suggests it will fail —
-  typecheck covers the imports — but the router tree is not type-checked.
+- `npm test` → **319 passed across 12 suites**. New: macros domain (14), macros query
+  layer (20), and dashboard composition (10).
+- `npx expo-doctor` → **20/20 checks passed**.
+- `npx expo export --platform android` → **successful**, 1,425 modules bundled. The emitted
+  `dist/` was deleted afterwards.
 
 Module flows that work:
 
+- **Home**: one focus-time load reads tasks, nutrition, weight, workout history, and any
+  active session together. It shows unfinished tasks in priority order, macro progress,
+  the smoothed weight trend and 30-day change, and active/recent workout status. Each section
+  opens its owning module; an active workout goes straight to Resume.
 - **Workouts**: Home → Workouts history → Start/Resume → pick exercise (modal library,
   seeded 30 exercises, search + add-custom) → weight/reps pre-filled from last time
   (`suggestNextSet`) → log sets (writes through to SQLite immediately) → rest timer
@@ -89,16 +90,20 @@ Module flows that work:
   which reloads on focus. Goal weight is a second modal; long-press a history row to
   delete. No Zustand store — the screens read SQLite directly, since there is no
   cross-screen in-progress state the way an active workout has.
-- **Tasks** (new): Home → Today tab → tick habits off, or open one for its streak history.
+- **Tasks**: Home → Today tab → tick habits off, or open one for its streak history.
   Detail below.
+- **Macros** (new): Home → Macros → browse the day log, move backward through previous days,
+  inspect calorie/protein/carbs/fat progress, add a saved or custom food with a serving
+  quantity and meal, or edit effective-dated targets. Entries are grouped by meal and can be
+  deleted with a long press. Detail below.
 
-## The tasks module (new this session)
+## The tasks module
 
 ### Files
 
 | Path | Role |
 |---|---|
-| `src/db/schema.ts` | `CREATE_TASKS`, `CREATE_TASK_COMPLETIONS`, `CREATE_TASK_INDEXES`; `SCHEMA_VERSION = 3` |
+| `src/db/schema.ts` | `CREATE_TASKS`, `CREATE_TASK_COMPLETIONS`, `CREATE_TASK_INDEXES`; introduced by schema v3 |
 | `src/db/migrations.ts` | migration `version: 3` appended |
 | `src/db/types.ts` | `TaskRow`/`Task`, `TaskCompletionRow`/`TaskCompletion`, `toTask`, `toTaskCompletion` |
 | `src/domain/dates.ts` | shared calendar-day helpers (extracted, see below) |
@@ -110,7 +115,7 @@ Module flows that work:
 | `app/(tabs)/tasks/new.tsx` | add-task modal |
 | `app/(tabs)/tasks/[taskId].tsx` | streak detail + history grid |
 | `app/(tabs)/_layout.tsx` | `Tabs.Screen name="tasks"` added between Home and Workouts |
-| `app/(tabs)/index.tsx` | Home gained a "Today" card; `UPCOMING` is now just macros + quotes |
+| `app/(tabs)/index.tsx` | Home gained a "Today" card |
 
 Tests: `src/domain/__tests__/tasks.test.ts` (606 lines, 68 cases),
 `src/db/__tests__/tasks.test.ts` (461 lines, 29 cases),
@@ -215,6 +220,82 @@ their completions and their `created_at`, so restoring one restores its streak �
   a current streak alone is brittle to be judged on. 27 of 30 with yesterday missed reads as
   a streak of 1, and only the other two numbers say the user is doing well.
 
+## The macros module (new this session)
+
+### Files and shape
+
+| Path | Role |
+|---|---|
+| `src/db/schema.ts` | `food_items`, `nutrition_entries`, `macro_targets`, indexes; `SCHEMA_VERSION = 4` |
+| `src/db/migrations.ts` | append-only migration `version: 4` |
+| `src/db/types.ts` | food, entry, target row/domain types and mappers |
+| `src/domain/macros.ts` | pure serving math, daily totals, target comparison, meal grouping |
+| `src/db/macros.ts` | food search/create, day log CRUD, effective target queries |
+| `app/(tabs)/macros/index.tsx` | day navigation, progress bars, meal groups, entry deletion |
+| `app/(tabs)/macros/add.tsx` | food search, custom food creation, quantity and meal selection |
+| `app/(tabs)/macros/targets.tsx` | effective-dated calorie/protein/carbs/fat targets |
+
+Tests: `src/domain/__tests__/macros.test.ts` (14 cases) and
+`src/db/__tests__/macros.test.ts` (20 cases), including a populated v3→v4 migration test
+and a real-query-output-to-domain-summary integration case.
+
+### Decisions embedded in migration v4
+
+- **Personal food library, no licensed nutrition dataset.** `food_items` belongs to a user
+  and stores nutrition per a human-readable serving (`100 g`, `one scoop`, etc.). Search is
+  case-insensitive substring matching over saved foods; `%` and `_` are literal because the
+  query uses `instr`, not `LIKE`.
+- **Quantity is a serving multiplier.** The food definition remains reusable, while each
+  `nutrition_entry.quantity` records `0.5`, `1`, `1.5`, etc. Pure domain math multiplies all
+  four nutrients by it.
+- **`logged_date` and `logged_at` are separate.** The day log reads the local `YYYY-MM-DD`;
+  the instant records when the entry was added. This follows tasks and weight rather than
+  deriving a local date inside SQL.
+- **Targets are effective-dated.** Saving on a new date creates a new target; saving again on
+  the same date updates that row. A historical day uses the newest target whose
+  `effective_date <= logged_date`, so changing today's plan does not rewrite old progress.
+- **Food deletion is deliberately absent.** Entries reference a food definition without a
+  cascade. The v1 UI can delete a mistaken day entry, but it cannot orphan years of history
+  by removing a library item.
+- **Progress uses bars rather than rings.** `04-feature-specs.md` explicitly permits
+  ring/bar. Bars render all four metrics legibly in a compact mobile panel with no further
+  chart dependency. The drawn fill caps at 100%, while consumed totals and negative
+  remaining values still preserve over-target information.
+- **User ownership is enforced on writes.** `addNutritionEntry` uses `INSERT … SELECT` from
+  a food row scoped to the same `user_id`; a guessed food id from another future account
+  cannot be attached to the current user's log.
+
+## The Home dashboard (new this session)
+
+### Files and shape
+
+| Path | Role |
+|---|---|
+| `src/domain/dashboard.ts` | pure cross-module composition; delegates calculations to each module |
+| `src/domain/__tests__/dashboard.test.ts` | 10 cases covering schedules, streak risk, macros, trend weight, workout priority, empty state |
+| `app/(tabs)/index.tsx` | the actual daily dashboard, replacing the launcher and `UPCOMING` list |
+
+No schema, store, or dashboard-specific persisted state was added. Home is a read model over
+the module tables, so it cannot drift from the screens it summarizes.
+
+Decisions worth keeping:
+
+- **One focus-time `Promise.all`.** The dashboard captures `nowMs`, derives the local day,
+  and reads all modules together. Returning from a logging modal updates Home immediately,
+  and a phone left open across midnight moves every section to the new day together.
+- **Existing domain functions remain authoritative.** Tasks route through
+  `splitByDueToday`, macros through `summariseMacros`, and weight through
+  `dailyWeights`/`movingAverage`/`summarise`. Home does not carry simplified copies of
+  streak, target, or calendar-window logic.
+- **Unfinished tasks only in the preview.** At most three are shown, in the exact priority
+  order the Today screen uses. Due/done/at-risk counts still cover the whole day.
+- **Trend weight, not the latest raw reading.** The dashboard follows the weight module's
+  product decision instead of reintroducing daily scale noise on the first screen.
+- **Active workout wins.** An open session changes the card action to Resume and routes
+  directly to the active screen; otherwise the most recent completed session is summarized.
+- **Late reads are dropped.** The focus effect applies its result only if Home is still
+  focused, so navigating away during a SQLite load cannot set stale screen state.
+
 ## Decisions to know (whole project)
 
 - **Expo Router over React Navigation** (deviation from the planning docs): routes live in
@@ -228,7 +309,7 @@ their completions and their `created_at`, so restoring one restores its streak �
   constant to find everything Phase 2 auth has to touch; every row carries `user_id` from
   day one per the data model, and the queries honour it (there are tests for that, in a
   single-user app, on purpose — the filters must not be missing when sync arrives).
-- **Calendar-day arithmetic lives in `src/domain/dates.ts`** (new this session, extracted
+- **Calendar-day arithmetic lives in `src/domain/dates.ts`** (extracted
   from `domain/weight.ts` when tasks needed the same helpers — the same move `LOCAL_USER_ID`
   made). `dayKeyFromDate` is the single place the host timezone is read; `toDayKey` and
   `todayNumber` both route through it, so "the day this timestamp belongs to" and "the day
@@ -260,22 +341,21 @@ their completions and their `created_at`, so restoring one restores its streak �
 
 Ordered by what a next session should probably do first.
 
-1. **Re-run the two skipped mobile checks** (5 minutes): `npx expo-doctor` and
-   `npx expo export --platform android` from `apps/mobile`, then delete `dist/`. The export
-   is the only thing that validates the four new route files as a router tree.
-2. **Confirm CI on this push.** `.github/workflows/ci.yml` had three successful runs as of
-   the start of this session. This session's two code commits have not been checked, and
+1. **Manual device smoke test for macros and Home.** Automated checks and the production
+   bundle are green, but the day picker, keyboard-heavy custom-food form, long-press delete,
+   five bottom tabs, dashboard card density, and small-screen text fit should be exercised on
+   a real phone.
+2. **Confirm CI after committing and pushing.** `.github/workflows/ci.yml` had three
+   successful runs as of the previous handoff. The uncommitted macro work cannot have been
+   checked yet, and
    **`gh` is not installed in this environment** (`gh: command not found`), so it could not
    be verified from here — check the Actions tab, or install `gh`. The backend job's
    Postgres service container is the only real exercise of the Postgres path.
-3. **Macro tracking** — the next roadmap module, and the last P0 one. Follow "Adding the next
-   module" below. It is the biggest of the four (food entries, per-day targets, an aggregate
-   ring), so expect a migration v4 with more than two tables.
-4. **Home dashboard.** It has been a placeholder on the grounds that it aggregates modules
-   that did not exist. Three of four now do, and `splitByDueToday` + `summarise` already
-   return exactly what a dashboard card needs. Worth doing after macros, or before, if
-   something visible is wanted sooner.
-5. **Docker stack smoke test** (`infra/docker-compose.yml`): `docker compose up -d postgres`,
+3. **Phase 2 sync + auth.** Add backend models/endpoints for weight, tasks, and nutrition,
+   authenticate the existing workout endpoints, then build an idempotent local outbox/sync
+   path. Every mobile row already carries `user_id`; macro entries and task completions have
+   uniqueness/ownership rules intended to make replay safe.
+4. **Docker stack smoke test** (`infra/docker-compose.yml`): `docker compose up -d postgres`,
    `alembic upgrade head`, `uvicorn --reload`, `pytest` against it. **Still blocked in this
    environment**, and here is exactly why, so the next session does not re-derive it:
    `/usr/bin/docker` exists but the daemon socket returns permission denied (the user is in
@@ -283,11 +363,11 @@ Ordered by what a next session should probably do first.
    `sudo` requires a password that is not available. Fixing it needs
    `sudo usermod -aG docker $USER` + a re-login, plus the compose plugin. Both
    `infra/docker-compose.yml` and `apps/backend/Dockerfile` note they are YAML-validated only.
-6. **Screen-level polish** (manual, on-device), all consciously deferred per
+5. **Screen-level polish** (manual, on-device), all consciously deferred per
    `04-feature-specs.md`: rest-timer target ("long enough" turns green at 90s), notes field
    on finish, RPE field, set edit/delete. Nothing in the tasks module is on this list — it
    shipped complete against its spec.
-7. **`src/store/workoutStore.ts` refinement**: `emptySession()` returns all-`null` fields, so
+6. **`src/store/workoutStore.ts` refinement**: `emptySession()` returns all-`null` fields, so
    "no session open" and "session open" are not distinguishable at the type level. Worth a
    discriminated union once an edit flow exists. Not urgent, not flagged in the code.
 
@@ -307,9 +387,9 @@ alembic upgrade head    # c7080c2dd1c6 (idempotent)
 cd apps/mobile
 npm run typecheck       # tsc --noEmit, 0 errors
 npm run lint            # eslint ., clean
-npm test                # 275 passed (9 suites)
-npx expo-doctor         # 20/20 as of the weight module; not re-run since
-npx expo export --platform android   # not re-run since the tasks module; delete dist/ after
+npm test                # 319 passed (12 suites)
+npx expo-doctor         # 20/20
+npx expo export --platform android   # successful with macro routes; delete dist/ after
 ```
 
 If `node_modules` or `.venv` are missing (a fresh clone, or a cleaned machine):
@@ -322,7 +402,7 @@ pip install -e '.[dev]'` in `apps/backend`.
 built-in `node:sqlite` through the subset of the `SQLiteDatabase` interface the query layer
 uses (`execAsync`, `runAsync`, `getAllAsync`, `getFirstAsync`, `prepareAsync`). Tests get the
 real schema from `migrations.ts` and the real seed data, so SQL is exercised as written
-rather than mocked. All three query-layer suites use it.
+rather than mocked. All four query-layer suites use it.
 
 Four things to know before extending it:
 
@@ -376,14 +456,15 @@ window compared two different calendars and could shift by a day. Both now call
 `todayNumber(nowMs)`. Not caught earlier because the suite pins `TZ=UTC`, where the two agree
 — worth remembering when reading a green run as proof of timezone correctness.
 
-## Adding the next module
+## Pattern for future modules
 
-Three modules have now taken the same shape. Copy it:
+Four modules have now taken the same shape. Copy it:
 
 1. **Migration** — append to `MIGRATIONS` in `src/db/migrations.ts` and bump
    `SCHEMA_VERSION` in `src/db/schema.ts`. Never edit an existing entry: installs in the wild
    have already run it. v1 workouts, v2 weight (`body_weight_entries`, `user_preferences`),
-   v3 tasks (`tasks`, `task_completions`). Macros is v4.
+   v3 tasks (`tasks`, `task_completions`), v4 macros (`food_items`,
+   `nutrition_entries`, `macro_targets`).
 2. **Types** — a row type and a domain type in `src/db/types.ts` plus a `to*` mapper. The
    split is what keeps `snake_case` SQL out of the screens. Don't add a join type
    speculatively — the tasks pass deleted a `TaskWithCompletion` that no query ended up

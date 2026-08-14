@@ -1,9 +1,8 @@
 /**
  * Bottom tabs — one per top-level module.
  *
- * Home, Workouts, Weight and Tasks exist so far. Macros becomes another folder under
- * `app/(tabs)/` with its own `_layout.tsx`, which is the structural half of the "one app,
- * modular features" principle in `01-architecture-and-stack.md`.
+ * Each module owns a folder under `app/(tabs)/` and a nested stack, keeping modal entry flows
+ * out of this top-level navigation file.
  */
 
 import { Tabs } from 'expo-router';
@@ -25,6 +24,7 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="index" options={{ title: 'Home' }} />
       <Tabs.Screen name="tasks" options={{ title: 'Today', headerShown: false }} />
+      <Tabs.Screen name="macros" options={{ title: 'Macros', headerShown: false }} />
       <Tabs.Screen name="workouts" options={{ title: 'Workouts', headerShown: false }} />
       <Tabs.Screen name="weight" options={{ title: 'Weight', headerShown: false }} />
     </Tabs>

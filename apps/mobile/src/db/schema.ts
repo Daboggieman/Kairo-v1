@@ -8,7 +8,7 @@
  */
 
 /** Bumped whenever a migration is appended in `migrations.ts`. */
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 export const CREATE_EXERCISES = `
 CREATE TABLE IF NOT EXISTS exercises (
@@ -142,3 +142,73 @@ CREATE INDEX IF NOT EXISTS idx_tasks_user_archived ON tasks(user_id, archived);
 CREATE INDEX IF NOT EXISTS idx_completions_task_date
   ON task_completions(task_id, completed_date DESC);
 CREATE INDEX IF NOT EXISTS idx_completions_date ON task_completions(completed_date);`;
+
+/* -------------------------------------------------------------------------- */
+/* Migration 4 — macro / nutrition tracking                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A small personal food library rather than a licensed third-party catalogue.
+ *
+ * Nutrition values are per `serving_label` ("100 g", "1 scoop", "1 bowl", …), and an
+ * entry's quantity is a multiplier of that serving. Foods are user-owned from day one so
+ * Phase 2 sync cannot leak one account's custom foods into another account's search.
+ */
+export const CREATE_FOOD_ITEMS = `
+CREATE TABLE IF NOT EXISTS food_items (
+  id                   TEXT PRIMARY KEY NOT NULL,
+  user_id              TEXT NOT NULL,
+  name                 TEXT NOT NULL,
+  calories_per_serving REAL NOT NULL CHECK (calories_per_serving >= 0),
+  protein_g            REAL NOT NULL CHECK (protein_g >= 0),
+  carbs_g              REAL NOT NULL CHECK (carbs_g >= 0),
+  fat_g                REAL NOT NULL CHECK (fat_g >= 0),
+  serving_label        TEXT NOT NULL,
+  created_at           TEXT NOT NULL
+);`;
+
+/**
+ * One consumed food on one local calendar day.
+ *
+ * `logged_date` is stored separately from `logged_at` for the same reason task completions
+ * keep both: the date is what the day log queries, while the instant remains useful. The
+ * food row is retained as the nutrition definition; v1 deliberately offers entry deletion
+ * but no destructive food-library action, so history cannot become orphaned.
+ */
+export const CREATE_NUTRITION_ENTRIES = `
+CREATE TABLE IF NOT EXISTS nutrition_entries (
+  id           TEXT PRIMARY KEY NOT NULL,
+  user_id      TEXT NOT NULL,
+  food_item_id TEXT NOT NULL REFERENCES food_items(id),
+  logged_at    TEXT NOT NULL,
+  logged_date  TEXT NOT NULL,
+  quantity     REAL NOT NULL CHECK (quantity > 0),
+  meal_type    TEXT NOT NULL CHECK (meal_type IN ('breakfast', 'lunch', 'dinner', 'snack'))
+);`;
+
+/**
+ * Targets are effective-dated, not overwritten in place. A target change next month must
+ * not rewrite the meaning of last month's progress bars. One row per effective day makes a
+ * repeated save an update rather than a duplicate target competing in the same query.
+ */
+export const CREATE_MACRO_TARGETS = `
+CREATE TABLE IF NOT EXISTS macro_targets (
+  id             TEXT PRIMARY KEY NOT NULL,
+  user_id        TEXT NOT NULL,
+  calories       REAL NOT NULL CHECK (calories >= 0),
+  protein_g      REAL NOT NULL CHECK (protein_g >= 0),
+  carbs_g        REAL NOT NULL CHECK (carbs_g >= 0),
+  fat_g          REAL NOT NULL CHECK (fat_g >= 0),
+  effective_date TEXT NOT NULL,
+  created_at     TEXT NOT NULL,
+  UNIQUE (user_id, effective_date)
+);`;
+
+export const CREATE_NUTRITION_INDEXES = `
+CREATE INDEX IF NOT EXISTS idx_food_user_name
+  ON food_items(user_id, name COLLATE NOCASE);
+CREATE INDEX IF NOT EXISTS idx_nutrition_user_date_meal
+  ON nutrition_entries(user_id, logged_date, meal_type, logged_at);
+CREATE INDEX IF NOT EXISTS idx_nutrition_food ON nutrition_entries(food_item_id);
+CREATE INDEX IF NOT EXISTS idx_targets_user_effective
+  ON macro_targets(user_id, effective_date DESC);`;

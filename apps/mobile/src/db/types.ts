@@ -7,6 +7,7 @@
  */
 
 export type WeightUnit = 'kg' | 'lb';
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
 export type ExerciseRow = {
   id: string;
@@ -59,6 +60,39 @@ export type TaskCompletionRow = {
   task_id: string;
   completed_date: string;
   completed_at: string;
+};
+
+export type FoodItemRow = {
+  id: string;
+  user_id: string;
+  name: string;
+  calories_per_serving: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  serving_label: string;
+  created_at: string;
+};
+
+export type NutritionEntryRow = {
+  id: string;
+  user_id: string;
+  food_item_id: string;
+  logged_at: string;
+  logged_date: string;
+  quantity: number;
+  meal_type: string;
+};
+
+export type MacroTargetRow = {
+  id: string;
+  user_id: string;
+  calories: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  effective_date: string;
+  created_at: string;
 };
 
 export type Exercise = {
@@ -128,6 +162,43 @@ export type TaskCompletion = {
   completedAt: string;
 };
 
+export type FoodItem = {
+  id: string;
+  userId: string;
+  name: string;
+  caloriesPerServing: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  servingLabel: string;
+  createdAt: string;
+};
+
+export type NutritionEntry = {
+  id: string;
+  userId: string;
+  foodItemId: string;
+  loggedAt: string;
+  /** Local calendar day, `YYYY-MM-DD`. */
+  loggedDate: string;
+  quantity: number;
+  mealType: MealType;
+};
+
+/** The day log's row: one entry joined with the food definition it displays and totals. */
+export type NutritionEntryWithFood = NutritionEntry & { food: FoodItem };
+
+export type MacroTarget = {
+  id: string;
+  userId: string;
+  calories: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  effectiveDate: string;
+  createdAt: string;
+};
+
 export function toExercise(row: ExerciseRow): Exercise {
   return {
     id: row.id,
@@ -190,5 +261,50 @@ export function toTaskCompletion(row: TaskCompletionRow): TaskCompletion {
     taskId: row.task_id,
     completedDate: row.completed_date,
     completedAt: row.completed_at,
+  };
+}
+
+export function toFoodItem(row: FoodItemRow): FoodItem {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    name: row.name,
+    caloriesPerServing: row.calories_per_serving,
+    proteinG: row.protein_g,
+    carbsG: row.carbs_g,
+    fatG: row.fat_g,
+    servingLabel: row.serving_label,
+    createdAt: row.created_at,
+  };
+}
+
+export function toNutritionEntry(row: NutritionEntryRow): NutritionEntry {
+  const mealType: MealType =
+    row.meal_type === 'breakfast' ||
+    row.meal_type === 'lunch' ||
+    row.meal_type === 'dinner'
+      ? row.meal_type
+      : 'snack';
+  return {
+    id: row.id,
+    userId: row.user_id,
+    foodItemId: row.food_item_id,
+    loggedAt: row.logged_at,
+    loggedDate: row.logged_date,
+    quantity: row.quantity,
+    mealType,
+  };
+}
+
+export function toMacroTarget(row: MacroTargetRow): MacroTarget {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    calories: row.calories,
+    proteinG: row.protein_g,
+    carbsG: row.carbs_g,
+    fatG: row.fat_g,
+    effectiveDate: row.effective_date,
+    createdAt: row.created_at,
   };
 }
