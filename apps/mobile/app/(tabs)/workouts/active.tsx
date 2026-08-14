@@ -28,6 +28,7 @@ import { SessionElapsed } from '@/components/SessionElapsed';
 import type { WeightUnit } from '@/db/types';
 import { lastSetForExercise } from '@/db/workouts';
 import { groupByExercise, nextSetNumber, sessionVolume, suggestNextSet } from '@/domain/workouts';
+import { parseDecimalInput } from '@/domain/numbers';
 import { useWorkoutStore } from '@/store/workoutStore';
 import { colors, fontSize, radius, spacing, TAP_TARGET } from '@/theme';
 
@@ -81,7 +82,7 @@ export default function ActiveSessionScreen() {
   }, [currentExercise, db]);
 
   const parsedReps = Number.parseInt(reps, 10);
-  const parsedWeight = Number.parseFloat(weight);
+  const parsedWeight = parseDecimalInput(weight);
   const canLog =
     !!currentExercise &&
     Number.isFinite(parsedReps) &&

@@ -12,6 +12,7 @@ import { addNutritionEntry, createFoodItem, searchFoodItems } from '@/db/macros'
 import type { FoodItem, MealType } from '@/db/types';
 import { dayKeyFromDate } from '@/domain/dates';
 import { isValidNutritionNumber, MEAL_LABELS, MEAL_TYPES } from '@/domain/macros';
+import { parseDecimalInput } from '@/domain/numbers';
 import { colors, fontSize, radius, spacing, TAP_TARGET } from '@/theme';
 
 const MAX_CALORIES = 10_000;
@@ -59,11 +60,11 @@ export default function AddFoodScreen() {
     return () => { cancelled = true; };
   }, [db, query]);
 
-  const parsedQuantity = Number.parseFloat(quantity);
-  const parsedCalories = Number.parseFloat(calories);
-  const parsedProtein = Number.parseFloat(protein);
-  const parsedCarbs = Number.parseFloat(carbs);
-  const parsedFat = Number.parseFloat(fat);
+  const parsedQuantity = parseDecimalInput(quantity);
+  const parsedCalories = parseDecimalInput(calories);
+  const parsedProtein = parseDecimalInput(protein);
+  const parsedCarbs = parseDecimalInput(carbs);
+  const parsedFat = parseDecimalInput(fat);
   const validQuantity = Number.isFinite(parsedQuantity) && parsedQuantity > 0 && parsedQuantity <= 100;
   const validCustom =
     name.trim() !== '' &&

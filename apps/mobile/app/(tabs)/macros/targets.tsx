@@ -11,6 +11,7 @@ import { LOCAL_USER_ID } from '@/constants';
 import { getMacroTargetForDate, setMacroTarget } from '@/db/macros';
 import { dayKeyFromDate } from '@/domain/dates';
 import { isValidNutritionNumber } from '@/domain/macros';
+import { parseDecimalInput } from '@/domain/numbers';
 import { colors, fontSize, radius, spacing, TAP_TARGET } from '@/theme';
 
 export default function MacroTargetsScreen() {
@@ -36,10 +37,10 @@ export default function MacroTargetsScreen() {
     return () => { cancelled = true; };
   }, [db, today]);
 
-  const parsedCalories = Number.parseFloat(calories);
-  const parsedProtein = Number.parseFloat(protein);
-  const parsedCarbs = Number.parseFloat(carbs);
-  const parsedFat = Number.parseFloat(fat);
+  const parsedCalories = parseDecimalInput(calories);
+  const parsedProtein = parseDecimalInput(protein);
+  const parsedCarbs = parseDecimalInput(carbs);
+  const parsedFat = parseDecimalInput(fat);
   const canSave =
     isValidNutritionNumber(parsedCalories, 20_000) && parsedCalories > 0 &&
     isValidNutritionNumber(parsedProtein, 2_000) &&

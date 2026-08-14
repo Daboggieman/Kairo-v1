@@ -1,0 +1,299 @@
+6. INITIAL LAUNCH CHECK
+-----------------------
+
+1. Wait for the app to load fully. check
+
+2. Confirm there is no redbox, blank screen, migration error, or SQLite error. check
+
+3. Confirm the bottom tabs are visible:
+
+   Home | Today | Macros | Workouts | Weight (check, but the icons on the bottom tabs are not visible the just carry placeholders (rectangle with 'X')) 
+
+4. Tap each tab once and return to Home. (check)
+
+5. Confirm the app remains in portrait orientation. (check)
+
+6. Confirm the status bar, headers, tab bar, and bottom buttons do not overlap.(check)
+
+7. Test the smallest available physical device first. Then test a larger device if available.(check)
+
+
+7. EXISTING-DATA AND MIGRATION TEST
+-----------------------------------
+
+Perform this before clearing Expo Go data or reinstalling Expo Go.
+
+1. Open Workouts and confirm old workout history is still present.
+
+2. Open Weight and confirm old weigh-ins and the goal, if previously configured, remain.
+
+3. Open Today and confirm old tasks, completion states, and streak history remain.
+
+4. Open Macros. The first launch after the new build should create migration v4 without
+   removing any existing data.
+
+5. Return to Workouts, Weight, and Today and verify their old data again.
+
+6. Fully close Expo Go from the application switcher.
+
+7. Reopen the project from Expo Go's recent projects list.
+
+8. Verify all four existing modules still show their data.
+
+Pass condition: the app upgrades to v4 and all v1-v3 data survives.
+
+If the device has never run an earlier Kairo version, this manual migration scenario cannot
+be reproduced there. The automated SQLite migration suite covers the populated v3-to-v4 path.
+
+
+RESULT (there is no previous data for me continue all these checks)
+
+
+8. MACRO EMPTY STATE
+--------------------
+
+1. Open the Macros tab. (check)
+
+2. Confirm the selected day is today in the device's local timezone. (check)
+
+3. Confirm the daily calorie total is zero. (check)
+
+4. Confirm all four macro values are zero. (check)
+
+5. Confirm these meal sections appear in order: (check)
+
+   Breakfast
+   Lunch
+   Dinner
+   Snacks
+
+6. Confirm empty sections do not crash or collapse the layout unexpectedly. (check)
+
+7. Tap the previous-day arrow and confirm the date changes by exactly one day.  (check)
+
+8. Tap the next-day arrow and confirm it returns to today. (check)
+
+9. Confirm the next-day arrow is disabled while already on today. (check)
+
+10. Confirm the Set targets action opens the targets modal. (check)
+
+
+9. MACRO TARGETS
+----------------
+
+Use this target fixture:
+
+   Calories: 2000
+   Protein: 160 g
+   Carbs: 220 g
+   Fat: 65 g
+
+1. Enter the four values. (check)
+
+2. Confirm Save remains disabled while required values are invalid or missing. (check)
+
+3. Save the targets. (check)
+
+4. Confirm the modal closes and the Macros screen displays the target values. (check)
+
+5. Return Home and confirm the Home Macros section also reflects the target. (check)
+
+6. Reopen targets, change calories to 2100, and save. (check)
+
+7. Confirm the value updates instead of creating a duplicate visible target. (check)
+
+8. Navigate to yesterday. If this is the first target ever created, yesterday should have no
+   target because the target is effective from today onward.  (check)
+
+9. Return to today and confirm the 2100 target is active again. (check)
+
+
+10. CUSTOM FOOD CREATION AND NUTRITION MATH
+-------------------------------------------
+
+Create this exact food:
+
+   Name: Chicken breast
+   Serving: 100 g
+   Calories: 165
+   Protein: 31
+   Carbs: 0
+   Fat: 3.6
+   Quantity: 1.5
+   Meal: Lunch
+
+1. Tap Add food. (check)
+
+2. Search for a food that does not exist. (check)
+
+3. Confirm the no-results state appears. (check)
+
+4. Tap Create custom food. (check)
+
+5. Fill the fields above. (check)
+
+6. Confirm the Save action remains disabled until the required values are valid. (check)
+
+7. Tap Save food and add. (check)
+
+8. Confirm the entry appears under Lunch only. (check)
+
+9. Expected contribution:
+
+   Calories: 165 
+   Protein: 31 g
+   Carbs: 0.0 g
+   Fat: 3.6 g
+
+10. Confirm the Lunch total and daily total agree with those values. (check)
+
+11. Return Home and confirm the Home Macros section updates without restarting the app. (check)
+
+
+11. SAVED-FOOD SEARCH AND MEAL GROUPING
+---------------------------------------
+
+1. Open Add food again. (check)
+
+2. Search for `CHICKEN` in uppercase. (check)
+
+3. Confirm Chicken breast appears, proving search is case-insensitive. (check)
+
+4. Select the existing food. Do not create a second food definition. (check)
+
+5. Set quantity to 0.5. (check)
+
+6. Set meal to Dinner. (check)
+
+7. Save the entry. (check)
+
+8. Expected combined daily totals: (check)
+
+   Calories: 248 kcal
+   Protein: 46.5 g
+   Carbs: 0.0 g
+   Fat: 5.4 g
+
+9. Confirm Lunch and Dinner contain separate rows. (check)
+
+10. Confirm meal sections remain ordered Breakfast, Lunch, Dinner, Snacks. (check)
+
+11. Confirm the saved food's serving label and nutrient values are displayed consistently. (check)
+
+
+12. ENTRY DELETION AND HISTORICAL DAYS
+--------------------------------------
+
+1. Long-press the Dinner entry. (check)
+
+2. Cancel the delete confirmation once. Confirm the entry remains. (check)
+
+3. Long-press again and confirm deletion. (check)
+
+4. Confirm totals return to the Lunch-only values. (check)
+
+5. Navigate to yesterday. (check)
+
+6. Add a food entry to yesterday. (check)
+
+7. Confirm that entry appears only on yesterday. (check)
+
+8. Return to today and confirm today's entries are unchanged. (check)
+
+9. Navigate away from Macros and return. Confirm the screen reloads with the correct day data. (check)
+
+
+13. HOME DASHBOARD TEST
+-----------------------
+
+1. Confirm the greeting and date are visible and fit on the device. (check)
+
+2. Create or use several tasks scheduled for today.  (check)
+
+3. Complete one task in Today. (check)
+
+4. Return Home.
+
+5. Confirm the Today card count updates immediately. (check)
+
+6. Confirm unfinished tasks appear in the preview and completed tasks do not. (check)
+
+7. Confirm no more than three unfinished task rows appear in the preview. (check)
+
+8. Confirm the Home Macros values match the Macros screen exactly. (check)
+
+9. Confirm the Home Weight value matches the smoothed trend value on Weight, not merely the
+   latest raw weigh-in.(failed)
+
+10. Tap the Today, Macros, and Weight cards and confirm each opens the correct module.  (check)
+
+11. Change data inside a module, return Home, and confirm the card updates without a full app
+    restart.  (check)
+
+
+14. ACTIVE AND COMPLETED WORKOUT STATES
+---------------------------------------
+
+1. Open Workouts and start a workout. (check)
+
+2. Log at least one set. (check)
+
+3. Switch directly to Home while the workout is still active. (check)
+
+4. Confirm the Workout card says In progress and offers Resume. (check)
+
+5. Tap Resume and confirm it opens the active workout screen. (check)
+
+6. Finish the workout. (check)
+
+7. Return Home. (check)
+
+8. Confirm the Workout card now shows the latest completed session, set count, volume, and
+   date. (check)
+
+9. Start another workout and force-close Expo Go from the application switcher. (check)
+
+10. Reopen Kairo and confirm Workouts and Home still recognize the unfinished session. (check)
+
+
+15. WEIGHT AND TASK REGRESSION
+
+1. Log a new weight. (check)
+
+2. Return Home and confirm the Weight card updates. (check)
+
+3. Set or change the weight goal and confirm the Weight screen remains usable. (check)
+
+4. Long-press a disposable weight entry and verify deletion. (check)
+
+5. Create a disposable daily task.(there is no visible button for disposible daily task creation)
+
+6. Toggle it complete and incomplete.
+
+7. Open its streak detail screen.
+
+8. Archive and restore it if the detail screen supports that action.
+
+9. Confirm these actions do not affect macros, workouts, or weight.
+
+NOTE: the weight calculation is flawed, weight progress tracking seems flawed as well
+
+
+16. FULL RESTART AND PERSISTENCE
+--------------------------------
+
+After creating at least one target, food, nutrition entry, task, weight entry, and workout:
+
+1. Fully close Expo Go from the application switcher. (check)
+
+2. Reopen Kairo from Expo Go's recent projects. (check)
+
+3. Confirm saved custom foods remain searchable. (check)
+
+4. Confirm nutrition entries remain on their original dates. (check)
+
+5. Confirm targets remain effective on the correct dates. (check)
+
+6. Confirm tasks, completions, streaks, weights, and workouts remain intact. (check)
+
+7. Confirm Home reconstructs the same aggregate values. (check)

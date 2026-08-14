@@ -26,6 +26,7 @@ import type { WeightUnit } from '@/db/types';
 import { listEntriesAscending } from '@/db/weight';
 import { displayUnit, toDisplayWeight } from '@/domain/weight';
 import { toKg } from '@/domain/workouts';
+import { parseDecimalInput } from '@/domain/numbers';
 import { LOCAL_USER_ID } from '@/constants';
 import { colors, fontSize, radius, spacing, TAP_TARGET } from '@/theme';
 
@@ -64,7 +65,7 @@ export default function GoalWeightScreen() {
     };
   }, [db]);
 
-  const parsed = Number.parseFloat(goal);
+  const parsed = parseDecimalInput(goal);
   const canSave = Number.isFinite(parsed) && parsed > 0 && parsed < MAX_WEIGHT;
 
   const onSave = useCallback(async () => {

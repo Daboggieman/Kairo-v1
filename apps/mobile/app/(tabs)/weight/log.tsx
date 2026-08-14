@@ -28,6 +28,7 @@ import type { WeightUnit } from '@/db/types';
 import { addEntry, latestEntry } from '@/db/weight';
 import { LOCAL_USER_ID } from '@/constants';
 import { colors, fontSize, radius, spacing, TAP_TARGET } from '@/theme';
+import { parseDecimalInput } from '@/domain/numbers';
 
 const UNITS: WeightUnit[] = ['kg', 'lb'];
 
@@ -56,7 +57,7 @@ export default function LogWeightScreen() {
     };
   }, [db]);
 
-  const parsed = Number.parseFloat(weight);
+  const parsed = parseDecimalInput(weight);
   const canSave = Number.isFinite(parsed) && parsed > 0 && parsed < MAX_WEIGHT;
 
   const onSave = useCallback(async () => {

@@ -3,7 +3,8 @@
 Handoff for the Kairo v1 sessions so far: Phase 0 scaffold, then Workouts, Weight, Tasks
 and Macros. Read before continuing.
 
-Last updated: **2026-08-14**, after the macro module and Home dashboard landed.
+Last updated: **2026-08-14**, after resolving the first manual-device findings from the macro
+and Home dashboard smoke test.
 
 ## Status
 
@@ -12,8 +13,9 @@ Phase 0 (monorepo scaffold) and all four Phase 1/P0 modules — **workout loggin
 are implemented and verified.
 
 Phase 1/P0 is now complete as a coherent daily app: Home aggregates all four local modules.
-After a manual device smoke test, the next implementation task is the **Phase 2 sync + auth
-foundation**.
+The first manual device smoke test is complete for the Today/tasks workflow. Two additional
+device findings were fixed in code and need one focused retest before the **Phase 2 sync + auth
+foundation** begins.
 
 **Git**: `master`; `HEAD` and `origin/master` were both `984901c` before this work. The
 macro module, Home dashboard, and this handoff update are currently **uncommitted
@@ -66,7 +68,7 @@ Verified at the end of this session:
 
 - `npm run typecheck` (`tsc --noEmit`) → **0 errors**.
 - `npm run lint` (`eslint .`) → **clean**, 0 errors 0 warnings.
-- `npm test` → **319 passed across 12 suites**. New: macros domain (14), macros query
+- `npm test` → **334 passed across 13 suites**. New: decimal-input parsing (15), macros domain (14), macros query
   layer (20), and dashboard composition (10).
 - `npx expo-doctor` → **20/20 checks passed**.
 - `npx expo export --platform android` → **successful**, 1,425 modules bundled. The emitted
@@ -96,6 +98,34 @@ Module flows that work:
   inspect calorie/protein/carbs/fat progress, add a saved or custom food with a serving
   quantity and meal, or edit effective-dated targets. Entries are grouped by meal and can be
   deleted with a long press. Detail below.
+
+## Manual findings resolved after the first device run
+
+The device run reported two defects outside the fully passing Today/tasks workflow:
+
+- **Locale decimal input**: `Number.parseFloat` treated `1,5` as `1`, silently changing
+  macro quantities and decimal weight values. `src/domain/numbers.ts` now parses dot, comma,
+  and Arabic decimal separators with strict validation. Macro add/target fields, weight log,
+  weight goal, and active-workout weight all use it. Mixed or malformed values are rejected
+  instead of partially saved.
+- **Bottom-tab icons**: the tab layout now uses Material Community Icons for Home, Today,
+  Macros, Workouts, and Weight. `@expo/vector-icons` and its required `expo-font` peer/config
+  plugin are declared directly.
+
+The device must retest these paths before Phase 2:
+
+1. Create Chicken breast (165 kcal, 31 g protein, 0 g carbs, 3.6 g fat per 100 g), enter
+   quantity `1,5` (or the device's decimal separator), and verify `247.5 kcal`, `46.5 g`
+   protein, `0.0 g` carbs, `5.4 g` fat, plus a `1.5 × 100 g` serving row.
+2. Log weight `75,5` and verify the stored/displayed value is `75.5`, then compare Home's
+   value with the smoothed Weight trend after multiple dated entries.
+3. Log an active-workout set at `62,5` and verify the set displays/stores `62.5`.
+4. Enter decimal values in macro targets and the weight goal and verify save, reload, and
+   validation behaviour.
+5. Confirm all five bottom tabs show real icons rather than placeholder rectangles.
+
+The physical migration scenario was not available on this device because it had no prior
+Kairo data; the populated v3-to-v4 migration remains covered by the automated SQLite suite.
 
 ## The tasks module
 
@@ -341,10 +371,10 @@ Decisions worth keeping:
 
 Ordered by what a next session should probably do first.
 
-1. **Manual device smoke test for macros and Home.** Automated checks and the production
-   bundle are green, but the day picker, keyboard-heavy custom-food form, long-press delete,
-   five bottom tabs, dashboard card density, and small-screen text fit should be exercised on
-   a real phone.
+1. **Focused manual retest for the resolved findings above.** Today/tasks, macro day
+   navigation, custom-food flow, Home cards, workout lifecycle, and the remaining smoke-test
+   paths passed in the first run. The decimal-separator cases and real tab icons still need
+   confirmation on the physical device.
 2. **Confirm CI after committing and pushing.** `.github/workflows/ci.yml` had three
    successful runs as of the previous handoff. The uncommitted macro work cannot have been
    checked yet, and
@@ -387,8 +417,8 @@ alembic upgrade head    # c7080c2dd1c6 (idempotent)
 cd apps/mobile
 npm run typecheck       # tsc --noEmit, 0 errors
 npm run lint            # eslint ., clean
-npm test                # 319 passed (12 suites)
-npx expo-doctor         # 20/20
+npm test                # 334 passed (13 suites)
+npx expo-doctor         # 21/21
 npx expo export --platform android   # successful with macro routes; delete dist/ after
 ```
 
