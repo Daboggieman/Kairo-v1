@@ -24,6 +24,7 @@ import {
   summariseMacros,
 } from '@/domain/macros';
 import { colors, fontSize, radius, spacing, TAP_TARGET } from '@/theme';
+import { requestSync } from '@/sync/scheduler';
 
 const MACRO_COLORS = {
   calories: colors.accent,
@@ -102,6 +103,7 @@ export default function MacroLogScreen() {
           style: 'destructive',
           onPress: async () => {
             await deleteNutritionEntry(db, entry.id, LOCAL_USER_ID);
+            void requestSync(db).catch(() => {});
             await load();
           },
         },

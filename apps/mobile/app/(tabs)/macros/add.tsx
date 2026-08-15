@@ -14,6 +14,7 @@ import { dayKeyFromDate } from '@/domain/dates';
 import { isValidNutritionNumber, MEAL_LABELS, MEAL_TYPES } from '@/domain/macros';
 import { parseDecimalInput } from '@/domain/numbers';
 import { colors, fontSize, radius, spacing, TAP_TARGET } from '@/theme';
+import { requestSync } from '@/sync/scheduler';
 
 const MAX_CALORIES = 10_000;
 const MAX_MACRO_GRAMS = 2_000;
@@ -103,6 +104,7 @@ export default function AddFoodScreen() {
         quantity: parsedQuantity,
         mealType: meal,
       });
+      void requestSync(db).catch(() => {});
       router.back();
     } finally {
       setSaving(false);

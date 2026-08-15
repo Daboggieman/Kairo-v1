@@ -2,7 +2,13 @@
 
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-export type SyncEntity = 'body_weight_entry' | 'task' | 'task_completion';
+export type SyncEntity =
+  | 'body_weight_entry'
+  | 'task'
+  | 'task_completion'
+  | 'food_item'
+  | 'nutrition_entry'
+  | 'macro_target';
 export type SyncOperation = 'upsert' | 'update' | 'delete';
 
 export type WeightEntryWire = {
@@ -26,6 +32,36 @@ export type TaskCompletionWire = {
   task_id: string;
   completed_date: string;
   completed_at: string;
+};
+
+export type FoodItemWire = {
+  id: string;
+  name: string;
+  calories_per_serving: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  serving_label: string;
+  created_at: string;
+};
+
+export type NutritionEntryWire = {
+  id: string;
+  food_item_id: string;
+  logged_at: string;
+  logged_date: string;
+  quantity: number;
+  meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+};
+
+export type MacroTargetWire = {
+  id: string;
+  calories: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  effective_date: string;
+  created_at: string;
 };
 
 export type OutboxRow = {

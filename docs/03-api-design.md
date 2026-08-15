@@ -47,11 +47,16 @@ Implemented in Phase 2. Streaks remain derived from completion facts; the server
 materialize a second streak counter.
 
 ## Nutrition
-- `GET /food-items?search=`
-- `POST /food-items` — add custom food
-- `POST /nutrition-entries`
-- `GET /nutrition-entries?date=` — day's log with macro totals vs target
-- `PUT /macro-targets`
+- `GET /food-items?search=` — authenticated personal food library
+- `POST /food-items` — client-ID-preserving food upsert
+- `POST /nutrition-entries` — ownership-checked, idempotent log entry
+- `GET /nutrition-entries?date=` — authenticated entries for a local day
+- `DELETE /nutrition-entries/{id}` — idempotent delete
+- `PUT /macro-targets` — effective-date upsert
+- `GET /macro-targets` — authenticated target history
+
+Implemented in Phase 2. Food definitions are user-owned, entries cannot attach to another
+user's food, and targets update by `(user_id, effective_date)` without rewriting history.
 
 ## Quotes & wallpapers
 - `GET /quotes/today` — today's rotated quote

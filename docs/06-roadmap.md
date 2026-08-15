@@ -22,10 +22,9 @@ already has momentum and daily-use value.
 
 ## Phase 2 — Sync + Motivation (P1)
 - **In progress (started 2026-08-15).** Device-key authentication, JWT refresh, authenticated
-  workout ownership, body-weight and task models/migrations/APIs, and mobile weight/task
-  outbox replay are implemented and tested.
-- Next: extend the same replay-safe transport to nutrition, then preserve client IDs for
-  workout session/set uploads.
+  workout ownership, body-weight/task/nutrition models/migrations/APIs, and mobile replay for
+  all three datasets are implemented and tested.
+- Next: preserve client IDs for workout session/set uploads, then finish the motivation items.
 - Motivational quotes (seed a quote table, daily rotation logic)
 - Motivational wallpapers (Pillow generation endpoint)
 - Daily alarms (local notifications)

@@ -3,6 +3,13 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import {
+  enqueue,
+  type FoodItemWire,
+  type MacroTargetWire,
+  type NutritionEntryWire,
+} from './outbox';
+
+import {
   FoodItem,
   FoodItemRow,
   MacroTarget,
@@ -29,21 +36,40 @@ export async function createFoodItem(
     createdAt: string;
   },
 ): Promise<FoodItem> {
-  await db.runAsync(
-    `INSERT INTO food_items (
-       id, user_id, name, calories_per_serving, protein_g, carbs_g, fat_g,
-       serving_label, created_at
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    food.id,
-    food.userId,
-    food.name,
-    food.caloriesPerServing,
-    food.proteinG,
-    food.carbsG,
-    food.fatG,
-    food.servingLabel,
-    food.createdAt,
-  );
+  const wire: FoodItemWire = {
+    id: food.id,
+    name: food.name,
+    calories_per_serving: food.caloriesPerServing,
+    protein_g: food.proteinG,
+    carbs_g: food.carbsG,
+    fat_g: food.fatG,
+    serving_label: food.servingLabel,
+    created_at: food.createdAt,
+  };
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    await tx.runAsync(
+      `INSERT INTO food_items (
+         id, user_id, name, calories_per_serving, protein_g, carbs_g, fat_g,
+         serving_label, created_at
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      food.id,
+      food.userId,
+      food.name,
+      food.caloriesPerServing,
+      food.proteinG,
+      food.carbsG,
+      food.fatG,
+      food.servingLabel,
+      food.createdAt,
+    );
+    await enqueue(tx, {
+      userId: food.userId,
+      entityType: 'food_item',
+      entityId: food.id,
+      operation: 'upsert',
+      payload: wire,
+    });
+  });
   return { ...food };
 }
 
@@ -85,22 +111,39 @@ export async function addNutritionEntry(
 ): Promise<void> {
   // INSERT … SELECT enforces food ownership in the same statement. A Phase 2 account must
   // never be able to attach its log to another account's custom food by guessing an id.
-  const result = await db.runAsync(
-    `INSERT INTO nutrition_entries (
-       id, user_id, food_item_id, logged_at, logged_date, quantity, meal_type
-     )
-     SELECT ?, ?, id, ?, ?, ?, ? FROM food_items
-     WHERE id = ? AND user_id = ?`,
-    entry.id,
-    entry.userId,
-    entry.loggedAt,
-    entry.loggedDate,
-    entry.quantity,
-    entry.mealType,
-    entry.foodItemId,
-    entry.userId,
-  );
-  if (result.changes === 0) throw new Error('Food item not found for this user');
+  const wire: NutritionEntryWire = {
+    id: entry.id,
+    food_item_id: entry.foodItemId,
+    logged_at: entry.loggedAt,
+    logged_date: entry.loggedDate,
+    quantity: entry.quantity,
+    meal_type: entry.mealType,
+  };
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    const result = await tx.runAsync(
+      `INSERT INTO nutrition_entries (
+         id, user_id, food_item_id, logged_at, logged_date, quantity, meal_type
+       )
+       SELECT ?, ?, id, ?, ?, ?, ? FROM food_items
+       WHERE id = ? AND user_id = ?`,
+      entry.id,
+      entry.userId,
+      entry.loggedAt,
+      entry.loggedDate,
+      entry.quantity,
+      entry.mealType,
+      entry.foodItemId,
+      entry.userId,
+    );
+    if (result.changes === 0) throw new Error('Food item not found for this user');
+    await enqueue(tx, {
+      userId: entry.userId,
+      entityType: 'nutrition_entry',
+      entityId: entry.id,
+      operation: 'upsert',
+      payload: wire,
+    });
+  });
 }
 
 type JoinedEntryRow = NutritionEntryRow & {
@@ -166,12 +209,24 @@ export async function deleteNutritionEntry(
   id: string,
   userId: string,
 ): Promise<boolean> {
-  const result = await db.runAsync(
-    'DELETE FROM nutrition_entries WHERE id = ? AND user_id = ?',
-    id,
-    userId,
-  );
-  return result.changes > 0;
+  let removed = false;
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    const result = await tx.runAsync(
+      'DELETE FROM nutrition_entries WHERE id = ? AND user_id = ?',
+      id,
+      userId,
+    );
+    removed = result.changes > 0;
+    if (!removed) return;
+    await enqueue(tx, {
+      userId,
+      entityType: 'nutrition_entry',
+      entityId: id,
+      operation: 'delete',
+      payload: null,
+    });
+  });
+  return removed;
 }
 
 /** Latest target already effective on the requested day; future target changes are ignored. */
@@ -205,24 +260,42 @@ export async function setMacroTarget(
     createdAt: string;
   },
 ): Promise<MacroTarget> {
-  await db.runAsync(
-    `INSERT INTO macro_targets (
-       id, user_id, calories, protein_g, carbs_g, fat_g, effective_date, created_at
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-     ON CONFLICT(user_id, effective_date) DO UPDATE SET
-       calories = excluded.calories,
-       protein_g = excluded.protein_g,
-       carbs_g = excluded.carbs_g,
-       fat_g = excluded.fat_g`,
-    target.id,
-    target.userId,
-    target.calories,
-    target.proteinG,
-    target.carbsG,
-    target.fatG,
-    target.effectiveDate,
-    target.createdAt,
-  );
+  const wire: MacroTargetWire = {
+    id: target.id,
+    calories: target.calories,
+    protein_g: target.proteinG,
+    carbs_g: target.carbsG,
+    fat_g: target.fatG,
+    effective_date: target.effectiveDate,
+    created_at: target.createdAt,
+  };
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    await tx.runAsync(
+      `INSERT INTO macro_targets (
+         id, user_id, calories, protein_g, carbs_g, fat_g, effective_date, created_at
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(user_id, effective_date) DO UPDATE SET
+         calories = excluded.calories,
+         protein_g = excluded.protein_g,
+         carbs_g = excluded.carbs_g,
+         fat_g = excluded.fat_g`,
+      target.id,
+      target.userId,
+      target.calories,
+      target.proteinG,
+      target.carbsG,
+      target.fatG,
+      target.effectiveDate,
+      target.createdAt,
+    );
+    await enqueue(tx, {
+      userId: target.userId,
+      entityType: 'macro_target',
+      entityId: `${target.userId}:${target.effectiveDate}`,
+      operation: 'upsert',
+      payload: wire,
+    });
+  });
 
   const saved = await db.getFirstAsync<MacroTargetRow>(
     'SELECT * FROM macro_targets WHERE user_id = ? AND effective_date = ?',

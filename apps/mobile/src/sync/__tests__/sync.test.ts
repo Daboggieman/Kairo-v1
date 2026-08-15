@@ -3,6 +3,12 @@ import { createTestDb, type TestDatabase } from '@/db/__tests__/testDb';
 import { pendingCount } from '@/db/outbox';
 import { addEntry, deleteEntry } from '@/db/weight';
 import { clearCompletion, createTask, deleteTask, setArchived, setCompletion } from '@/db/tasks';
+import {
+  addNutritionEntry,
+  createFoodItem,
+  deleteNutritionEntry,
+  setMacroTarget,
+} from '@/db/macros';
 
 import { SyncClient } from '../client';
 import { syncOutbox } from '../outbox';
@@ -211,5 +217,41 @@ describe('outbox replay', () => {
       ['http://api.test/api/v1/tasks/task-sync', 'DELETE'],
     ]);
     expect(await pendingCount(db)).toBe(0);
+  });
+
+  it('replays food, entry, target, and entry deletion in dependency order', async () => {
+    await createFoodItem(db, {
+      id: 'food-sync', userId: LOCAL_USER_ID, name: 'Oats', caloriesPerServing: 150,
+      proteinG: 5, carbsG: 27, fatG: 3, servingLabel: '40 g',
+      createdAt: '2026-08-15T07:00:00.000Z',
+    });
+    await addNutritionEntry(db, {
+      id: 'nutrition-sync', userId: LOCAL_USER_ID, foodItemId: 'food-sync',
+      loggedAt: '2026-08-15T08:00:00.000Z', loggedDate: '2026-08-15',
+      quantity: 1, mealType: 'breakfast',
+    });
+    await setMacroTarget(db, {
+      id: 'target-sync', userId: LOCAL_USER_ID, calories: 2200, proteinG: 180,
+      carbsG: 220, fatG: 70, effectiveDate: '2026-08-15',
+      createdAt: '2026-08-15T07:00:00.000Z',
+    });
+    await deleteNutritionEntry(db, 'nutrition-sync', LOCAL_USER_ID);
+    const fetchMock = fetchSequence([
+      { status: 200, body: tokens() }, { status: 201 }, { status: 201 },
+      { status: 200 }, { status: 204 },
+    ]);
+    const client = new SyncClient(
+      { apiUrl: 'http://api.test', deviceKey: 'device-key' }, fetchMock,
+    );
+
+    const result = await syncOutbox(db, { client, nowMs: Date.now() + 1000 });
+    const calls = (fetchMock as jest.Mock).mock.calls.slice(1);
+    expect(result).toMatchObject({ processed: 4, succeeded: 4, failed: 0 });
+    expect(calls.map(([url, init]) => [url, init.method])).toEqual([
+      ['http://api.test/api/v1/food-items', 'POST'],
+      ['http://api.test/api/v1/nutrition-entries', 'POST'],
+      ['http://api.test/api/v1/macro-targets', 'PUT'],
+      ['http://api.test/api/v1/nutrition-entries/nutrition-sync', 'DELETE'],
+    ]);
   });
 });

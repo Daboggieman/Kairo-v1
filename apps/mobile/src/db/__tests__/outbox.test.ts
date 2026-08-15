@@ -3,6 +3,12 @@ import { LOCAL_USER_ID } from '@/constants';
 import { createTestDb, type TestDatabase } from './testDb';
 import { listDue, pendingCount } from '../outbox';
 import { clearCompletion, createTask, deleteTask, setArchived, setCompletion } from '../tasks';
+import {
+  addNutritionEntry,
+  createFoodItem,
+  deleteNutritionEntry,
+  setMacroTarget,
+} from '../macros';
 import { addEntry, deleteEntry, getEntry } from '../weight';
 
 describe('sync outbox persistence', () => {
@@ -103,5 +109,32 @@ describe('sync outbox persistence', () => {
       recurrence_rule: 'daily',
       archived: false,
     });
+  });
+
+  it('orders food before its entry and records target/delete operations', async () => {
+    await createFoodItem(db, {
+      id: 'food-1', userId: LOCAL_USER_ID, name: 'Oats', caloriesPerServing: 150,
+      proteinG: 5, carbsG: 27, fatG: 3, servingLabel: '40 g',
+      createdAt: '2026-08-15T07:00:00.000Z',
+    });
+    await addNutritionEntry(db, {
+      id: 'nutrition-1', userId: LOCAL_USER_ID, foodItemId: 'food-1',
+      loggedAt: '2026-08-15T08:00:00.000Z', loggedDate: '2026-08-15',
+      quantity: 1, mealType: 'breakfast',
+    });
+    await setMacroTarget(db, {
+      id: 'target-1', userId: LOCAL_USER_ID, calories: 2200, proteinG: 180,
+      carbsG: 220, fatG: 70, effectiveDate: '2026-08-15',
+      createdAt: '2026-08-15T07:00:00.000Z',
+    });
+    await deleteNutritionEntry(db, 'nutrition-1', LOCAL_USER_ID);
+
+    const rows = await listDue(db, '9999-12-31T23:59:59.999Z');
+    expect(rows.map((row) => [row.entity_type, row.operation])).toEqual([
+      ['food_item', 'upsert'],
+      ['nutrition_entry', 'upsert'],
+      ['macro_target', 'upsert'],
+      ['nutrition_entry', 'delete'],
+    ]);
   });
 });

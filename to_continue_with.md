@@ -3,7 +3,7 @@
 Handoff for the Kairo v1 sessions so far: Phase 0 scaffold, then Workouts, Weight, Tasks
 and Macros. Read before continuing.
 
-Last updated: **2026-08-15**, after completing authenticated task/completion outbox replay.
+Last updated: **2026-08-15**, after completing authenticated nutrition outbox replay.
 
 ## Status
 
@@ -14,13 +14,13 @@ are implemented and verified.
 Phase 1/P0 is now complete as a coherent daily app: Home aggregates all four local modules.
 The full manual device smoke test is complete, including the Today/tasks workflow, locale
 decimal inputs, and real bottom-tab icons. **Phase 2 is now in progress**: authentication,
-the authenticated body-weight and task APIs, and the mobile weight/task outbox/replay client
-are implemented.
+the authenticated body-weight, task, and nutrition APIs, and mobile replay for all three
+datasets are implemented.
 Sync is opt-in through Expo public configuration; without it the app stays fully offline.
 
 **Git branch strategy**: `phase_1` preserves the completed Phase 1 snapshot at `ea80c37`.
 Active Phase 2 development lives on `phase_2`, which includes all Phase 1 history plus the
-auth, weight and task backend implementation, mobile outbox/replay client, compatibility bounds,
+auth, weight/task/nutrition backend implementation, mobile outbox/replay client, compatibility bounds,
 tests, and documentation. `master` remains at the Phase 1 snapshot for now.
 Confirm the real state with `git status --short` and `git log --oneline origin/master..HEAD`.
 
@@ -46,15 +46,15 @@ Two corrections to what the previous version of this file claimed:
 
 ## What is done and verified
 
-### Backend — Phase 2 auth + weight/task sync foundation
+### Backend — Phase 2 auth + weight/task/nutrition sync foundation
 `apps/backend/`, FastAPI + SQLModel + Alembic. Portability decision from an earlier
 session: models use portable SQLAlchemy types so everything runs on SQLite locally, with
 Postgres as the deployment target.
 
-- Migrations through `3f82b1d94a61` apply cleanly against SQLite. The latest adds tasks and
-  task completions after the body-weight migration.
-- `pytest -q` → **17 passed** (auth, health/OpenAPI, authenticated workout lifecycle,
-  cross-user isolation, weight sync, and task/completion sync).
+- Migrations through `4d91e2f7c3ab` apply cleanly against SQLite. The latest adds foods,
+  nutrition entries, and effective-dated macro targets.
+- `pytest -q` → **19 passed** (auth, health/OpenAPI, authenticated workout lifecycle,
+  cross-user isolation, weight/task/nutrition sync).
 - `ruff check .` → **All checks passed!** (select E, F, I, UP, B; B008 `Depends`/`Query`
   exempted via `extend-immutable-calls`).
 - `POST /auth/token` exchanges the configured device key for access/refresh JWTs;
@@ -67,10 +67,12 @@ Postgres as the deployment target.
 - Tasks and completions have authenticated create/list/update/delete endpoints. Task POST replay
   preserves the client UUID; completion replay is idempotent by `(task_id, completed_date)`;
   archive/restore and clear operations are replay-safe. Streaks remain derived.
+- Nutrition has authenticated owned-food, entry, and target endpoints. Food and entry UUIDs
+  replay idempotently; target PUT updates the effective-date row; entry deletion is idempotent.
 - `alembic/env.py` reads `DATABASE_URL` from `app.core.config` (single source of truth).
 
-The backend still has no nutrition endpoints. Weight and task sync are implemented end to end
-when configured; nutrition and client-ID-preserving workout upload remain ahead.
+Weight, task, and nutrition sync are implemented end to end when configured. Only
+client-ID-preserving workout upload and Phase 2 motivation features remain.
 
 ### Mobile — implemented and verified
 `apps/mobile/`, Expo SDK 57 + Expo Router (file-based) + expo-sqlite + Zustand.
@@ -387,16 +389,14 @@ Decisions worth keeping:
 
 Ordered by what a next session should probably do first.
 
-1. **Add nutrition backend models/endpoints and outbox replay.** Food ownership, entry facts,
-   and effective-dated targets need the same migration/query/transport treatment.
-2. **Refine workout upload for client-generated IDs.** Workouts are authenticated now, but
+1. **Refine workout upload for client-generated IDs.** Workouts are authenticated now, but
    create/set schemas still generate backend IDs. Offline sync needs to preserve the mobile
    session/set UUIDs and define identical replay vs conflicting reuse, as weight now does.
-3. **Confirm CI on `phase_2`.** The new Phase 2 branch has not yet been confirmed in GitHub
+2. **Confirm CI on `phase_2`.** The new Phase 2 branch has not yet been confirmed in GitHub
    Actions. **`gh` is not installed in this environment**, so check the
    Actions tab or install it. The backend job's Postgres service container is the important
    portability exercise for the new migration and UTC behavior.
-4. **Docker stack smoke test** (`infra/docker-compose.yml`): `docker compose up -d postgres`,
+3. **Docker stack smoke test** (`infra/docker-compose.yml`): `docker compose up -d postgres`,
    `alembic upgrade head`, `uvicorn --reload`, `pytest` against it. **Still blocked in this
    environment**, and here is exactly why, so the next session does not re-derive it:
    `/usr/bin/docker` exists but the daemon socket returns permission denied (the user is in
@@ -404,11 +404,11 @@ Ordered by what a next session should probably do first.
    `sudo` requires a password that is not available. Fixing it needs
    `sudo usermod -aG docker $USER` + a re-login, plus the compose plugin. Both
    `infra/docker-compose.yml` and `apps/backend/Dockerfile` note they are YAML-validated only.
-5. **Screen-level polish** (manual, on-device), all consciously deferred per
+4. **Screen-level polish** (manual, on-device), all consciously deferred per
    `04-feature-specs.md`: rest-timer target ("long enough" turns green at 90s), notes field
    on finish, RPE field, set edit/delete. Nothing in the tasks module is on this list — it
    shipped complete against its spec.
-6. **`src/store/workoutStore.ts` refinement**: `emptySession()` returns all-`null` fields, so
+5. **`src/store/workoutStore.ts` refinement**: `emptySession()` returns all-`null` fields, so
    "no session open" and "session open" are not distinguishable at the type level. Worth a
    discriminated union once an edit flow exists. Not urgent, not flagged in the code.
 
@@ -421,14 +421,14 @@ Phase 3 in `docs/06-roadmap.md`, not a gap in what shipped.
 # Backend
 cd apps/backend && source .venv/bin/activate
 ruff check .            # All checks passed!
-pytest -q               # 17 passed
-alembic upgrade head    # latest: 3f82b1d94a61 (idempotent)
+pytest -q               # 19 passed
+alembic upgrade head    # latest: 4d91e2f7c3ab (idempotent)
 
 # Mobile
 cd apps/mobile
 npm run typecheck       # tsc --noEmit, 0 errors
 npm run lint            # eslint ., clean
-npm test                # 345 passed (15 suites)
+npm test                # 347 passed (15 suites)
 npx expo-doctor         # 21/21
 npx expo export --platform android   # successful with macro routes; delete dist/ after
 ```

@@ -7,6 +7,9 @@ import {
   markFailed,
   markRetry,
   markSucceeded,
+  type FoodItemWire,
+  type MacroTargetWire,
+  type NutritionEntryWire,
   type OutboxRow,
   type TaskCompletionWire,
   type TaskWire,
@@ -77,6 +80,28 @@ export async function syncOutbox(
 }
 
 async function replay(client: SyncClient, row: OutboxRow): Promise<void> {
+  if (row.entity_type === 'food_item') {
+    await client.post('/api/v1/food-items', parsePayload<FoodItemWire>(row, 'food item'));
+    return;
+  }
+
+  if (row.entity_type === 'nutrition_entry') {
+    if (row.operation === 'delete') {
+      await client.delete(`/api/v1/nutrition-entries/${encodeURIComponent(row.entity_id)}`);
+    } else {
+      await client.post(
+        '/api/v1/nutrition-entries',
+        parsePayload<NutritionEntryWire>(row, 'nutrition entry'),
+      );
+    }
+    return;
+  }
+
+  if (row.entity_type === 'macro_target') {
+    await client.put('/api/v1/macro-targets', parsePayload<MacroTargetWire>(row, 'macro target'));
+    return;
+  }
+
   if (row.entity_type === 'task') {
     if (row.operation === 'delete') {
       await client.delete(`/api/v1/tasks/${encodeURIComponent(row.entity_id)}`);

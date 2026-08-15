@@ -22,13 +22,14 @@ See [`docs/06-roadmap.md`](docs/06-roadmap.md) for the full phased plan.
 | Backend auth | Built — device key exchange, access/refresh JWTs |
 | Backend weight sync API | Built — authenticated, idempotent, user-scoped |
 | Backend tasks sync API | Built — replay-safe task/completion facts |
-| Mobile sync client/outbox | Built — weight and task replay |
+| Backend nutrition sync API | Built — owned foods, entries, effective targets |
+| Mobile sync client/outbox | Built — weight, task, and nutrition replay |
 | Later roadmap modules | Not started |
 
 The mobile app remains **offline-first** and runs with no backend or network. When
 `EXPO_PUBLIC_KAIRO_API_URL` and `EXPO_PUBLIC_KAIRO_DEVICE_KEY` are configured, weight and task
 mutations are recorded transactionally and replayed on launch, foreground, and retry intervals.
-Nutrition and workout uploads remain local until their sync endpoints are implemented.
+Workout uploads remain local until their client-ID-preserving sync contract is implemented.
 
 ## Layout
 
@@ -59,7 +60,7 @@ Checks:
 ```bash
 npm run typecheck
 npm run lint
-npm test                 # 345 tests across 15 suites
+npm test                 # 347 tests across 15 suites
 npx expo-doctor
 ```
 
@@ -80,8 +81,8 @@ Checks:
 
 ```bash
 ruff check .
-pytest -q                # 17 tests
-alembic upgrade head     # latest: task migration 3f82b1d94a61
+pytest -q                # 19 tests
+alembic upgrade head     # latest: nutrition migration 4d91e2f7c3ab
 ```
 
 Implemented API surface: device-key token exchange and refresh, authenticated workouts,
