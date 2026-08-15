@@ -77,7 +77,9 @@ def delete_weight_entry(
 ) -> Response:
     entry = session.get(BodyWeightEntry, entry_id)
     if entry is None or entry.user_id != user.id:
-        raise HTTPException(status_code=404, detail="Weight entry not found")
+        # DELETE is replayed from an offline outbox. Already absent and not-owned are both
+        # indistinguishable no-ops, which keeps deletion idempotent without leaking ownership.
+        return Response(status_code=204)
     session.delete(entry)
     session.commit()
     return Response(status_code=204)

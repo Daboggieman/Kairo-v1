@@ -16,10 +16,14 @@ export function SyncBootstrap() {
       });
     };
     run();
+    const retryTimer = setInterval(run, 60_000);
     const subscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') run();
     });
-    return () => subscription.remove();
+    return () => {
+      clearInterval(retryTimer);
+      subscription.remove();
+    };
   }, [db]);
 
   return null;

@@ -61,7 +61,7 @@ def test_weight_entries_are_isolated_and_deletable(client: TestClient, session: 
     created = client.post("/api/v1/weight-entries", json=payload, headers=owner)
     entry_id = created.json()["id"]
     assert client.get("/api/v1/weight-entries", headers=other).json() == []
-    assert client.delete(f"/api/v1/weight-entries/{entry_id}", headers=other).status_code == 404
+    assert client.delete(f"/api/v1/weight-entries/{entry_id}", headers=other).status_code == 204
     assert client.delete(f"/api/v1/weight-entries/{entry_id}", headers=owner).status_code == 204
 
 
