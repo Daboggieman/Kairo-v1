@@ -21,12 +21,13 @@ See [`docs/06-roadmap.md`](docs/06-roadmap.md) for the full phased plan.
 | Home dashboard | Built — aggregates all four Phase 1 modules |
 | Backend auth | Built — device key exchange, access/refresh JWTs |
 | Backend weight sync API | Built — authenticated, idempotent, user-scoped |
-| Mobile sync client/outbox | Next |
+| Mobile sync client/outbox | Built — weight create/delete replay |
 | Later roadmap modules | Not started |
 
-The mobile app remains **fully local-first** and runs with no backend or network. The
-FastAPI service is ready for authenticated weight sync, but the mobile outbox/client is
-not wired yet, so local data does not currently leave the device.
+The mobile app remains **offline-first** and runs with no backend or network. When
+`EXPO_PUBLIC_KAIRO_API_URL` and `EXPO_PUBLIC_KAIRO_DEVICE_KEY` are configured, weight
+creates/deletes are recorded transactionally and replayed on launch, foreground, and retry
+intervals. Other Phase 1 modules remain local until their sync endpoints are implemented.
 
 ## Layout
 
@@ -57,7 +58,7 @@ Checks:
 ```bash
 npm run typecheck
 npm run lint
-npm test                 # 334 tests across 13 suites
+npm test                 # 343 tests across 15 suites
 npx expo-doctor
 ```
 
@@ -85,6 +86,8 @@ alembic upgrade head     # latest: body-weight migration 1a6f2c9d4e70
 Implemented API surface: device-key token exchange and refresh, authenticated workouts,
 and authenticated body-weight create/list/delete endpoints. Weight uploads preserve the
 mobile UUID, tolerate identical replay, and reject conflicting reuse with `409`.
+The mobile outbox drains weight operations in order with refresh, exponential backoff, and
+terminal handling for non-retryable client errors.
 
 Postgres for local development (requires a running Docker daemon):
 

@@ -29,9 +29,10 @@ and derive ownership from its `sub`; clients never submit `user_id` as authority
 - `GET /weight-entries?from=&to=`
 - `DELETE /weight-entries/{id}` — sync counterpart to the mobile long-press delete action
 
-Implemented in Phase 2. All three operations are scoped to the authenticated user. Timestamps
-are normalized to UTC before persistence/comparison so SQLite and Postgres replay semantics
-agree even when the upload uses an explicit offset.
+Implemented in Phase 2. The mobile outbox records create/delete operations transactionally and
+replays them in order on launch, foreground, and retry intervals. All three operations are
+scoped to the authenticated user. Timestamps are normalized to UTC before persistence and
+comparison so SQLite and Postgres replay semantics agree with explicit offsets.
 
 ## Tasks & streaks
 - `POST /tasks`
@@ -81,8 +82,8 @@ purely for cross-device sync of the alarm list.)*
 - (Apple Music equivalents once native MusicKit integration exists — see integrations doc)
 
 ## Design notes
-- Auth and weight are implemented; task, nutrition, workout-upload refinement, and the mobile
-  outbox remain Phase 2 work.
+- Auth and end-to-end weight replay are implemented; task, nutrition, and workout-upload
+  refinement remain Phase 2 work.
 - Bulk endpoints (e.g. `POST /workouts/{id}/sets` accepting an array) are worth adding
   once the app is offline-first, so a session logged entirely offline syncs in one call.
 - Keep provider-specific logic (Spotify vs Apple Music) behind a common `/music/*`

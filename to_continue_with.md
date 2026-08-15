@@ -3,8 +3,7 @@
 Handoff for the Kairo v1 sessions so far: Phase 0 scaffold, then Workouts, Weight, Tasks
 and Macros. Read before continuing.
 
-Last updated: **2026-08-15**, after starting Phase 2 with backend authentication and the
-first sync-ready dataset (body weight).
+Last updated: **2026-08-15**, after completing authenticated body-weight outbox replay.
 
 ## Status
 
@@ -14,14 +13,14 @@ are implemented and verified.
 
 Phase 1/P0 is now complete as a coherent daily app: Home aggregates all four local modules.
 The full manual device smoke test is complete, including the Today/tasks workflow, locale
-decimal inputs, and real bottom-tab icons. **Phase 2 is now in progress**: the authentication
-foundation and authenticated body-weight backend API are implemented. The mobile app still
-runs entirely offline and does not call the API yet.
+decimal inputs, and real bottom-tab icons. **Phase 2 is now in progress**: authentication,
+the authenticated body-weight API, and the mobile weight outbox/replay client are implemented.
+Sync is opt-in through Expo public configuration; without it the app stays fully offline.
 
 **Git branch strategy**: `phase_1` preserves the completed Phase 1 snapshot at `ea80c37`.
 Active Phase 2 development lives on `phase_2`, which includes all Phase 1 history plus the
-auth and weight backend implementation, dependency compatibility bounds, tests, and this
-documentation update. `master` remains at the Phase 1 snapshot for now.
+auth and weight backend implementation, mobile outbox/replay client, compatibility bounds,
+tests, and documentation. `master` remains at the Phase 1 snapshot for now.
 Confirm the real state with `git status --short` and `git log --oneline origin/master..HEAD`.
 
 The last pushed commits are:
@@ -40,10 +39,9 @@ Two corrections to what the previous version of this file claimed:
 - The "Unpushed / credential helper has no usable credentials" paragraph is **resolved**.
   `origin/master` and `HEAD` were level at the start of this session, so the earlier work
   did get pushed.
-- Git identity is **global**, not repo-local: `Daboggieman` / `adaraph722@gmail.com`. The
-  old note saying it was set `--local` on purpose was wrong — `git config --local user.name`
-  returns nothing. Nothing depends on this; it is corrected so nobody hunts for a
-  repo-local config that isn't there.
+- Git identity is now configured **repo-local** as `Daboggieman` / `adaraph722@gmail.com`
+  because this environment could not see the previous global identity when creating the
+  Phase 2 commit.
 
 ## What is done and verified
 
@@ -67,18 +65,18 @@ Postgres as the deployment target.
   offset timestamps to UTC before comparison/persistence.
 - `alembic/env.py` reads `DATABASE_URL` from `app.core.config` (single source of truth).
 
-The backend still has no tasks or nutrition endpoints, and the mobile app has no API client
-or outbox. Weight is sync-ready on the server only; no device data is uploaded yet.
+The backend still has no tasks or nutrition endpoints. Weight sync is implemented end to end
+when configured; tasks, nutrition, and client-ID-preserving workout upload remain ahead.
 
 ### Mobile — implemented and verified
 `apps/mobile/`, Expo SDK 57 + Expo Router (file-based) + expo-sqlite + Zustand.
 
-Last verified before the Phase 2 backend-only changes (no mobile file changed afterwards):
+Verified after the weight outbox/replay implementation:
 
 - `npm run typecheck` (`tsc --noEmit`) → **0 errors**.
 - `npm run lint` (`eslint .`) → **clean**, 0 errors 0 warnings.
-- `npm test` → **334 passed across 13 suites**. New: decimal-input parsing (15), macros
-  domain (14), macros query layer (20), and dashboard composition (10).
+- `npm test` → **343 passed across 15 suites**. The new suites cover durable outbox storage,
+  atomic rollback, wire payloads, auth refresh, ordered replay, backoff, and terminal errors.
 - `npx expo-doctor` → **21/21 checks passed**.
 - `npx expo export --platform android` → **successful**, 1,437 modules bundled. The emitted
   `dist/` was deleted afterwards.
@@ -343,9 +341,9 @@ Decisions worth keeping:
 - **Expo Router over React Navigation** (deviation from the planning docs): routes live in
   `app/(tabs)/<module>/`, no `src/screens/` or `src/navigation/`. Documented in
   `docs/07-repo-structure.md` — keep new modules under `app/(tabs)/`.
-- **Local-first**: the app is still 100% offline and nothing calls the backend yet. Phase 2
-  server work has started, but local writes remain authoritative until the outbox/client is
-  implemented. Seeded exercises use deterministic `seed-*` ids so sync will not duplicate
+- **Offline-first**: local writes remain authoritative. When sync configuration is present,
+  weight creates/deletes are recorded in the outbox and replayed; without it the app remains
+  fully offline. Seeded exercises use deterministic `seed-*` ids so sync will not duplicate
   them.
 - **Single user for now**: `LOCAL_USER_ID = 'local-user'` in `src/constants.ts`, re-exported
   from `src/store/workoutStore.ts` so the existing workout screens kept working. Grep the
@@ -384,22 +382,18 @@ Decisions worth keeping:
 
 Ordered by what a next session should probably do first.
 
-1. **Build the mobile outbox + weight sync client.** Start with the one completed server
-   dataset: enqueue weight create/delete operations transactionally with the local SQLite
-   mutation, exchange the device key for tokens, retry with refresh, and acknowledge only
-   after a successful idempotent response. Preserve offline behavior when the API is absent.
-2. **Extend the authenticated backend and outbox to tasks and nutrition.** Every mobile row
+1. **Extend the authenticated backend and outbox to tasks and nutrition.** Every mobile row
    already carries `user_id`; task completions and macro targets have uniqueness rules meant
    to make replay safe. Add migrations/models/endpoints first, then reuse the weight sync
    transport rather than building module-specific networking.
-3. **Refine workout upload for client-generated IDs.** Workouts are authenticated now, but
+2. **Refine workout upload for client-generated IDs.** Workouts are authenticated now, but
    create/set schemas still generate backend IDs. Offline sync needs to preserve the mobile
    session/set UUIDs and define identical replay vs conflicting reuse, as weight now does.
-4. **Confirm CI on `phase_2`.** The new Phase 2 branch has not yet been confirmed in GitHub
+3. **Confirm CI on `phase_2`.** The new Phase 2 branch has not yet been confirmed in GitHub
    Actions. **`gh` is not installed in this environment**, so check the
    Actions tab or install it. The backend job's Postgres service container is the important
    portability exercise for the new migration and UTC behavior.
-5. **Docker stack smoke test** (`infra/docker-compose.yml`): `docker compose up -d postgres`,
+4. **Docker stack smoke test** (`infra/docker-compose.yml`): `docker compose up -d postgres`,
    `alembic upgrade head`, `uvicorn --reload`, `pytest` against it. **Still blocked in this
    environment**, and here is exactly why, so the next session does not re-derive it:
    `/usr/bin/docker` exists but the daemon socket returns permission denied (the user is in
@@ -407,11 +401,11 @@ Ordered by what a next session should probably do first.
    `sudo` requires a password that is not available. Fixing it needs
    `sudo usermod -aG docker $USER` + a re-login, plus the compose plugin. Both
    `infra/docker-compose.yml` and `apps/backend/Dockerfile` note they are YAML-validated only.
-6. **Screen-level polish** (manual, on-device), all consciously deferred per
+5. **Screen-level polish** (manual, on-device), all consciously deferred per
    `04-feature-specs.md`: rest-timer target ("long enough" turns green at 90s), notes field
    on finish, RPE field, set edit/delete. Nothing in the tasks module is on this list — it
    shipped complete against its spec.
-7. **`src/store/workoutStore.ts` refinement**: `emptySession()` returns all-`null` fields, so
+6. **`src/store/workoutStore.ts` refinement**: `emptySession()` returns all-`null` fields, so
    "no session open" and "session open" are not distinguishable at the type level. Worth a
    discriminated union once an edit flow exists. Not urgent, not flagged in the code.
 
@@ -431,7 +425,7 @@ alembic upgrade head    # latest: 1a6f2c9d4e70 (idempotent)
 cd apps/mobile
 npm run typecheck       # tsc --noEmit, 0 errors
 npm run lint            # eslint ., clean
-npm test                # 334 passed (13 suites)
+npm test                # 343 passed (15 suites)
 npx expo-doctor         # 21/21
 npx expo export --platform android   # successful with macro routes; delete dist/ after
 ```
