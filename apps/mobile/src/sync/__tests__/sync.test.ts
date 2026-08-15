@@ -2,6 +2,7 @@ import { LOCAL_USER_ID } from '@/constants';
 import { createTestDb, type TestDatabase } from '@/db/__tests__/testDb';
 import { pendingCount } from '@/db/outbox';
 import { addEntry, deleteEntry } from '@/db/weight';
+import { clearCompletion, createTask, deleteTask, setArchived, setCompletion } from '@/db/tasks';
 
 import { SyncClient } from '../client';
 import { syncOutbox } from '../outbox';
@@ -166,5 +167,49 @@ describe('outbox replay', () => {
     });
     expect(result.status).toBe('disabled');
     expect(await pendingCount(db)).toBe(1);
+  });
+
+  it('replays the complete task lifecycle through the shared transport', async () => {
+    await createTask(db, {
+      id: 'task-sync',
+      userId: LOCAL_USER_ID,
+      title: 'Read',
+      recurrenceRule: 'daily',
+      createdAt: '2026-08-15T07:00:00.000Z',
+    });
+    await setArchived(db, 'task-sync', true);
+    await setCompletion(db, {
+      id: 'completion-sync',
+      taskId: 'task-sync',
+      completedDate: '2026-08-15',
+      completedAt: '2026-08-15T08:00:00.000Z',
+    });
+    await clearCompletion(db, 'task-sync', '2026-08-15');
+    await deleteTask(db, 'task-sync');
+    const fetchMock = fetchSequence([
+      { status: 200, body: tokens() },
+      { status: 201 },
+      { status: 200 },
+      { status: 201 },
+      { status: 204 },
+      { status: 204 },
+    ]);
+    const client = new SyncClient(
+      { apiUrl: 'http://api.test', deviceKey: 'device-key' },
+      fetchMock,
+    );
+
+    const result = await syncOutbox(db, { client, nowMs: Date.now() + 1000 });
+    const calls = (fetchMock as jest.Mock).mock.calls.slice(1);
+
+    expect(result).toMatchObject({ processed: 5, succeeded: 5, failed: 0 });
+    expect(calls.map(([url, init]) => [url, init.method])).toEqual([
+      ['http://api.test/api/v1/tasks', 'POST'],
+      ['http://api.test/api/v1/tasks/task-sync', 'PATCH'],
+      ['http://api.test/api/v1/task-completions', 'POST'],
+      ['http://api.test/api/v1/tasks/task-sync/completions/2026-08-15', 'DELETE'],
+      ['http://api.test/api/v1/tasks/task-sync', 'DELETE'],
+    ]);
+    expect(await pendingCount(db)).toBe(0);
   });
 });

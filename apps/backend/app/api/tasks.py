@@ -94,6 +94,11 @@ def delete_task(
     task = session.get(Task, task_id)
     if task is None or task.user_id != user.id:
         return Response(status_code=204)
+    completions = session.exec(
+        select(TaskCompletion).where(TaskCompletion.task_id == task_id)
+    ).all()
+    for completion in completions:
+        session.delete(completion)
     session.delete(task)
     session.commit()
     return Response(status_code=204)

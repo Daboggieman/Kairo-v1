@@ -154,7 +154,7 @@ export async function setCompletion(
   },
 ): Promise<void> {
   const task = await getTask(db, completion.taskId);
-  if (!task) return;
+  if (!task) throw new Error(`Task not found: ${completion.taskId}`);
   const wire: TaskCompletionWire = {
     id: completion.id,
     task_id: completion.taskId,

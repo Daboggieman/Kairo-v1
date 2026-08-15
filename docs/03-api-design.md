@@ -35,10 +35,16 @@ scoped to the authenticated user. Timestamps are normalized to UTC before persis
 comparison so SQLite and Postgres replay semantics agree with explicit offsets.
 
 ## Tasks & streaks
-- `POST /tasks`
-- `GET /tasks` — active tasks with today's completion status
-- `POST /tasks/{id}/complete` — mark today complete, server recalculates streak
-- `GET /tasks/{id}/streak`
+- `POST /tasks` — client-ID-preserving, idempotent task upsert
+- `GET /tasks` — authenticated task facts
+- `PATCH /tasks/{id}` — archive or restore
+- `DELETE /tasks/{id}` — idempotent delete, including completion history
+- `POST /task-completions` — idempotent by task and completed calendar day
+- `GET /task-completions` — authenticated completion facts
+- `DELETE /tasks/{id}/completions/{date}` — idempotent clear
+
+Implemented in Phase 2. Streaks remain derived from completion facts; the server does not
+materialize a second streak counter.
 
 ## Nutrition
 - `GET /food-items?search=`

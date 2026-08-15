@@ -2,6 +2,7 @@ import { LOCAL_USER_ID } from '@/constants';
 
 import { createTestDb, type TestDatabase } from './testDb';
 import { listDue, pendingCount } from '../outbox';
+import { clearCompletion, createTask, deleteTask, setArchived, setCompletion } from '../tasks';
 import { addEntry, deleteEntry, getEntry } from '../weight';
 
 describe('sync outbox persistence', () => {
@@ -69,5 +70,38 @@ describe('sync outbox persistence', () => {
     const rows = await listDue(db, '9999-12-31T23:59:59.999Z');
     expect(rows.map((row) => row.operation)).toEqual(['upsert', 'delete']);
     expect(await pendingCount(db)).toBe(2);
+  });
+
+  it('records task and completion facts in mutation order', async () => {
+    await createTask(db, {
+      id: 'task-1',
+      userId: LOCAL_USER_ID,
+      title: 'Read',
+      recurrenceRule: 'daily',
+      createdAt: '2026-08-15T07:00:00.000Z',
+    });
+    await setArchived(db, 'task-1', true);
+    await setCompletion(db, {
+      id: 'completion-1',
+      taskId: 'task-1',
+      completedDate: '2026-08-15',
+      completedAt: '2026-08-15T08:00:00.000Z',
+    });
+    await clearCompletion(db, 'task-1', '2026-08-15');
+    await deleteTask(db, 'task-1');
+
+    const rows = await listDue(db, '9999-12-31T23:59:59.999Z');
+    expect(rows.map((row) => [row.entity_type, row.operation])).toEqual([
+      ['task', 'upsert'],
+      ['task', 'update'],
+      ['task_completion', 'upsert'],
+      ['task_completion', 'delete'],
+      ['task', 'delete'],
+    ]);
+    expect(JSON.parse(rows[0].payload ?? '')).toMatchObject({
+      id: 'task-1',
+      recurrence_rule: 'daily',
+      archived: false,
+    });
   });
 });

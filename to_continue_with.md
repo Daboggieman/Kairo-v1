@@ -3,7 +3,7 @@
 Handoff for the Kairo v1 sessions so far: Phase 0 scaffold, then Workouts, Weight, Tasks
 and Macros. Read before continuing.
 
-Last updated: **2026-08-15**, after completing authenticated body-weight outbox replay.
+Last updated: **2026-08-15**, after completing authenticated task/completion outbox replay.
 
 ## Status
 
@@ -14,12 +14,13 @@ are implemented and verified.
 Phase 1/P0 is now complete as a coherent daily app: Home aggregates all four local modules.
 The full manual device smoke test is complete, including the Today/tasks workflow, locale
 decimal inputs, and real bottom-tab icons. **Phase 2 is now in progress**: authentication,
-the authenticated body-weight API, and the mobile weight outbox/replay client are implemented.
+the authenticated body-weight and task APIs, and the mobile weight/task outbox/replay client
+are implemented.
 Sync is opt-in through Expo public configuration; without it the app stays fully offline.
 
 **Git branch strategy**: `phase_1` preserves the completed Phase 1 snapshot at `ea80c37`.
 Active Phase 2 development lives on `phase_2`, which includes all Phase 1 history plus the
-auth and weight backend implementation, mobile outbox/replay client, compatibility bounds,
+auth, weight and task backend implementation, mobile outbox/replay client, compatibility bounds,
 tests, and documentation. `master` remains at the Phase 1 snapshot for now.
 Confirm the real state with `git status --short` and `git log --oneline origin/master..HEAD`.
 
@@ -45,15 +46,15 @@ Two corrections to what the previous version of this file claimed:
 
 ## What is done and verified
 
-### Backend — Phase 2 auth + weight sync foundation
+### Backend — Phase 2 auth + weight/task sync foundation
 `apps/backend/`, FastAPI + SQLModel + Alembic. Portability decision from an earlier
 session: models use portable SQLAlchemy types so everything runs on SQLite locally, with
 Postgres as the deployment target.
 
-- Migrations `c7080c2dd1c6` and `1a6f2c9d4e70` apply cleanly against SQLite. The latter adds
-  `body_weight_entries` with positive-weight/unit checks, user ownership, and the trend index.
-- `pytest -q` → **13 passed** (auth, health/OpenAPI, authenticated workout lifecycle,
-  cross-user isolation, weight replay/conflict/list/delete/validation).
+- Migrations through `3f82b1d94a61` apply cleanly against SQLite. The latest adds tasks and
+  task completions after the body-weight migration.
+- `pytest -q` → **17 passed** (auth, health/OpenAPI, authenticated workout lifecycle,
+  cross-user isolation, weight sync, and task/completion sync).
 - `ruff check .` → **All checks passed!** (select E, F, I, UP, B; B008 `Depends`/`Query`
   exempted via `extend-immutable-calls`).
 - `POST /auth/token` exchanges the configured device key for access/refresh JWTs;
@@ -63,20 +64,24 @@ Postgres as the deployment target.
 - Body weight has authenticated create/list/delete endpoints. POST preserves the client UUID,
   treats identical replay as success, returns `409` for conflicting reuse, and normalizes
   offset timestamps to UTC before comparison/persistence.
+- Tasks and completions have authenticated create/list/update/delete endpoints. Task POST replay
+  preserves the client UUID; completion replay is idempotent by `(task_id, completed_date)`;
+  archive/restore and clear operations are replay-safe. Streaks remain derived.
 - `alembic/env.py` reads `DATABASE_URL` from `app.core.config` (single source of truth).
 
-The backend still has no tasks or nutrition endpoints. Weight sync is implemented end to end
-when configured; tasks, nutrition, and client-ID-preserving workout upload remain ahead.
+The backend still has no nutrition endpoints. Weight and task sync are implemented end to end
+when configured; nutrition and client-ID-preserving workout upload remain ahead.
 
 ### Mobile — implemented and verified
 `apps/mobile/`, Expo SDK 57 + Expo Router (file-based) + expo-sqlite + Zustand.
 
-Verified after the weight outbox/replay implementation:
+Verified after the task outbox/replay implementation:
 
 - `npm run typecheck` (`tsc --noEmit`) → **0 errors**.
 - `npm run lint` (`eslint .`) → **clean**, 0 errors 0 warnings.
-- `npm test` → **343 passed across 15 suites**. The new suites cover durable outbox storage,
-  atomic rollback, wire payloads, auth refresh, ordered replay, backoff, and terminal errors.
+- `npm test` → **345 passed across 15 suites**. The new suites cover durable outbox storage,
+  atomic rollback, weight/task wire payloads, auth refresh, ordered replay, backoff, and
+  terminal errors.
 - `npx expo-doctor` → **21/21 checks passed**.
 - `npx expo export --platform android` → **successful**, 1,437 modules bundled. The emitted
   `dist/` was deleted afterwards.
@@ -382,10 +387,8 @@ Decisions worth keeping:
 
 Ordered by what a next session should probably do first.
 
-1. **Extend the authenticated backend and outbox to tasks and nutrition.** Every mobile row
-   already carries `user_id`; task completions and macro targets have uniqueness rules meant
-   to make replay safe. Add migrations/models/endpoints first, then reuse the weight sync
-   transport rather than building module-specific networking.
+1. **Add nutrition backend models/endpoints and outbox replay.** Food ownership, entry facts,
+   and effective-dated targets need the same migration/query/transport treatment.
 2. **Refine workout upload for client-generated IDs.** Workouts are authenticated now, but
    create/set schemas still generate backend IDs. Offline sync needs to preserve the mobile
    session/set UUIDs and define identical replay vs conflicting reuse, as weight now does.
@@ -418,14 +421,14 @@ Phase 3 in `docs/06-roadmap.md`, not a gap in what shipped.
 # Backend
 cd apps/backend && source .venv/bin/activate
 ruff check .            # All checks passed!
-pytest -q               # 13 passed
-alembic upgrade head    # latest: 1a6f2c9d4e70 (idempotent)
+pytest -q               # 17 passed
+alembic upgrade head    # latest: 3f82b1d94a61 (idempotent)
 
 # Mobile
 cd apps/mobile
 npm run typecheck       # tsc --noEmit, 0 errors
 npm run lint            # eslint ., clean
-npm test                # 343 passed (15 suites)
+npm test                # 345 passed (15 suites)
 npx expo-doctor         # 21/21
 npx expo export --platform android   # successful with macro routes; delete dist/ after
 ```
