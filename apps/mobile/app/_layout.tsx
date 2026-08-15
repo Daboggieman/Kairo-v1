@@ -12,6 +12,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Suspense } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
+import { SyncBootstrap } from '@/components/SyncBootstrap';
 import { migrate } from '@/db/migrations';
 import { colors, fontSize, spacing } from '@/theme';
 
@@ -40,6 +41,7 @@ export default function RootLayout() {
       }
     >
       <SQLiteProvider databaseName={DATABASE_NAME} onInit={migrate} useSuspense>
+        <SyncBootstrap />
         <StatusBar style="light" />
         <Stack
           screenOptions={{

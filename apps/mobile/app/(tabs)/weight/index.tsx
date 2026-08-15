@@ -36,6 +36,7 @@ import {
 } from '@/domain/weight';
 import { LOCAL_USER_ID } from '@/constants';
 import { colors, fontSize, radius, spacing } from '@/theme';
+import { requestSync } from '@/sync/scheduler';
 
 /** How much history the chart shows. Long enough for a trend, short enough to read. */
 const CHART_DAYS = 90;
@@ -100,6 +101,7 @@ export default function WeightTrendScreen() {
           style: 'destructive',
           onPress: async () => {
             await deleteEntry(db, entry.id);
+            void requestSync(db).catch(() => {});
             const { rows, goal } = await load();
             setEntries(rows);
             setGoalKg(goal);

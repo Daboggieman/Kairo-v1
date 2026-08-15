@@ -8,7 +8,7 @@
  */
 
 /** Bumped whenever a migration is appended in `migrations.ts`. */
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 export const CREATE_EXERCISES = `
 CREATE TABLE IF NOT EXISTS exercises (
@@ -212,3 +212,34 @@ CREATE INDEX IF NOT EXISTS idx_nutrition_user_date_meal
 CREATE INDEX IF NOT EXISTS idx_nutrition_food ON nutrition_entries(food_item_id);
 CREATE INDEX IF NOT EXISTS idx_targets_user_effective
   ON macro_targets(user_id, effective_date DESC);`;
+
+/* -------------------------------------------------------------------------- */
+/* Migration 5 — local sync outbox                                             */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Durable intent log for offline-first writes.
+ *
+ * Rows are replayed in integer-id order so dependent operations retain their local order.
+ * `next_attempt_at = NULL` marks a terminal server rejection that needs inspection rather
+ * than an automatic retry loop. Payloads are JSON because each entity owns its wire shape.
+ */
+export const CREATE_SYNC_OUTBOX = `
+CREATE TABLE IF NOT EXISTS sync_outbox (
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id         TEXT NOT NULL,
+  entity_type     TEXT NOT NULL,
+  entity_id       TEXT NOT NULL,
+  operation       TEXT NOT NULL,
+  payload         TEXT,
+  created_at      TEXT NOT NULL,
+  attempts        INTEGER NOT NULL DEFAULT 0,
+  last_error      TEXT,
+  next_attempt_at TEXT
+);`;
+
+export const CREATE_SYNC_OUTBOX_INDEXES = `
+CREATE INDEX IF NOT EXISTS idx_sync_outbox_due
+  ON sync_outbox(next_attempt_at, id);
+CREATE INDEX IF NOT EXISTS idx_sync_outbox_entity
+  ON sync_outbox(entity_type, entity_id, id);`;

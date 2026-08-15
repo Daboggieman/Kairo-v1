@@ -29,6 +29,7 @@ import { addEntry, latestEntry } from '@/db/weight';
 import { LOCAL_USER_ID } from '@/constants';
 import { colors, fontSize, radius, spacing, TAP_TARGET } from '@/theme';
 import { parseDecimalInput } from '@/domain/numbers';
+import { requestSync } from '@/sync/scheduler';
 
 const UNITS: WeightUnit[] = ['kg', 'lb'];
 
@@ -75,6 +76,7 @@ export default function LogWeightScreen() {
         weightUnit: unit,
         note: note.trim() === '' ? null : note.trim(),
       });
+      void requestSync(db).catch(() => {});
       router.back();
     } finally {
       setSaving(false);
