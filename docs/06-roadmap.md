@@ -21,7 +21,11 @@ already has momentum and daily-use value.
   starts replacing other apps in your day-to-day.
 
 ## Phase 2 — Sync + Motivation (P1)
-- Stand up the FastAPI backend for real, wire sync for Phase 1 data
+- **In progress (started 2026-08-15).** Device-key authentication, JWT refresh, authenticated
+  workout ownership, and the body-weight model/migration/API are implemented and tested.
+- Next: build the mobile outbox/sync client around weight, then extend the same replay-safe
+  path to workouts, tasks, and nutrition.
+- Complete the remaining backend models/endpoints for tasks and nutrition.
 - Motivational quotes (seed a quote table, daily rotation logic)
 - Motivational wallpapers (Pillow generation endpoint)
 - Daily alarms (local notifications)
