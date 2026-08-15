@@ -1,0 +1,9 @@
+model = "gpt-5.6-sol"
+model_provider = "agentrouter"
+
+[model_providers.agentrouter]
+name = "AgentRouter"
+base_url = "https://agentrouter.org/v1"
+wire_api = "responses"
+requires_openai_auth = false
+env_key = "AGENTROUTER_API_KEY"
