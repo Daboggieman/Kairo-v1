@@ -62,6 +62,53 @@ def test_workout_session_lifecycle(client: TestClient, session: Session) -> None
     assert len(detail.json()["sets"]) == 2
 
 
+def test_workout_and_set_replay_preserve_client_ids(client: TestClient, session: Session) -> None:
+    headers = auth_headers(session)
+    workout_id = str(uuid.uuid4())
+    payload = {"id": workout_id, "started_at": "2026-08-15T07:00:00Z"}
+    first = client.post("/api/v1/workouts", json=payload, headers=headers)
+    replay = client.post("/api/v1/workouts", json=payload, headers=headers)
+    assert first.status_code == replay.status_code == 201
+    assert first.json()["id"] == replay.json()["id"] == workout_id
+
+    exercise_id = client.post(
+        "/api/v1/exercises", json={"name": "Press"}, headers=headers
+    ).json()["id"]
+    set_id = str(uuid.uuid4())
+    set_payload = [{"id": set_id, "exercise_id": exercise_id, "set_number": 1,
+                    "reps": 5, "weight": 40.0}]
+    url = f"/api/v1/workouts/{workout_id}/sets"
+    first_sets = client.post(url, json=set_payload, headers=headers)
+    replayed_sets = client.post(url, json=set_payload, headers=headers)
+    assert first_sets.status_code == replayed_sets.status_code == 201
+    assert first_sets.json()[0]["id"] == replayed_sets.json()[0]["id"] == set_id
+    detail = client.get(f"/api/v1/workouts/{workout_id}", headers=headers)
+    assert len(detail.json()["sets"]) == 1
+
+
+def test_workout_id_conflicts_are_rejected(client: TestClient, session: Session) -> None:
+    headers = auth_headers(session)
+    workout_id = str(uuid.uuid4())
+    assert client.post(
+        "/api/v1/workouts", json={"id": workout_id, "notes": "first"}, headers=headers
+    ).status_code == 201
+    assert client.post(
+        "/api/v1/workouts", json={"id": workout_id, "notes": "different"}, headers=headers
+    ).status_code == 409
+
+
+def test_mobile_seed_exercise_id_is_resolved(client: TestClient, session: Session) -> None:
+    headers = auth_headers(session)
+    workout_id = client.post("/api/v1/workouts", json={}, headers=headers).json()["id"]
+    response = client.post(f"/api/v1/workouts/{workout_id}/sets", headers=headers, json=[{
+        "id": str(uuid.uuid4()), "exercise_id": "seed-back-squat", "set_number": 1,
+        "reps": 5, "weight": 80,
+    }])
+    assert response.status_code == 201
+    exercises = client.get("/api/v1/exercises", headers=headers).json()
+    assert any(item["name"] == "Back Squat" for item in exercises)
+
+
 def test_missing_and_foreign_workouts_are_hidden(client: TestClient, session: Session) -> None:
     first = auth_headers(session)
     second = auth_headers(session)

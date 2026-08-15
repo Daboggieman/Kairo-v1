@@ -17,10 +17,10 @@ and derive ownership from its `sub`; clients never submit `user_id` as authority
 ## Workouts
 - `GET /exercises` — list exercise reference data
 - `POST /exercises` — add custom exercise
-- `POST /workouts` — create session
+- `POST /workouts` — create session; accepts an optional client UUID and is replay-safe
 - `GET /workouts?from=&to=` — list sessions in range
 - `GET /workouts/{id}` — session detail with sets
-- `POST /workouts/{id}/sets` — add set to session
+- `POST /workouts/{id}/sets` — add sets; preserves client set UUIDs and accepts seeded mobile IDs
 - `PATCH /workouts/{id}` — update session (end time, notes)
 
 ## Weight
@@ -59,18 +59,13 @@ Implemented in Phase 2. Food definitions are user-owned, entries cannot attach t
 user's food, and targets update by `(user_id, effective_date)` without rewriting history.
 
 ## Quotes & wallpapers
-- `GET /quotes/today` — today's rotated quote
-- `POST /wallpapers/generate` — body: quote_id + style_config; returns image URL
-  (Python/Pillow job, likely async via Celery with a polling or webhook result)
-- `GET /wallpapers` — history
+- `GET /quotes/today?day=` — deterministic authenticated daily quote
+- `POST /wallpapers/generate` — synchronous Pillow render; returns base64 PNG metadata
 
 ## Alarms
-- `POST /alarms`
-- `GET /alarms`
-- `PATCH /alarms/{id}`
-- `DELETE /alarms/{id}`
-*(Actual scheduling happens on-device via `expo-notifications`; these endpoints exist
-purely for cross-device sync of the alarm list.)*
+Alarm CRUD and scheduling are local SQLite operations in the mobile app. `expo-notifications`
+creates daily or selected-weekday triggers on the device; a backend sync API is intentionally
+deferred because local notification IDs are platform-specific.
 
 ## Runs / GPS
 - `POST /runs` — create from on-device GPS track (batch upload of points) OR from a
@@ -93,8 +88,8 @@ purely for cross-device sync of the alarm list.)*
 - (Apple Music equivalents once native MusicKit integration exists — see integrations doc)
 
 ## Design notes
-- Auth and end-to-end weight, task, and nutrition replay are implemented. Workout-upload
-  refinement and the motivation features remain Phase 2 work.
+- Phase 2 auth, workout/weight/task/nutrition replay, quotes, wallpapers, and local reminders
+  are implemented. Phase 3 begins with movement/GPS strategy.
 - Bulk endpoints (e.g. `POST /workouts/{id}/sets` accepting an array) are worth adding
   once the app is offline-first, so a session logged entirely offline syncs in one call.
 - Keep provider-specific logic (Spotify vs Apple Music) behind a common `/music/*`

@@ -1,7 +1,7 @@
 """Authenticated workout endpoints used by the Phase 2 sync path."""
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select
@@ -22,6 +22,35 @@ from app.schemas.workout import (
 )
 
 router = APIRouter(tags=["workouts"], dependencies=[Depends(get_current_user)])
+
+
+def replay_value_matches(stored: object, incoming: object) -> bool:
+    if isinstance(stored, datetime) and isinstance(incoming, datetime):
+        def as_utc_naive(value: datetime) -> datetime:
+            if value.tzinfo is None:
+                return value
+            return value.astimezone(UTC).replace(tzinfo=None)
+        return as_utc_naive(stored) == as_utc_naive(incoming)
+    return stored == incoming
+
+
+def resolve_exercise(session: Session, client_id: str) -> Exercise:
+    try:
+        exercise_id = uuid.UUID(client_id)
+    except ValueError:
+        exercise_id = uuid.uuid5(uuid.NAMESPACE_URL, f"kairo-exercise-{client_id}")
+    exercise = session.get(Exercise, exercise_id)
+    if exercise is not None:
+        return exercise
+    name = client_id.removeprefix("seed-").replace("-", " ").title()
+    exercise = Exercise(
+        id=exercise_id,
+        name=name or "Exercise",
+        is_custom=not client_id.startswith("seed-"),
+    )
+    session.add(exercise)
+    session.flush()
+    return exercise
 
 
 @router.get("/exercises", response_model=list[ExerciseRead])
@@ -47,6 +76,16 @@ def create_workout(
     user: User = Depends(get_current_user),
 ) -> WorkoutSession:
     data = payload.model_dump(exclude_none=True)
+    existing = session.get(WorkoutSession, payload.id)
+    if existing is not None:
+        expected = {**data, "user_id": user.id}
+        matches = all(
+            replay_value_matches(getattr(existing, key), value)
+            for key, value in expected.items()
+        )
+        if existing.user_id == user.id and matches:
+            return existing
+        raise HTTPException(status_code=409, detail="Workout session id already exists")
     workout = WorkoutSession(**data, user_id=user.id)
     session.add(workout)
     session.commit()
@@ -122,7 +161,19 @@ def add_sets(
     workout = session.get(WorkoutSession, workout_id)
     if workout is None or workout.user_id != user.id:
         raise HTTPException(status_code=404, detail="Workout session not found")
-    created = [WorkoutSet(session_id=workout_id, **item.model_dump()) for item in payload]
+    created: list[WorkoutSet] = []
+    for item in payload:
+        data = item.model_dump()
+        exercise = resolve_exercise(session, data.pop("exercise_id"))
+        data["exercise_id"] = exercise.id
+        existing = session.get(WorkoutSet, item.id)
+        if existing is not None:
+            expected = {**data, "session_id": workout_id}
+            if all(getattr(existing, key) == value for key, value in expected.items()):
+                created.append(existing)
+                continue
+            raise HTTPException(status_code=409, detail="Workout set id already exists")
+        created.append(WorkoutSet(session_id=workout_id, **data))
     session.add_all(created)
     session.commit()
     for item in created:

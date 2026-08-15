@@ -8,7 +8,7 @@
  */
 
 /** Bumped whenever a migration is appended in `migrations.ts`. */
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 
 export const CREATE_EXERCISES = `
 CREATE TABLE IF NOT EXISTS exercises (
@@ -243,3 +243,15 @@ CREATE INDEX IF NOT EXISTS idx_sync_outbox_due
   ON sync_outbox(next_attempt_at, id);
 CREATE INDEX IF NOT EXISTS idx_sync_outbox_entity
   ON sync_outbox(entity_type, entity_id, id);`;
+
+export const CREATE_ALARMS = `
+CREATE TABLE IF NOT EXISTS alarms (
+  id TEXT PRIMARY KEY NOT NULL,
+  user_id TEXT NOT NULL,
+  label TEXT NOT NULL,
+  hour INTEGER NOT NULL CHECK (hour BETWEEN 0 AND 23),
+  minute INTEGER NOT NULL CHECK (minute BETWEEN 0 AND 59),
+  repeat_days TEXT NOT NULL,
+  notification_id TEXT,
+  is_active INTEGER NOT NULL DEFAULT 1
+);`;

@@ -8,7 +8,9 @@ export type SyncEntity =
   | 'task_completion'
   | 'food_item'
   | 'nutrition_entry'
-  | 'macro_target';
+  | 'macro_target'
+  | 'workout_session'
+  | 'workout_set';
 export type SyncOperation = 'upsert' | 'update' | 'delete';
 
 export type WeightEntryWire = {
@@ -62,6 +64,25 @@ export type MacroTargetWire = {
   fat_g: number;
   effective_date: string;
   created_at: string;
+};
+
+export type WorkoutSessionWire = {
+  id: string;
+  started_at?: string;
+  ended_at?: string | null;
+  notes?: string | null;
+};
+
+export type WorkoutSetWire = {
+  id: string;
+  session_id: string;
+  exercise_id: string;
+  set_number: number;
+  reps: number;
+  weight: number;
+  weight_unit: 'kg' | 'lb';
+  rpe: number | null;
+  rest_seconds: number | null;
 };
 
 export type OutboxRow = {

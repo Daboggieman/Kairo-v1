@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 
-from sqlmodel import SQLModel
+from sqlmodel import Field, SQLModel
 
 
 class ExerciseCreate(SQLModel):
@@ -21,6 +21,7 @@ class ExerciseRead(SQLModel):
 
 
 class WorkoutSessionCreate(SQLModel):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
     started_at: datetime | None = None
     notes: str | None = None
 
@@ -31,7 +32,8 @@ class WorkoutSessionUpdate(SQLModel):
 
 
 class WorkoutSetCreate(SQLModel):
-    exercise_id: uuid.UUID
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    exercise_id: str
     set_number: int
     reps: int
     weight: float

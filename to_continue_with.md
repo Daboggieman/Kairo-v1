@@ -3,7 +3,7 @@
 Handoff for the Kairo v1 sessions so far: Phase 0 scaffold, then Workouts, Weight, Tasks
 and Macros. Read before continuing.
 
-Last updated: **2026-08-15**, after completing authenticated nutrition outbox replay.
+Last updated: **2026-08-15**, after completing and verifying Phase 2.
 
 ## Status
 
@@ -13,10 +13,11 @@ are implemented and verified.
 
 Phase 1/P0 is now complete as a coherent daily app: Home aggregates all four local modules.
 The full manual device smoke test is complete, including the Today/tasks workflow, locale
-decimal inputs, and real bottom-tab icons. **Phase 2 is now in progress**: authentication,
+decimal inputs, and real bottom-tab icons. **Phase 2 is complete**: authentication,
 the authenticated body-weight, task, and nutrition APIs, and mobile replay for all three
 datasets are implemented.
 Sync is opt-in through Expo public configuration; without it the app stays fully offline.
+**Phase 2 is complete.**
 
 **Git branch strategy**: `phase_1` preserves the completed Phase 1 snapshot at `ea80c37`.
 Active Phase 2 development lives on `phase_2`, which includes all Phase 1 history plus the
@@ -24,9 +25,8 @@ auth, weight/task/nutrition backend implementation, mobile outbox/replay client,
 tests, and documentation. `master` remains at the Phase 1 snapshot for now.
 Confirm the real state with `git status --short` and `git log --oneline origin/master..HEAD`.
 
-Current local Phase 2 tip is `072c44a` (`feat(phase-2): complete nutrition sync replay`). At
-this update the branch is one commit ahead of `origin/phase_2` because the environment's VS Code
-HTTPS credential socket is unavailable; push it manually if the remote has not caught up.
+The remaining Phase 2 implementation is now in the working tree after the manually pushed
+`phase_2` baseline. Commit and push this completed slice when convenient.
 
 The last pushed commits are:
 
@@ -57,7 +57,7 @@ Postgres as the deployment target.
 
 - Migrations through `4d91e2f7c3ab` apply cleanly against SQLite. The latest adds foods,
   nutrition entries, and effective-dated macro targets.
-- `pytest -q` → **19 passed** (auth, health/OpenAPI, authenticated workout lifecycle,
+- `pytest -q` → **24 passed** (auth, health/OpenAPI, authenticated workout lifecycle,
   cross-user isolation, weight/task/nutrition sync).
 - `ruff check .` → **All checks passed!** (select E, F, I, UP, B; B008 `Depends`/`Query`
   exempted via `extend-immutable-calls`).
@@ -75,22 +75,32 @@ Postgres as the deployment target.
   replay idempotently; target PUT updates the effective-date row; entry deletion is idempotent.
 - `alembic/env.py` reads `DATABASE_URL` from `app.core.config` (single source of truth).
 
-Weight, task, and nutrition sync are implemented end to end when configured. Only
-client-ID-preserving workout upload and Phase 2 motivation features remain.
+Workout, weight, task, and nutrition sync are implemented end to end when configured. Quotes,
+Pillow wallpapers, and local daily/weekly reminders are also complete.
+
+## Final Phase 2 verification
+
+- Backend: `ruff check .` clean; `pytest -q` **24 passed**; `alembic upgrade head` reaches head.
+- Mobile: `npm run typecheck` clean; `npm run lint` clean; `npm test -- --runInBand`
+  **350 passed across 16 suites**; Android export emitted `dist/` successfully.
+- Workout replay preserves client session/set IDs, accepts mobile seeded exercise IDs, and
+  rejects conflicting ID reuse with `409`.
+- Quotes are deterministic by calendar day; wallpaper tests decode a nonblank 1080x1920 PNG.
+- Reminders persist in mobile schema v6 and schedule daily or selected-weekday notifications.
 
 ### Mobile — implemented and verified
 `apps/mobile/`, Expo SDK 57 + Expo Router (file-based) + expo-sqlite + Zustand.
 
-Verified after the nutrition outbox/replay implementation:
+Verified after the completed Phase 2 implementation:
 
 - `npm run typecheck` (`tsc --noEmit`) → **0 errors**.
 - `npm run lint` (`eslint .`) → **clean**, 0 errors 0 warnings.
-- `npm test` → **347 passed across 15 suites**. The new suites cover durable outbox storage,
+- `npm test` → **350 passed across 16 suites**. The new suites cover durable outbox storage,
   atomic rollback, weight/task/nutrition wire payloads, auth refresh, ordered replay, backoff,
   and terminal errors.
-- `npx expo-doctor` → **21/21 checks passed**.
-- `npx expo export --platform android` → **successful**, 1,437 modules bundled. The emitted
-  `dist/` was deleted afterwards.
+- `npx expo-doctor` was started against the final SDK 57 dependency graph.
+- `npx expo export --platform android` → successful; the generated `dist/` bundle is present
+  for inspection.
 
 Module flows that work:
 
@@ -416,8 +426,8 @@ Ordered by what a next session should probably do first.
    "no session open" and "session open" are not distinguishable at the type level. Worth a
    discriminated union once an edit flow exists. Not urgent, not flagged in the code.
 
-Not on this list, and deliberately: no tasks-module follow-ups. Reminders/notifications are
-Phase 3 in `docs/06-roadmap.md`, not a gap in what shipped.
+Not on this list, and deliberately: no tasks-module follow-ups. Phase 3 is now the movement
+and GPS work in `docs/06-roadmap.md`.
 
 ## Verification commands
 
@@ -425,15 +435,15 @@ Phase 3 in `docs/06-roadmap.md`, not a gap in what shipped.
 # Backend
 cd apps/backend && source .venv/bin/activate
 ruff check .            # All checks passed!
-pytest -q               # 19 passed
-alembic upgrade head    # latest: 4d91e2f7c3ab (idempotent)
+pytest -q               # 24 passed
+alembic upgrade head    # reaches head (idempotent)
 
 # Mobile
 cd apps/mobile
 npm run typecheck       # tsc --noEmit, 0 errors
 npm run lint            # eslint ., clean
-npm test                # 347 passed (15 suites)
-npx expo-doctor         # 21/21
+npm test                # 350 passed (16 suites)
+npx expo-doctor         # dependency health check
 npx expo export --platform android   # successful with macro routes; delete dist/ after
 ```
 

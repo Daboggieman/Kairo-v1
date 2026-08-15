@@ -58,7 +58,7 @@ What changed:
 
 Why: the "one folder per feature module" convention below stops being a convention and
 becomes structural — a module without a folder under `app/` has no routes. Deep linking
-and typed routes come for free, which matters for the Phase 3 alarm and wallpaper
+and typed routes come for free, which matters for the Phase 2 alarm and wallpaper
 notifications that need to open a specific screen.
 
 Cost: route files must live in `app/`, so the module's screens and its store/db/domain code

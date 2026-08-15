@@ -14,6 +14,8 @@ import {
   type TaskCompletionWire,
   type TaskWire,
   type WeightEntryWire,
+  type WorkoutSessionWire,
+  type WorkoutSetWire,
 } from '@/db/outbox';
 
 import { ApiError, createSyncClient, type SyncClient } from './client';
@@ -80,6 +82,23 @@ export async function syncOutbox(
 }
 
 async function replay(client: SyncClient, row: OutboxRow): Promise<void> {
+  if (row.entity_type === 'workout_session') {
+    const payload = parsePayload<WorkoutSessionWire>(row, 'workout session');
+    if (row.operation === 'update') {
+      const { id: _id, ...update } = payload;
+      await client.patch(`/api/v1/workouts/${encodeURIComponent(row.entity_id)}`, update);
+    } else {
+      await client.post('/api/v1/workouts', payload);
+    }
+    return;
+  }
+
+  if (row.entity_type === 'workout_set') {
+    const payload = parsePayload<WorkoutSetWire>(row, 'workout set');
+    const { session_id: sessionId, ...setPayload } = payload;
+    await client.post(`/api/v1/workouts/${encodeURIComponent(sessionId)}/sets`, [setPayload]);
+    return;
+  }
   if (row.entity_type === 'food_item') {
     await client.post('/api/v1/food-items', parsePayload<FoodItemWire>(row, 'food item'));
     return;
@@ -140,6 +159,7 @@ async function replay(client: SyncClient, row: OutboxRow): Promise<void> {
 
   throw new ApiError(`Unsupported sync entity: ${row.entity_type}`, 422);
 }
+
 
 function parsePayload<T>(row: OutboxRow, label: string): T {
   if (!row.payload) throw new ApiError(`${label} operation is missing its payload`, 422);

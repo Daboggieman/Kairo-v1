@@ -29,6 +29,7 @@ import { dayKeyFromDate } from '@/domain/dates';
 import { formatNutrition } from '@/domain/macros';
 import { formatDuration } from '@/domain/workouts';
 import { formatDelta, toDisplayWeight } from '@/domain/weight';
+import { quoteForDate } from '@/domain/motivation';
 import { colors, fontSize, radius, spacing } from '@/theme';
 
 const MACRO_COLORS = {
@@ -59,6 +60,7 @@ export default function HomeScreen() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [loading, setLoading] = useState(true);
+  const quote = quoteForDate(new Date(nowMs));
 
   const load = useCallback(async () => {
     const capturedNow = Date.now();
@@ -242,6 +244,13 @@ export default function HomeScreen() {
               ) : (
                 <Text style={styles.mutedBody}>No workouts yet</Text>
               )}
+            </DashboardCard>
+            <DashboardCard title="Daily focus" onPress={() => router.push('/wallpaper')} action="Wallpaper">
+              <Text style={styles.primaryStat}>{quote.text}</Text>
+              <Text style={styles.statCaption}>{quote.author}</Text>
+            </DashboardCard>
+            <DashboardCard title="Reminders" onPress={() => router.push('/alarms')} action="Manage">
+              <Text style={styles.mutedBody}>Schedule daily and weekly local notifications.</Text>
             </DashboardCard>
           </>
         )}

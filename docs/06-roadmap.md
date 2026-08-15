@@ -20,14 +20,14 @@ already has momentum and daily-use value.
 - **Goal**: usable daily without any backend running. This is the phase where the app
   starts replacing other apps in your day-to-day.
 
-## Phase 2 — Sync + Motivation (P1)
-- **In progress (started 2026-08-15).** Device-key authentication, JWT refresh, authenticated
-  workout ownership, body-weight/task/nutrition models/migrations/APIs, and mobile replay for
-  all three datasets are implemented and tested.
-- Next: preserve client IDs for workout session/set uploads, then finish the motivation items.
-- Motivational quotes (seed a quote table, daily rotation logic)
-- Motivational wallpapers (Pillow generation endpoint)
-- Daily alarms (local notifications)
+## Phase 2 — Sync + Motivation (P1) — Complete
+- Device-key authentication, JWT refresh, ownership checks, and ordered mobile outbox replay.
+- Replay-safe body weight, tasks/completions, nutrition, and workout sessions/sets. Mobile IDs
+  are preserved; exact replays succeed and conflicting reuse returns `409`.
+- Deterministic daily quotes with an offline mobile fallback.
+- Synchronous Pillow wallpaper generation (`1080x1920` PNG) with mobile preview and Photos save.
+- SQLite-backed local daily/weekly reminders via `expo-notifications`; no server push required.
+- Verification: backend 24 tests, mobile 350 tests across 16 suites, Ruff, ESLint, and TypeScript.
 
 ## Phase 3 — Movement (P2a)
 - Decide GPS strategy per `05-integrations-and-credentials.md`

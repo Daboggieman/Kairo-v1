@@ -57,7 +57,8 @@ records merge cleanly with the server without collision.
 
 ## Daily alarms
 **Alarm**
-- id, user_id, label, time (local time + timezone), repeat_days (array), sound, is_active
+- Mobile-local id, user_id, label, local hour/minute, repeat_days, notification_id, is_active.
+  The notification ID is device-specific and is deliberately not synchronized server-side.
 
 *(True OS-level alarm behavior vs. local notification — see integrations doc; the data
 model is the same either way.)*

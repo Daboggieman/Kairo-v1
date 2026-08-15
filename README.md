@@ -8,8 +8,9 @@ Planning docs live in [`docs/`](docs/); start with [`docs/README.md`](docs/READM
 
 ## Status
 
-**Phase 1 is complete and Phase 2 is in progress.** The mobile app is a coherent offline
-daily driver; the backend now has device authentication plus the first sync-ready dataset.
+**Phase 1 and Phase 2 are complete.** The mobile app is an offline-first daily driver with
+authenticated replay for workouts, weight, tasks, and nutrition, plus quotes, wallpapers,
+and local reminders.
 See [`docs/06-roadmap.md`](docs/06-roadmap.md) for the full phased plan.
 
 | Module | State |
@@ -23,14 +24,17 @@ See [`docs/06-roadmap.md`](docs/06-roadmap.md) for the full phased plan.
 | Backend weight sync API | Built — authenticated, idempotent, user-scoped |
 | Backend tasks sync API | Built — replay-safe task/completion facts |
 | Backend nutrition sync API | Built — owned foods, entries, effective targets |
-| Mobile sync client/outbox | Built — weight, task, and nutrition replay |
+| Backend workout sync API | Built — client-ID-preserving, replay-safe sessions and sets |
+| Motivation | Built — deterministic daily quote and Pillow wallpaper generation |
+| Daily reminders | Built — SQLite-backed local recurring notifications |
+| Mobile sync client/outbox | Built — ordered replay with refresh, backoff, and terminal errors |
 | Later roadmap modules | Not started |
 
 The mobile app remains **offline-first** and runs with no backend or network. When
-`EXPO_PUBLIC_KAIRO_API_URL` and `EXPO_PUBLIC_KAIRO_DEVICE_KEY` are configured, weight, task,
-and nutrition mutations are recorded transactionally and replayed on launch, foreground, and
-retry intervals.
-Workout uploads remain local until their client-ID-preserving sync contract is implemented.
+`EXPO_PUBLIC_KAIRO_API_URL` and `EXPO_PUBLIC_KAIRO_DEVICE_KEY` are configured, supported
+mutations are recorded transactionally and replayed on launch, foreground, and retry intervals.
+Without those values, all local modules, quotes, and reminders continue to work offline;
+wallpaper generation falls back to the local quote card until an API is configured.
 
 ## Layout
 
@@ -61,7 +65,7 @@ Checks:
 ```bash
 npm run typecheck
 npm run lint
-npm test                 # 347 tests across 15 suites
+npm test                 # 350 tests across 16 suites
 npx expo-doctor
 ```
 
@@ -82,8 +86,8 @@ Checks:
 
 ```bash
 ruff check .
-pytest -q                # 19 tests
-alembic upgrade head     # latest: nutrition migration 4d91e2f7c3ab
+pytest -q                # 24 tests
+alembic upgrade head     # verified at latest migration
 ```
 
 Implemented API surface: device-key token exchange and refresh, authenticated workouts, and

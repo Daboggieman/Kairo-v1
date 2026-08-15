@@ -10,6 +10,7 @@ import {
   setMacroTarget,
 } from '../macros';
 import { addEntry, deleteEntry, getEntry } from '../weight';
+import { addSet, createSession, endSession } from '../workouts';
 
 describe('sync outbox persistence', () => {
   let db: TestDatabase;
@@ -136,5 +137,21 @@ describe('sync outbox persistence', () => {
       ['macro_target', 'upsert'],
       ['nutrition_entry', 'delete'],
     ]);
+  });
+
+  it('records workout session, set, and completion in dependency order', async () => {
+    await createSession(db, { id: 'session-1', userId: LOCAL_USER_ID, startedAt: '2026-08-15T07:00:00.000Z' });
+    const exercise = await db.getFirstAsync<{ id: string }>('SELECT id FROM exercises LIMIT 1');
+    await addSet(db, { id: 'set-1', session_id: 'session-1', exercise_id: exercise!.id,
+      set_number: 1, reps: 5, weight: 60, weight_unit: 'kg', rpe: null, rest_seconds: null });
+    await endSession(db, 'session-1', '2026-08-15T08:00:00.000Z', 'done');
+
+    const rows = await listDue(db, '9999-12-31T23:59:59.999Z');
+    expect(rows.map((row) => [row.entity_type, row.operation])).toEqual([
+      ['workout_session', 'upsert'], ['workout_set', 'upsert'], ['workout_session', 'update'],
+    ]);
+    expect(JSON.parse(rows[1].payload ?? '')).toMatchObject({
+      id: 'set-1', session_id: 'session-1', exercise_id: exercise!.id,
+    });
   });
 });
