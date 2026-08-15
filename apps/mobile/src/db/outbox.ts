@@ -2,8 +2,8 @@
 
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-export type SyncEntity = 'body_weight_entry';
-export type SyncOperation = 'upsert' | 'delete';
+export type SyncEntity = 'body_weight_entry' | 'task' | 'task_completion';
+export type SyncOperation = 'upsert' | 'update' | 'delete';
 
 export type WeightEntryWire = {
   id: string;
@@ -11,6 +11,21 @@ export type WeightEntryWire = {
   weight: number;
   weight_unit: 'kg' | 'lb';
   note: string | null;
+};
+
+export type TaskWire = {
+  id: string;
+  title: string;
+  recurrence_rule: string;
+  created_at: string;
+  archived: boolean;
+};
+
+export type TaskCompletionWire = {
+  id: string;
+  task_id: string;
+  completed_date: string;
+  completed_at: string;
 };
 
 export type OutboxRow = {

@@ -13,3 +13,4 @@ def test_openapi_schema_is_generated(client: TestClient) -> None:
     assert response.status_code == 200
     assert "/api/v1/workouts" in response.json()["paths"]
     assert "/api/v1/weight-entries" in response.json()["paths"]
+    assert "/api/v1/tasks" in response.json()["paths"]

@@ -30,6 +30,7 @@ import {
   type HistoryState,
 } from '@/domain/tasks';
 import { colors, fontSize, radius, spacing } from '@/theme';
+import { requestSync } from '@/sync/scheduler';
 
 /** Two months of history — enough to see a pattern, few enough rows to fit without scrolling. */
 const HISTORY_WEEKS = 8;
@@ -75,6 +76,7 @@ export default function TaskStreakScreen() {
   const onArchive = useCallback(async () => {
     if (!task) return;
     await setArchived(db, task.id, !task.archived);
+    void requestSync(db).catch(() => {});
     const { row, completionDates } = await load();
     setTask(row);
     setDates(completionDates);
@@ -92,6 +94,7 @@ export default function TaskStreakScreen() {
           style: 'destructive',
           onPress: async () => {
             await deleteTask(db, task.id);
+            void requestSync(db).catch(() => {});
             router.back();
           },
         },

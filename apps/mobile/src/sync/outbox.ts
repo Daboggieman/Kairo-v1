@@ -8,6 +8,8 @@ import {
   markRetry,
   markSucceeded,
   type OutboxRow,
+  type TaskCompletionWire,
+  type TaskWire,
   type WeightEntryWire,
 } from '@/db/outbox';
 
@@ -75,24 +77,55 @@ export async function syncOutbox(
 }
 
 async function replay(client: SyncClient, row: OutboxRow): Promise<void> {
-  if (row.entity_type !== 'body_weight_entry') {
-    throw new ApiError(`Unsupported sync entity: ${row.entity_type}`, 422);
-  }
-  if (row.operation === 'delete') {
-    await client.delete(`/api/v1/weight-entries/${encodeURIComponent(row.entity_id)}`);
+  if (row.entity_type === 'task') {
+    if (row.operation === 'delete') {
+      await client.delete(`/api/v1/tasks/${encodeURIComponent(row.entity_id)}`);
+      return;
+    }
+    const payload = parsePayload<TaskWire>(row, 'task');
+    if (row.operation === 'update') {
+      await client.patch(`/api/v1/tasks/${encodeURIComponent(row.entity_id)}`, payload);
+    } else {
+      await client.post('/api/v1/tasks', payload);
+    }
     return;
   }
-  if (!row.payload) throw new ApiError('Weight upsert is missing its payload', 422);
-  let payload: WeightEntryWire;
+
+  if (row.entity_type === 'task_completion') {
+    const payload = parsePayload<TaskCompletionWire>(row, 'task completion');
+    if (row.operation === 'delete') {
+      await client.delete(
+        `/api/v1/tasks/${encodeURIComponent(payload.task_id)}/completions/`
+          + encodeURIComponent(payload.completed_date),
+      );
+    } else {
+      await client.post('/api/v1/task-completions', payload);
+    }
+    return;
+  }
+
+  if (row.entity_type === 'body_weight_entry') {
+    if (row.operation === 'delete') {
+      await client.delete(`/api/v1/weight-entries/${encodeURIComponent(row.entity_id)}`);
+      return;
+    }
+    await client.post('/api/v1/weight-entries', parsePayload<WeightEntryWire>(row, 'weight'));
+    return;
+  }
+
+  throw new ApiError(`Unsupported sync entity: ${row.entity_type}`, 422);
+}
+
+function parsePayload<T>(row: OutboxRow, label: string): T {
+  if (!row.payload) throw new ApiError(`${label} operation is missing its payload`, 422);
   try {
-    payload = JSON.parse(row.payload) as WeightEntryWire;
+    return JSON.parse(row.payload) as T;
   } catch (error) {
     throw new ApiError(
-      `Invalid weight payload: ${error instanceof Error ? error.message : String(error)}`,
+      `Invalid ${label} payload: ${error instanceof Error ? error.message : String(error)}`,
       422,
     );
   }
-  await client.post('/api/v1/weight-entries', payload);
 }
 
 function isTerminal(error: unknown): boolean {

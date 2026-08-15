@@ -40,6 +40,14 @@ export class SyncClient {
     await this.request(path, { method: 'DELETE' });
   }
 
+  async patch(path: string, body: unknown): Promise<void> {
+    await this.request(path, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  }
+
   private async request(path: string, init: RequestInit): Promise<void> {
     if (!this.tokens) await this.authenticate();
     let response = await this.authorizedFetch(path, init);
