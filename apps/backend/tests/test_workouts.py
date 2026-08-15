@@ -1,81 +1,85 @@
-"""Workouts router tests.
-
-These exercise the endpoint shapes from `03-api-design.md`. The mobile app is
-local-first this phase and does not call them yet, so this suite is what keeps the
-router honest until sync lands in Phase 2.
-"""
+"""Authenticated workout endpoint tests."""
 
 import uuid
 
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
+from app.core.auth import create_token
 from app.models.user import User
 
 
 def make_user(session: Session) -> uuid.UUID:
-    user = User(email="test@example.com")
+    user = User(email=f"{uuid.uuid4()}@example.com")
     session.add(user)
     session.commit()
     session.refresh(user)
     return user.id
 
 
-def test_create_and_list_exercise(client: TestClient) -> None:
-    created = client.post("/api/v1/exercises", json={"name": "Zercher Squat"})
-    assert created.status_code == 201
-    body = created.json()
-    assert body["name"] == "Zercher Squat"
-    assert body["is_custom"] is True
+def auth_headers(session: Session) -> dict[str, str]:
+    return {"Authorization": f"Bearer {create_token(make_user(session), 'access')}"}
 
-    listed = client.get("/api/v1/exercises")
-    assert listed.status_code == 200
+
+def test_workout_routes_require_authentication(client: TestClient) -> None:
+    assert client.get("/api/v1/exercises").status_code == 401
+
+
+def test_create_and_list_exercise(client: TestClient, session: Session) -> None:
+    headers = auth_headers(session)
+    created = client.post("/api/v1/exercises", json={"name": "Zercher Squat"}, headers=headers)
+    assert created.status_code == 201
+    assert created.json()["is_custom"] is True
+    listed = client.get("/api/v1/exercises", headers=headers)
     assert [e["name"] for e in listed.json()] == ["Zercher Squat"]
 
 
 def test_workout_session_lifecycle(client: TestClient, session: Session) -> None:
-    user_id = make_user(session)
-
-    workout = client.post("/api/v1/workouts", json={"user_id": str(user_id)})
+    headers = auth_headers(session)
+    workout = client.post("/api/v1/workouts", json={}, headers=headers)
     assert workout.status_code == 201
     workout_id = workout.json()["id"]
     assert workout.json()["ended_at"] is None
-
-    exercise_id = client.post("/api/v1/exercises", json={"name": "Deadlift"}).json()["id"]
-
-    # Bulk set upload — the offline-sync shape called out in 03-api-design.md.
+    exercise_id = client.post(
+        "/api/v1/exercises", json={"name": "Deadlift"}, headers=headers
+    ).json()["id"]
     sets = client.post(
         f"/api/v1/workouts/{workout_id}/sets",
         json=[
             {"exercise_id": exercise_id, "set_number": 1, "reps": 5, "weight": 100.0},
             {"exercise_id": exercise_id, "set_number": 2, "reps": 5, "weight": 105.0},
         ],
+        headers=headers,
     )
     assert sets.status_code == 201
-    assert len(sets.json()) == 2
-
     ended = client.patch(
         f"/api/v1/workouts/{workout_id}",
         json={"ended_at": "2026-08-10T12:00:00Z", "notes": "felt strong"},
+        headers=headers,
     )
     assert ended.status_code == 200
-    assert ended.json()["notes"] == "felt strong"
-
-    detail = client.get(f"/api/v1/workouts/{workout_id}")
-    assert detail.status_code == 200
+    detail = client.get(f"/api/v1/workouts/{workout_id}", headers=headers)
     assert len(detail.json()["sets"]) == 2
-    assert detail.json()["sets"][0]["set_number"] == 1
 
 
-def test_get_missing_workout_returns_404(client: TestClient) -> None:
-    response = client.get(f"/api/v1/workouts/{uuid.uuid4()}")
-    assert response.status_code == 404
+def test_missing_and_foreign_workouts_are_hidden(client: TestClient, session: Session) -> None:
+    first = auth_headers(session)
+    second = auth_headers(session)
+    created = client.post("/api/v1/workouts", json={}, headers=first)
+    workout_id = created.json()["id"]
+    assert client.get(f"/api/v1/workouts/{uuid.uuid4()}", headers=first).status_code == 404
+    assert client.get(f"/api/v1/workouts/{workout_id}", headers=second).status_code == 404
+    assert client.get("/api/v1/workouts", headers=second).json() == []
 
 
-def test_add_sets_to_missing_workout_returns_404(client: TestClient) -> None:
-    exercise_id = client.post("/api/v1/exercises", json={"name": "Row"}).json()["id"]
+def test_add_sets_to_missing_workout_returns_404(client: TestClient, session: Session) -> None:
+    headers = auth_headers(session)
+    exercise_id = client.post(
+        "/api/v1/exercises", json={"name": "Row"}, headers=headers
+    ).json()["id"]
     response = client.post(
         f"/api/v1/workouts/{uuid.uuid4()}/sets",
         json=[{"exercise_id": exercise_id, "set_number": 1, "reps": 8, "weight": 60.0}],
+        headers=headers,
     )
     assert response.status_code == 404

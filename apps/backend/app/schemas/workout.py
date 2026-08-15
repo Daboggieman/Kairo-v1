@@ -21,7 +21,6 @@ class ExerciseRead(SQLModel):
 
 
 class WorkoutSessionCreate(SQLModel):
-    user_id: uuid.UUID
     started_at: datetime | None = None
     notes: str | None = None
 

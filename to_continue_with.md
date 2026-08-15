@@ -3,8 +3,8 @@
 Handoff for the Kairo v1 sessions so far: Phase 0 scaffold, then Workouts, Weight, Tasks
 and Macros. Read before continuing.
 
-Last updated: **2026-08-14**, after resolving the first manual-device findings from the macro
-and Home dashboard smoke test.
+Last updated: **2026-08-15**, after starting Phase 2 with backend authentication and the
+first sync-ready dataset (body weight).
 
 ## Status
 
@@ -14,18 +14,22 @@ are implemented and verified.
 
 Phase 1/P0 is now complete as a coherent daily app: Home aggregates all four local modules.
 The full manual device smoke test is complete, including the Today/tasks workflow, locale
-decimal inputs, and real bottom-tab icons. The project is ready for the **Phase 2 sync + auth
-foundation**.
+decimal inputs, and real bottom-tab icons. **Phase 2 is now in progress**: the authentication
+foundation and authenticated body-weight backend API are implemented. The mobile app still
+runs entirely offline and does not call the API yet.
 
-**Git**: `master`; `HEAD` and `origin/master` are both `b08aabf`. The locale-decimal fix,
-tab icons and their dependencies, regression tests, and this handoff update are currently
-**uncommitted working-tree changes**.
+**Git branch strategy**: `phase_1` preserves the completed Phase 1 snapshot at `ea80c37`.
+Active Phase 2 development lives on `phase_2`, which includes all Phase 1 history plus the
+auth and weight backend implementation, dependency compatibility bounds, tests, and this
+documentation update. `master` remains at the Phase 1 snapshot for now.
 Confirm the real state with `git status --short` and `git log --oneline origin/master..HEAD`.
 
 The last pushed commits are:
 
 | Commit | What |
 |---|---|
+| `ea80c37` | Confirm physical-device retest for locale decimals and final tab icons |
+| `77d4016` | Locale-safe numeric parsing, real tab icons, regression tests and manual findings |
 | `b08aabf` | Macro/nutrition v4 storage and UI, Home dashboard composition, tests, and handoff |
 | `44c140d` | `refactor(dates)` — extract `src/domain/dates.ts`, fix two UTC/local window bugs in weight |
 | `9d641d3` | `feat(tasks)` — the whole tasks module, migration v3, three screens, 97 new tests |
@@ -43,29 +47,33 @@ Two corrections to what the previous version of this file claimed:
 
 ## What is done and verified
 
-### Backend — green (unchanged this session)
+### Backend — Phase 2 auth + weight sync foundation
 `apps/backend/`, FastAPI + SQLModel + Alembic. Portability decision from an earlier
 session: models use portable SQLAlchemy types so everything runs on SQLite locally, with
 Postgres as the deployment target.
 
-- Migration `c7080c2dd1c6` applied against SQLite; tables confirmed via sqlite3:
-  `alembic_version, exercises, users, workout_sessions, workout_sets`.
-- `pytest` → **6 passed** (health + workout lifecycle, in-memory SQLite via `StaticPool`).
+- Migrations `c7080c2dd1c6` and `1a6f2c9d4e70` apply cleanly against SQLite. The latter adds
+  `body_weight_entries` with positive-weight/unit checks, user ownership, and the trend index.
+- `pytest -q` → **13 passed** (auth, health/OpenAPI, authenticated workout lifecycle,
+  cross-user isolation, weight replay/conflict/list/delete/validation).
 - `ruff check .` → **All checks passed!** (select E, F, I, UP, B; B008 `Depends`/`Query`
   exempted via `extend-immutable-calls`).
-- `POST /workouts/{id}/sets` accepts an array (offline bulk sync); the router carries a
-  `TODO(phase-2)` noting the endpoints are unauthenticated by design until then.
+- `POST /auth/token` exchanges the configured device key for access/refresh JWTs;
+  `POST /auth/refresh` rotates the pair. PyJWT performs HS256 claim/signature validation.
+- All workout endpoints now require bearer auth. Workout creation derives `user_id` from the
+  token, and list/detail/update/set writes hide rows belonging to another user.
+- Body weight has authenticated create/list/delete endpoints. POST preserves the client UUID,
+  treats identical replay as success, returns `409` for conflicting reuse, and normalizes
+  offset timestamps to UTC before comparison/persistence.
 - `alembic/env.py` reads `DATABASE_URL` from `app.core.config` (single source of truth).
 
-**Not re-run this session** — the macro module is mobile-only and touches no backend file,
-so these numbers are carried over from the previous verification. Re-run them before
-trusting them (see "Verification commands"). The backend still has **no tasks, weight, or
-nutrition endpoints**; it is a workouts-only API, which is fine until Phase 2.
+The backend still has no tasks or nutrition endpoints, and the mobile app has no API client
+or outbox. Weight is sync-ready on the server only; no device data is uploaded yet.
 
 ### Mobile — implemented and verified
 `apps/mobile/`, Expo SDK 57 + Expo Router (file-based) + expo-sqlite + Zustand.
 
-Verified at the end of this session:
+Last verified before the Phase 2 backend-only changes (no mobile file changed afterwards):
 
 - `npm run typecheck` (`tsc --noEmit`) → **0 errors**.
 - `npm run lint` (`eslint .`) → **clean**, 0 errors 0 warnings.
@@ -335,9 +343,10 @@ Decisions worth keeping:
 - **Expo Router over React Navigation** (deviation from the planning docs): routes live in
   `app/(tabs)/<module>/`, no `src/screens/` or `src/navigation/`. Documented in
   `docs/07-repo-structure.md` — keep new modules under `app/(tabs)/`.
-- **Local-first**: the app is 100% offline; the backend exists but nothing calls it yet.
-  Sync arrives in Phase 2 per `docs/06-roadmap.md`. Seeded exercises use deterministic
-  `seed-*` ids so Phase 2 sync won't duplicate them.
+- **Local-first**: the app is still 100% offline and nothing calls the backend yet. Phase 2
+  server work has started, but local writes remain authoritative until the outbox/client is
+  implemented. Seeded exercises use deterministic `seed-*` ids so sync will not duplicate
+  them.
 - **Single user for now**: `LOCAL_USER_ID = 'local-user'` in `src/constants.ts`, re-exported
   from `src/store/workoutStore.ts` so the existing workout screens kept working. Grep the
   constant to find everything Phase 2 auth has to touch; every row carries `user_id` from
@@ -375,21 +384,22 @@ Decisions worth keeping:
 
 Ordered by what a next session should probably do first.
 
-1. **Focused manual retest — complete.** Today/tasks, macro day navigation, custom-food flow,
-   Home cards, workout lifecycle, locale decimal cases, and real tab icons passed on the
-   physical device. The migration scenario remains automated-only because this device had no
-   prior Kairo data.
-2. **Confirm CI after committing and pushing.** `.github/workflows/ci.yml` had three
-  successful runs as of the previous handoff. The uncommitted manual-finding fixes cannot
-  have been checked yet, and
-   **`gh` is not installed in this environment** (`gh: command not found`), so it could not
-   be verified from here — check the Actions tab, or install `gh`. The backend job's
-   Postgres service container is the only real exercise of the Postgres path.
-3. **Phase 2 sync + auth.** Add backend models/endpoints for weight, tasks, and nutrition,
-   authenticate the existing workout endpoints, then build an idempotent local outbox/sync
-   path. Every mobile row already carries `user_id`; macro entries and task completions have
-   uniqueness/ownership rules intended to make replay safe.
-4. **Docker stack smoke test** (`infra/docker-compose.yml`): `docker compose up -d postgres`,
+1. **Build the mobile outbox + weight sync client.** Start with the one completed server
+   dataset: enqueue weight create/delete operations transactionally with the local SQLite
+   mutation, exchange the device key for tokens, retry with refresh, and acknowledge only
+   after a successful idempotent response. Preserve offline behavior when the API is absent.
+2. **Extend the authenticated backend and outbox to tasks and nutrition.** Every mobile row
+   already carries `user_id`; task completions and macro targets have uniqueness rules meant
+   to make replay safe. Add migrations/models/endpoints first, then reuse the weight sync
+   transport rather than building module-specific networking.
+3. **Refine workout upload for client-generated IDs.** Workouts are authenticated now, but
+   create/set schemas still generate backend IDs. Offline sync needs to preserve the mobile
+   session/set UUIDs and define identical replay vs conflicting reuse, as weight now does.
+4. **Confirm CI on `phase_2`.** The new Phase 2 branch has not yet been confirmed in GitHub
+   Actions. **`gh` is not installed in this environment**, so check the
+   Actions tab or install it. The backend job's Postgres service container is the important
+   portability exercise for the new migration and UTC behavior.
+5. **Docker stack smoke test** (`infra/docker-compose.yml`): `docker compose up -d postgres`,
    `alembic upgrade head`, `uvicorn --reload`, `pytest` against it. **Still blocked in this
    environment**, and here is exactly why, so the next session does not re-derive it:
    `/usr/bin/docker` exists but the daemon socket returns permission denied (the user is in
@@ -397,11 +407,11 @@ Ordered by what a next session should probably do first.
    `sudo` requires a password that is not available. Fixing it needs
    `sudo usermod -aG docker $USER` + a re-login, plus the compose plugin. Both
    `infra/docker-compose.yml` and `apps/backend/Dockerfile` note they are YAML-validated only.
-5. **Screen-level polish** (manual, on-device), all consciously deferred per
+6. **Screen-level polish** (manual, on-device), all consciously deferred per
    `04-feature-specs.md`: rest-timer target ("long enough" turns green at 90s), notes field
    on finish, RPE field, set edit/delete. Nothing in the tasks module is on this list — it
    shipped complete against its spec.
-6. **`src/store/workoutStore.ts` refinement**: `emptySession()` returns all-`null` fields, so
+7. **`src/store/workoutStore.ts` refinement**: `emptySession()` returns all-`null` fields, so
    "no session open" and "session open" are not distinguishable at the type level. Worth a
    discriminated union once an edit flow exists. Not urgent, not flagged in the code.
 
@@ -414,8 +424,8 @@ Phase 3 in `docs/06-roadmap.md`, not a gap in what shipped.
 # Backend
 cd apps/backend && source .venv/bin/activate
 ruff check .            # All checks passed!
-pytest -q               # 6 passed
-alembic upgrade head    # c7080c2dd1c6 (idempotent)
+pytest -q               # 13 passed
+alembic upgrade head    # latest: 1a6f2c9d4e70 (idempotent)
 
 # Mobile
 cd apps/mobile

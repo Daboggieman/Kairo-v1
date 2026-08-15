@@ -8,20 +8,25 @@ Planning docs live in [`docs/`](docs/); start with [`docs/README.md`](docs/READM
 
 ## Status
 
-**Phase 0 (setup) + the first Phase 1 module (workout logging).** See
-[`docs/06-roadmap.md`](docs/06-roadmap.md) for the full phased plan.
+**Phase 1 is complete and Phase 2 is in progress.** The mobile app is a coherent offline
+daily driver; the backend now has device authentication plus the first sync-ready dataset.
+See [`docs/06-roadmap.md`](docs/06-roadmap.md) for the full phased plan.
 
 | Module | State |
 |---|---|
-| Workout logging | Built — local-first, on-device SQLite |
-| Weight & progress charts | Not started |
-| Daily tasks + streaks | Not started |
-| Macro / nutrition tracking | Not started |
-| Everything else (P1–P3) | Not started |
+| Workout logging | Built and device-tested |
+| Weight & progress charts | Built and device-tested |
+| Daily tasks + streaks | Built and device-tested |
+| Macro / nutrition tracking | Built and device-tested |
+| Home dashboard | Built — aggregates all four Phase 1 modules |
+| Backend auth | Built — device key exchange, access/refresh JWTs |
+| Backend weight sync API | Built — authenticated, idempotent, user-scoped |
+| Mobile sync client/outbox | Next |
+| Later roadmap modules | Not started |
 
-The mobile app is **fully local-first**: it runs with no backend and no network. The
-FastAPI backend is scaffolded and boots on its own, but the app does not call it yet —
-sync arrives in Phase 2.
+The mobile app remains **fully local-first** and runs with no backend or network. The
+FastAPI service is ready for authenticated weight sync, but the mobile outbox/client is
+not wired yet, so local data does not currently leave the device.
 
 ## Layout
 
@@ -50,8 +55,10 @@ npx expo start          # then scan the QR code with Expo Go
 Checks:
 
 ```bash
-npx tsc --noEmit
-npm test
+npm run typecheck
+npm run lint
+npm test                 # 334 tests across 13 suites
+npx expo-doctor
 ```
 
 ## Backend
@@ -62,6 +69,8 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 cp .env.example .env
 
+# Replace DEVICE_KEY and JWT_SECRET in .env before exposing the API.
+
 uvicorn app.main:app --reload    # http://localhost:8000/docs
 ```
 
@@ -69,8 +78,13 @@ Checks:
 
 ```bash
 ruff check .
-pytest
+pytest -q                # 13 tests
+alembic upgrade head     # latest: body-weight migration 1a6f2c9d4e70
 ```
+
+Implemented API surface: device-key token exchange and refresh, authenticated workouts,
+and authenticated body-weight create/list/delete endpoints. Weight uploads preserve the
+mobile UUID, tolerate identical replay, and reject conflicting reuse with `409`.
 
 Postgres for local development (requires a running Docker daemon):
 

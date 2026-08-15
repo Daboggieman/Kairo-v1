@@ -19,6 +19,13 @@ class Settings(BaseSettings):
     api_v1_prefix: str = "/api/v1"
     debug: bool = False
 
+    # Phase 2 starts with a single trusted device. Deployments must override both
+    # secrets; deliberately awkward development defaults keep local startup simple.
+    device_key: str = "development-device-key"
+    jwt_secret: str = "development-jwt-secret-change-me"
+    access_token_minutes: int = 30
+    refresh_token_days: int = 30
+
     @property
     def is_sqlite(self) -> bool:
         return self.database_url.startswith("sqlite")

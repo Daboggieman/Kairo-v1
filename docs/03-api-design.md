@@ -9,6 +9,11 @@ on rather than hand-maintaining a separate spec.
   as simple as a long-lived device key rather than a full login form)
 - `POST /auth/refresh` — refresh JWT
 
+Implemented in Phase 2. The configured `DEVICE_KEY` creates or resolves the single backend
+user and returns an HS256 access/refresh pair. Refresh reissues a valid pair. All non-auth
+routes validate the access token
+and derive ownership from its `sub`; clients never submit `user_id` as authority.
+
 ## Workouts
 - `GET /exercises` — list exercise reference data
 - `POST /exercises` — add custom exercise
@@ -19,8 +24,14 @@ on rather than hand-maintaining a separate spec.
 - `PATCH /workouts/{id}` — update session (end time, notes)
 
 ## Weight
-- `POST /weight-entries`
+- `POST /weight-entries` — preserves the client UUID; identical replay is idempotent and a
+  conflicting payload for the same UUID returns `409`
 - `GET /weight-entries?from=&to=`
+- `DELETE /weight-entries/{id}` — sync counterpart to the mobile long-press delete action
+
+Implemented in Phase 2. All three operations are scoped to the authenticated user. Timestamps
+are normalized to UTC before persistence/comparison so SQLite and Postgres replay semantics
+agree even when the upload uses an explicit offset.
 
 ## Tasks & streaks
 - `POST /tasks`
@@ -70,6 +81,8 @@ purely for cross-device sync of the alarm list.)*
 - (Apple Music equivalents once native MusicKit integration exists — see integrations doc)
 
 ## Design notes
+- Auth and weight are implemented; task, nutrition, workout-upload refinement, and the mobile
+  outbox remain Phase 2 work.
 - Bulk endpoints (e.g. `POST /workouts/{id}/sets` accepting an array) are worth adding
   once the app is offline-first, so a session logged entirely offline syncs in one call.
 - Keep provider-specific logic (Spotify vs Apple Music) behind a common `/music/*`
