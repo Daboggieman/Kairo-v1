@@ -1,0 +1,22 @@
+{
+  "name": "codex-agentrouter",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    }
+  },
+
+  // Prompts anyone creating a Codespace (via "Advanced options") to supply
+  // this if they haven't already saved it as a personal/repo secret.
+  // The actual value NEVER lives in this file or in git.
+  "secrets": {
+    "AGENTROUTER_API_KEY": {
+      "description": "Bearer token for AgentRouter (used by Codex CLI's custom model provider)"
+    }
+  },
+
+  // Runs once, after the container is built and the repo is cloned.
+  "postCreateCommand": "bash .devcontainer/setup.sh"
+}
