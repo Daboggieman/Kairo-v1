@@ -27,8 +27,9 @@ See [`docs/06-roadmap.md`](docs/06-roadmap.md) for the full phased plan.
 | Later roadmap modules | Not started |
 
 The mobile app remains **offline-first** and runs with no backend or network. When
-`EXPO_PUBLIC_KAIRO_API_URL` and `EXPO_PUBLIC_KAIRO_DEVICE_KEY` are configured, weight and task
-mutations are recorded transactionally and replayed on launch, foreground, and retry intervals.
+`EXPO_PUBLIC_KAIRO_API_URL` and `EXPO_PUBLIC_KAIRO_DEVICE_KEY` are configured, weight, task,
+and nutrition mutations are recorded transactionally and replayed on launch, foreground, and
+retry intervals.
 Workout uploads remain local until their client-ID-preserving sync contract is implemented.
 
 ## Layout
@@ -85,11 +86,11 @@ pytest -q                # 19 tests
 alembic upgrade head     # latest: nutrition migration 4d91e2f7c3ab
 ```
 
-Implemented API surface: device-key token exchange and refresh, authenticated workouts,
-and authenticated body-weight create/list/delete endpoints. Weight uploads preserve the
-mobile UUID, tolerate identical replay, and reject conflicting reuse with `409`.
-The mobile outbox drains weight and task operations in order with refresh, exponential backoff,
-and terminal handling for non-retryable client errors.
+Implemented API surface: device-key token exchange and refresh, authenticated workouts, and
+authenticated weight, task, and nutrition endpoints. Replay preserves client UUIDs where rows
+are identity-based and uses semantic uniqueness for completion dates and effective targets.
+The mobile outbox drains operations in order with refresh, exponential backoff, and terminal
+handling for non-retryable client errors.
 
 Postgres for local development (requires a running Docker daemon):
 

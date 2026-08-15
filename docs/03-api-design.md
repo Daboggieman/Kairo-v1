@@ -93,8 +93,8 @@ purely for cross-device sync of the alarm list.)*
 - (Apple Music equivalents once native MusicKit integration exists — see integrations doc)
 
 ## Design notes
-- Auth and end-to-end weight replay are implemented; task, nutrition, and workout-upload
-  refinement remain Phase 2 work.
+- Auth and end-to-end weight, task, and nutrition replay are implemented. Workout-upload
+  refinement and the motivation features remain Phase 2 work.
 - Bulk endpoints (e.g. `POST /workouts/{id}/sets` accepting an array) are worth adding
   once the app is offline-first, so a session logged entirely offline syncs in one call.
 - Keep provider-specific logic (Spotify vs Apple Music) behind a common `/music/*`

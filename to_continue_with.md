@@ -24,6 +24,10 @@ auth, weight/task/nutrition backend implementation, mobile outbox/replay client,
 tests, and documentation. `master` remains at the Phase 1 snapshot for now.
 Confirm the real state with `git status --short` and `git log --oneline origin/master..HEAD`.
 
+Current local Phase 2 tip is `072c44a` (`feat(phase-2): complete nutrition sync replay`). At
+this update the branch is one commit ahead of `origin/phase_2` because the environment's VS Code
+HTTPS credential socket is unavailable; push it manually if the remote has not caught up.
+
 The last pushed commits are:
 
 | Commit | What |
@@ -77,13 +81,13 @@ client-ID-preserving workout upload and Phase 2 motivation features remain.
 ### Mobile — implemented and verified
 `apps/mobile/`, Expo SDK 57 + Expo Router (file-based) + expo-sqlite + Zustand.
 
-Verified after the task outbox/replay implementation:
+Verified after the nutrition outbox/replay implementation:
 
 - `npm run typecheck` (`tsc --noEmit`) → **0 errors**.
 - `npm run lint` (`eslint .`) → **clean**, 0 errors 0 warnings.
-- `npm test` → **345 passed across 15 suites**. The new suites cover durable outbox storage,
-  atomic rollback, weight/task wire payloads, auth refresh, ordered replay, backoff, and
-  terminal errors.
+- `npm test` → **347 passed across 15 suites**. The new suites cover durable outbox storage,
+  atomic rollback, weight/task/nutrition wire payloads, auth refresh, ordered replay, backoff,
+  and terminal errors.
 - `npx expo-doctor` → **21/21 checks passed**.
 - `npx expo export --platform android` → **successful**, 1,437 modules bundled. The emitted
   `dist/` was deleted afterwards.
