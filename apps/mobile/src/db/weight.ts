@@ -11,6 +11,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { BodyWeightEntry, BodyWeightEntryRow, toBodyWeightEntry, WeightUnit } from './types';
+import { enqueue, type WeightEntryWire } from './outbox';
 
 /**
  * Entries newest first, for the list under the chart.
@@ -71,22 +72,49 @@ export async function addEntry(
     note: string | null;
   },
 ): Promise<BodyWeightEntry> {
-  await db.runAsync(
-    `INSERT INTO body_weight_entries (id, user_id, recorded_at, weight, weight_unit, note)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    entry.id,
-    entry.userId,
-    entry.recordedAt,
-    entry.weight,
-    entry.weightUnit,
-    entry.note,
-  );
+  const wire: WeightEntryWire = {
+    id: entry.id,
+    recorded_at: entry.recordedAt,
+    weight: entry.weight,
+    weight_unit: entry.weightUnit,
+    note: entry.note,
+  };
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    await tx.runAsync(
+      `INSERT INTO body_weight_entries (id, user_id, recorded_at, weight, weight_unit, note)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      entry.id,
+      entry.userId,
+      entry.recordedAt,
+      entry.weight,
+      entry.weightUnit,
+      entry.note,
+    );
+    await enqueue(tx, {
+      userId: entry.userId,
+      entityType: 'body_weight_entry',
+      entityId: entry.id,
+      operation: 'upsert',
+      payload: wire,
+    });
+  });
   return { ...entry };
 }
 
 /** Undo for a mis-typed entry — the one destructive action the weight screen offers. */
 export async function deleteEntry(db: SQLiteDatabase, id: string): Promise<void> {
-  await db.runAsync('DELETE FROM body_weight_entries WHERE id = ?', id);
+  const entry = await getEntry(db, id);
+  if (!entry) return;
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    await tx.runAsync('DELETE FROM body_weight_entries WHERE id = ?', id);
+    await enqueue(tx, {
+      userId: entry.userId,
+      entityType: 'body_weight_entry',
+      entityId: id,
+      operation: 'delete',
+      payload: null,
+    });
+  });
 }
 
 /**

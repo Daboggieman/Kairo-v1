@@ -107,6 +107,17 @@ function adapt(sqlite: DatabaseSync): TestDatabase {
       };
     },
 
+    async withExclusiveTransactionAsync(task: (tx: SQLiteDatabase) => Promise<void>) {
+      sqlite.exec('BEGIN IMMEDIATE');
+      try {
+        await task(adapter as unknown as SQLiteDatabase);
+        sqlite.exec('COMMIT');
+      } catch (error) {
+        sqlite.exec('ROLLBACK');
+        throw error;
+      }
+    },
+
     close() {
       sqlite.close();
     },

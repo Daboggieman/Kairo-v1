@@ -36,25 +36,23 @@ Each spec covers: purpose, core screens, key logic, and open decisions to make b
 - **Purpose**: a fresh quote each day, tied to whatever tags matter to you
   (discipline, faith, etc.).
 - **Screens**: Home widget showing today's quote; optional Quote Library/Favorites.
-- **Key logic**: rotation should avoid repeats within some window (e.g. no repeat in 60
-  days) — simplest approach is a server-side job picking from untagged-as-recently-shown
-  quotes.
+- **Key logic**: the API and offline client use deterministic calendar-day rotation, so the
+  same day is stable across reloads and devices without a background job.
 
 ## Motivational wallpapers
 - **Purpose**: turn the daily quote into a phone-wallpaper-ready image.
-- **Screens**: Wallpaper preview + "Set as Wallpaper" / Save-to-Photos action.
-- **Key logic**: Python/Pillow renders quote text over a background image or gradient
-  using a chosen style config (font, color, layout). Generation can be triggered
-  on-demand or pre-generated daily via the Celery job that picks the day's quote.
+- **Screens**: Wallpaper preview + Save-to-Photos action.
+- **Key logic**: Python/Pillow synchronously renders a 1080x1920 PNG using validated colour
+  configuration; the mobile client writes the base64 result to cache before saving to Photos.
 - **Open decision**: curate a small set of background images/gradients up front rather
   than sourcing them dynamically, to avoid image-licensing questions.
 
 ## Daily alarms
 - **Purpose**: wake-up and reminder alarms inside the same app as everything else.
 - **Screens**: Alarm list, Add/Edit Alarm (time, repeat days, label, sound).
-- **Key logic**: scheduled via `expo-notifications` locally on-device (see integrations
-  doc for why this — not a server push — is the reliable mechanism, and for the real
-  limits on "true alarm" behavior on iOS).
+- **Key logic**: scheduled via `expo-notifications` locally on-device, with daily or selected
+  weekday repeat triggers and SQLite persistence. This is a reminder, not a silent-mode
+  bypassing alarm clock.
 
 ## GPS fitness tracker
 - **Purpose**: Strava/Runkeeper-style run and ride tracking.

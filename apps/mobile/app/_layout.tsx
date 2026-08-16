@@ -9,13 +9,24 @@
 import { SQLiteProvider } from 'expo-sqlite';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as Notifications from 'expo-notifications';
 import { Suspense } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
+import { SyncBootstrap } from '@/components/SyncBootstrap';
 import { migrate } from '@/db/migrations';
 import { colors, fontSize, spacing } from '@/theme';
 
 export const DATABASE_NAME = 'kairo.db';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 /** Expo Router renders this instead of crashing when a child throws — including `onInit`. */
 export function ErrorBoundary({ error, retry }: { error: Error; retry: () => Promise<void> }) {
@@ -40,6 +51,7 @@ export default function RootLayout() {
       }
     >
       <SQLiteProvider databaseName={DATABASE_NAME} onInit={migrate} useSuspense>
+        <SyncBootstrap />
         <StatusBar style="light" />
         <Stack
           screenOptions={{

@@ -76,6 +76,8 @@ export default function TabsLayout() {
           ),
         }}
       />
+      <Tabs.Screen name="alarms" options={{ href: null, title: 'Reminders' }} />
+      <Tabs.Screen name="wallpaper" options={{ href: null, title: 'Wallpaper' }} />
     </Tabs>
   );
 }

@@ -30,6 +30,7 @@ import { WEEKDAY_LABELS } from '@/domain/dates';
 import { formatRecurrence, RECURRENCE_PRESETS } from '@/domain/tasks';
 import { LOCAL_USER_ID } from '@/constants';
 import { colors, fontSize, radius, spacing, TAP_TARGET } from '@/theme';
+import { requestSync } from '@/sync/scheduler';
 
 const CUSTOM = 'custom';
 
@@ -69,6 +70,7 @@ export default function NewTaskScreen() {
         // reason as a weigh-in — the day is what matters, the time is worth keeping.
         createdAt: new Date().toISOString(),
       });
+      void requestSync(db).catch(() => {});
       router.back();
     } finally {
       setSaving(false);

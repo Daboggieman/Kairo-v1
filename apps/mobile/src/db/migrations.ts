@@ -13,6 +13,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 import {
   CREATE_BODY_WEIGHT_ENTRIES,
+  CREATE_ALARMS,
   CREATE_EXERCISES,
   CREATE_FOOD_ITEMS,
   CREATE_INDEXES,
@@ -22,6 +23,8 @@ import {
   CREATE_TASK_COMPLETIONS,
   CREATE_TASK_INDEXES,
   CREATE_TASKS,
+  CREATE_SYNC_OUTBOX,
+  CREATE_SYNC_OUTBOX_INDEXES,
   CREATE_USER_PREFERENCES,
   CREATE_WEIGHT_INDEXES,
   CREATE_WORKOUT_SESSIONS,
@@ -70,6 +73,14 @@ const MIGRATIONS: Migration[] = [
       await db.execAsync(CREATE_NUTRITION_INDEXES);
     },
   },
+  {
+    version: 5,
+    up: async (db) => {
+      await db.execAsync(CREATE_SYNC_OUTBOX);
+      await db.execAsync(CREATE_SYNC_OUTBOX_INDEXES);
+    },
+  },
+  { version: 6, up: async (db) => { await db.execAsync(CREATE_ALARMS); } },
 ];
 
 /**

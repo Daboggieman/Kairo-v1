@@ -37,6 +37,7 @@ import {
 } from '@/domain/tasks';
 import { LOCAL_USER_ID } from '@/constants';
 import { colors, fontSize, radius, spacing, TAP_TARGET } from '@/theme';
+import { requestSync } from '@/sync/scheduler';
 
 function formatToday(nowMs: number): string {
   return new Date(nowMs).toLocaleDateString(undefined, {
@@ -101,6 +102,7 @@ export default function TodayScreen() {
         completedDate: dayKeyFromDate(now),
         completedAt: now.toISOString(),
       });
+      void requestSync(db).catch(() => {});
       await load();
     },
     [db, load],

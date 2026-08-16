@@ -8,8 +8,9 @@ Planning docs live in [`docs/`](docs/); start with [`docs/README.md`](docs/READM
 
 ## Status
 
-**Phase 1 is complete and Phase 2 is in progress.** The mobile app is a coherent offline
-daily driver; the backend now has device authentication plus the first sync-ready dataset.
+**Phase 1 and Phase 2 are complete.** The mobile app is an offline-first daily driver with
+authenticated replay for workouts, weight, tasks, and nutrition, plus quotes, wallpapers,
+and local reminders.
 See [`docs/06-roadmap.md`](docs/06-roadmap.md) for the full phased plan.
 
 | Module | State |
@@ -21,12 +22,19 @@ See [`docs/06-roadmap.md`](docs/06-roadmap.md) for the full phased plan.
 | Home dashboard | Built — aggregates all four Phase 1 modules |
 | Backend auth | Built — device key exchange, access/refresh JWTs |
 | Backend weight sync API | Built — authenticated, idempotent, user-scoped |
-| Mobile sync client/outbox | Next |
+| Backend tasks sync API | Built — replay-safe task/completion facts |
+| Backend nutrition sync API | Built — owned foods, entries, effective targets |
+| Backend workout sync API | Built — client-ID-preserving, replay-safe sessions and sets |
+| Motivation | Built — deterministic daily quote and Pillow wallpaper generation |
+| Daily reminders | Built — SQLite-backed local recurring notifications |
+| Mobile sync client/outbox | Built — ordered replay with refresh, backoff, and terminal errors |
 | Later roadmap modules | Not started |
 
-The mobile app remains **fully local-first** and runs with no backend or network. The
-FastAPI service is ready for authenticated weight sync, but the mobile outbox/client is
-not wired yet, so local data does not currently leave the device.
+The mobile app remains **offline-first** and runs with no backend or network. When
+`EXPO_PUBLIC_KAIRO_API_URL` and `EXPO_PUBLIC_KAIRO_DEVICE_KEY` are configured, supported
+mutations are recorded transactionally and replayed on launch, foreground, and retry intervals.
+Without those values, all local modules, quotes, and reminders continue to work offline;
+wallpaper generation falls back to the local quote card until an API is configured.
 
 ## Layout
 
@@ -57,7 +65,7 @@ Checks:
 ```bash
 npm run typecheck
 npm run lint
-npm test                 # 334 tests across 13 suites
+npm test                 # 350 tests across 16 suites
 npx expo-doctor
 ```
 
@@ -78,13 +86,15 @@ Checks:
 
 ```bash
 ruff check .
-pytest -q                # 13 tests
-alembic upgrade head     # latest: body-weight migration 1a6f2c9d4e70
+pytest -q                # 24 tests
+alembic upgrade head     # verified at latest migration
 ```
 
-Implemented API surface: device-key token exchange and refresh, authenticated workouts,
-and authenticated body-weight create/list/delete endpoints. Weight uploads preserve the
-mobile UUID, tolerate identical replay, and reject conflicting reuse with `409`.
+Implemented API surface: device-key token exchange and refresh, authenticated workouts, and
+authenticated weight, task, and nutrition endpoints. Replay preserves client UUIDs where rows
+are identity-based and uses semantic uniqueness for completion dates and effective targets.
+The mobile outbox drains operations in order with refresh, exponential backoff, and terminal
+handling for non-retryable client errors.
 
 Postgres for local development (requires a running Docker daemon):
 

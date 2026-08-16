@@ -13,6 +13,7 @@
 
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import { enqueue, type TaskCompletionWire, type TaskWire } from './outbox';
 import { Task, TaskRow, toTask } from './types';
 
 /**
@@ -63,15 +64,31 @@ export async function createTask(
     createdAt: string;
   },
 ): Promise<Task> {
-  await db.runAsync(
-    `INSERT INTO tasks (id, user_id, title, recurrence_rule, created_at, archived)
-     VALUES (?, ?, ?, ?, ?, 0)`,
-    task.id,
-    task.userId,
-    task.title,
-    task.recurrenceRule,
-    task.createdAt,
-  );
+  const wire: TaskWire = {
+    id: task.id,
+    title: task.title,
+    recurrence_rule: task.recurrenceRule,
+    created_at: task.createdAt,
+    archived: false,
+  };
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    await tx.runAsync(
+      `INSERT INTO tasks (id, user_id, title, recurrence_rule, created_at, archived)
+       VALUES (?, ?, ?, ?, ?, 0)`,
+      task.id,
+      task.userId,
+      task.title,
+      task.recurrenceRule,
+      task.createdAt,
+    );
+    await enqueue(tx, {
+      userId: task.userId,
+      entityType: 'task',
+      entityId: task.id,
+      operation: 'upsert',
+      payload: wire,
+    });
+  });
   return { ...task, archived: false };
 }
 
@@ -87,7 +104,18 @@ export async function setArchived(
   taskId: string,
   archived: boolean,
 ): Promise<void> {
-  await db.runAsync('UPDATE tasks SET archived = ? WHERE id = ?', archived ? 1 : 0, taskId);
+  const task = await getTask(db, taskId);
+  if (!task) return;
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    await tx.runAsync('UPDATE tasks SET archived = ? WHERE id = ?', archived ? 1 : 0, taskId);
+    await enqueue(tx, {
+      userId: task.userId,
+      entityType: 'task',
+      entityId: taskId,
+      operation: 'update',
+      payload: { archived },
+    });
+  });
 }
 
 /**
@@ -98,7 +126,18 @@ export async function setArchived(
  * would come back to life under a recycled task id.
  */
 export async function deleteTask(db: SQLiteDatabase, taskId: string): Promise<void> {
-  await db.runAsync('DELETE FROM tasks WHERE id = ?', taskId);
+  const task = await getTask(db, taskId);
+  if (!task) return;
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    await tx.runAsync('DELETE FROM tasks WHERE id = ?', taskId);
+    await enqueue(tx, {
+      userId: task.userId,
+      entityType: 'task',
+      entityId: taskId,
+      operation: 'delete',
+      payload: null,
+    });
+  });
 }
 
 /**
@@ -114,14 +153,32 @@ export async function setCompletion(
     completedAt: string;
   },
 ): Promise<void> {
-  await db.runAsync(
-    `INSERT OR IGNORE INTO task_completions (id, task_id, completed_date, completed_at)
-     VALUES (?, ?, ?, ?)`,
-    completion.id,
-    completion.taskId,
-    completion.completedDate,
-    completion.completedAt,
-  );
+  const task = await getTask(db, completion.taskId);
+  if (!task) throw new Error(`Task not found: ${completion.taskId}`);
+  const wire: TaskCompletionWire = {
+    id: completion.id,
+    task_id: completion.taskId,
+    completed_date: completion.completedDate,
+    completed_at: completion.completedAt,
+  };
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    const result = await tx.runAsync(
+      `INSERT OR IGNORE INTO task_completions (id, task_id, completed_date, completed_at)
+       VALUES (?, ?, ?, ?)`,
+      completion.id,
+      completion.taskId,
+      completion.completedDate,
+      completion.completedAt,
+    );
+    if (result.changes === 0) return;
+    await enqueue(tx, {
+      userId: task.userId,
+      entityType: 'task_completion',
+      entityId: completion.id,
+      operation: 'upsert',
+      payload: wire,
+    });
+  });
 }
 
 /** Un-ticks a day. Returns whether there was anything to remove. */
@@ -130,12 +187,26 @@ export async function clearCompletion(
   taskId: string,
   completedDate: string,
 ): Promise<boolean> {
-  const result = await db.runAsync(
-    'DELETE FROM task_completions WHERE task_id = ? AND completed_date = ?',
-    taskId,
-    completedDate,
-  );
-  return result.changes > 0;
+  const task = await getTask(db, taskId);
+  if (!task) return false;
+  let removed = false;
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    const result = await tx.runAsync(
+      'DELETE FROM task_completions WHERE task_id = ? AND completed_date = ?',
+      taskId,
+      completedDate,
+    );
+    removed = result.changes > 0;
+    if (!removed) return;
+    await enqueue(tx, {
+      userId: task.userId,
+      entityType: 'task_completion',
+      entityId: `${taskId}:${completedDate}`,
+      operation: 'delete',
+      payload: { task_id: taskId, completed_date: completedDate },
+    });
+  });
+  return removed;
 }
 
 /**

@@ -9,6 +9,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { LB_PER_KG } from '@/domain/workouts';
+import { enqueue, type WorkoutSessionWire, type WorkoutSetWire } from './outbox';
 
 import {
   Exercise,
@@ -44,13 +45,11 @@ export async function createSession(
   db: SQLiteDatabase,
   session: { id: string; userId: string; startedAt: string },
 ): Promise<void> {
-  await db.runAsync(
-    `INSERT INTO workout_sessions (id, user_id, started_at)
-     VALUES (?, ?, ?)`,
-    session.id,
-    session.userId,
-    session.startedAt,
-  );
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    await tx.runAsync(`INSERT INTO workout_sessions (id, user_id, started_at) VALUES (?, ?, ?)`, session.id, session.userId, session.startedAt);
+    const payload: WorkoutSessionWire = { id: session.id, started_at: session.startedAt };
+    await enqueue(tx, { userId: session.userId, entityType: 'workout_session', entityId: session.id, operation: 'upsert', payload });
+  });
 }
 
 export async function endSession(
@@ -59,16 +58,19 @@ export async function endSession(
   endedAt: string,
   notes: string | null,
 ): Promise<void> {
-  await db.runAsync(
-    `UPDATE workout_sessions SET ended_at = ?, notes = ? WHERE id = ?`,
-    endedAt,
-    notes,
-    sessionId,
-  );
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    await tx.runAsync(`UPDATE workout_sessions SET ended_at = ?, notes = ? WHERE id = ?`, endedAt, notes, sessionId);
+    const row = await tx.getFirstAsync<{ user_id: string }>('SELECT user_id FROM workout_sessions WHERE id = ?', sessionId);
+    if (row) {
+      const payload: WorkoutSessionWire = { id: sessionId, ended_at: endedAt, notes };
+      await enqueue(tx, { userId: row.user_id, entityType: 'workout_session', entityId: sessionId, operation: 'update', payload });
+    }
+  });
 }
 
 export async function addSet(db: SQLiteDatabase, set: WorkoutSetRow): Promise<void> {
-  await db.runAsync(
+  await db.withExclusiveTransactionAsync(async (tx) => {
+  await tx.runAsync(
     `INSERT INTO workout_sets
        (id, session_id, exercise_id, set_number, reps, weight, weight_unit, rpe, rest_seconds)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -82,6 +84,22 @@ export async function addSet(db: SQLiteDatabase, set: WorkoutSetRow): Promise<vo
     set.rpe,
     set.rest_seconds,
   );
+  const session = await tx.getFirstAsync<{ user_id: string }>('SELECT user_id FROM workout_sessions WHERE id = ?', set.session_id);
+  if (session) {
+    const payload: WorkoutSetWire = {
+      id: set.id,
+      session_id: set.session_id,
+      exercise_id: set.exercise_id,
+      set_number: set.set_number,
+      reps: set.reps,
+      weight: set.weight,
+      weight_unit: set.weight_unit === 'lb' ? 'lb' : 'kg',
+      rpe: set.rpe,
+      rest_seconds: set.rest_seconds,
+    };
+    await enqueue(tx, { userId: session.user_id, entityType: 'workout_set', entityId: set.id, operation: 'upsert', payload });
+  }
+  });
 }
 
 export async function listSessions(

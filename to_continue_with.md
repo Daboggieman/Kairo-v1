@@ -3,8 +3,7 @@
 Handoff for the Kairo v1 sessions so far: Phase 0 scaffold, then Workouts, Weight, Tasks
 and Macros. Read before continuing.
 
-Last updated: **2026-08-15**, after starting Phase 2 with backend authentication and the
-first sync-ready dataset (body weight).
+Last updated: **2026-08-15**, after completing and verifying Phase 2.
 
 ## Status
 
@@ -14,20 +13,25 @@ are implemented and verified.
 
 Phase 1/P0 is now complete as a coherent daily app: Home aggregates all four local modules.
 The full manual device smoke test is complete, including the Today/tasks workflow, locale
-decimal inputs, and real bottom-tab icons. **Phase 2 is now in progress**: the authentication
-foundation and authenticated body-weight backend API are implemented. The mobile app still
-runs entirely offline and does not call the API yet.
+decimal inputs, and real bottom-tab icons. **Phase 2 is complete**: authenticated replay for
+workouts, weight, tasks, and nutrition; deterministic motivation; Pillow wallpapers; and
+local daily/weekly reminders are implemented and verified.
+Sync is opt-in through Expo public configuration; without it the app stays fully offline.
 
 **Git branch strategy**: `phase_1` preserves the completed Phase 1 snapshot at `ea80c37`.
-Active Phase 2 development lives on `phase_2`, which includes all Phase 1 history plus the
-auth and weight backend implementation, dependency compatibility bounds, tests, and this
-documentation update. `master` remains at the Phase 1 snapshot for now.
+Active Phase 2 lives on `phase_2`, which includes all Phase 1 history plus the complete
+auth, workout/weight/task/nutrition replay implementation, motivation/reminder features,
+tests, and documentation. `master` remains at the Phase 1 snapshot for now.
 Confirm the real state with `git status --short` and `git log --oneline origin/master..HEAD`.
+
+The completed Phase 2 slice is committed as `af5b2da` and the local branch is synchronized
+with `origin/phase_2` at the time of this handoff.
 
 The last pushed commits are:
 
 | Commit | What |
 |---|---|
+| `af5b2da` | Complete workout replay, quotes, Pillow wallpapers, local reminders, tests, and docs |
 | `ea80c37` | Confirm physical-device retest for locale decimals and final tab icons |
 | `77d4016` | Locale-safe numeric parsing, real tab icons, regression tests and manual findings |
 | `b08aabf` | Macro/nutrition v4 storage and UI, Home dashboard composition, tests, and handoff |
@@ -40,22 +44,22 @@ Two corrections to what the previous version of this file claimed:
 - The "Unpushed / credential helper has no usable credentials" paragraph is **resolved**.
   `origin/master` and `HEAD` were level at the start of this session, so the earlier work
   did get pushed.
-- Git identity is **global**, not repo-local: `Daboggieman` / `adaraph722@gmail.com`. The
-  old note saying it was set `--local` on purpose was wrong — `git config --local user.name`
-  returns nothing. Nothing depends on this; it is corrected so nobody hunts for a
-  repo-local config that isn't there.
+- Git identity is now configured **repo-local** as `Daboggieman` / `adaraph722@gmail.com`
+  because this environment could not see the previous global identity when creating the
+  Phase 2 commit.
 
 ## What is done and verified
 
-### Backend — Phase 2 auth + weight sync foundation
+### Backend — Phase 2 auth, replay, and motivation
 `apps/backend/`, FastAPI + SQLModel + Alembic. Portability decision from an earlier
 session: models use portable SQLAlchemy types so everything runs on SQLite locally, with
 Postgres as the deployment target.
 
-- Migrations `c7080c2dd1c6` and `1a6f2c9d4e70` apply cleanly against SQLite. The latter adds
-  `body_weight_entries` with positive-weight/unit checks, user ownership, and the trend index.
-- `pytest -q` → **13 passed** (auth, health/OpenAPI, authenticated workout lifecycle,
-  cross-user isolation, weight replay/conflict/list/delete/validation).
+- Alembic migrations through `4d91e2f7c3ab` apply cleanly against SQLite. Workout and
+  motivation endpoints use the existing reference schema; mobile reminder state is local
+  schema v6 rather than a server migration.
+- `pytest -q` → **24 passed** (auth, health/OpenAPI, authenticated workout lifecycle,
+  cross-user isolation, weight/task/nutrition sync).
 - `ruff check .` → **All checks passed!** (select E, F, I, UP, B; B008 `Depends`/`Query`
   exempted via `extend-immutable-calls`).
 - `POST /auth/token` exchanges the configured device key for access/refresh JWTs;
@@ -65,23 +69,57 @@ Postgres as the deployment target.
 - Body weight has authenticated create/list/delete endpoints. POST preserves the client UUID,
   treats identical replay as success, returns `409` for conflicting reuse, and normalizes
   offset timestamps to UTC before comparison/persistence.
+- Tasks and completions have authenticated create/list/update/delete endpoints. Task POST replay
+  preserves the client UUID; completion replay is idempotent by `(task_id, completed_date)`;
+  archive/restore and clear operations are replay-safe. Streaks remain derived.
+- Nutrition has authenticated owned-food, entry, and target endpoints. Food and entry UUIDs
+  replay idempotently; target PUT updates the effective-date row; entry deletion is idempotent.
 - `alembic/env.py` reads `DATABASE_URL` from `app.core.config` (single source of truth).
+- Workout sessions accept client UUIDs; sets preserve client UUIDs, resolve mobile seeded
+  exercise IDs, return success for exact replay, and return `409` for conflicting reuse.
+- `GET /api/v1/quotes/today?day=` returns a stable deterministic quote. The mobile app has
+  an offline quote catalogue and Home widget. `POST /api/v1/wallpapers/generate` returns a
+  validated 1080x1920 PNG as base64; the mobile wallpaper screen previews and saves it.
 
-The backend still has no tasks or nutrition endpoints, and the mobile app has no API client
-or outbox. Weight is sync-ready on the server only; no device data is uploaded yet.
+Workout, weight, task, and nutrition sync are implemented end to end when configured. Quotes,
+Pillow wallpapers, and local daily/weekly reminders are also complete.
+
+## Final Phase 2 verification (commit `af5b2da`)
+
+- Backend: `ruff check .` clean; `pytest -q` **24 passed**; `alembic upgrade head` reaches head.
+- Mobile: `npm run typecheck` clean; `npm run lint` clean; `npm test -- --runInBand`
+  **350 passed across 16 suites**; Android export emitted `dist/` successfully.
+- Workout replay preserves client session/set IDs, accepts mobile seeded exercise IDs, and
+  rejects conflicting ID reuse with `409`.
+- Quotes are deterministic by calendar day; wallpaper tests decode a nonblank 1080x1920 PNG.
+- Reminders persist in mobile schema v6 and schedule daily or selected-weekday notifications.
+
+### Phase 2 implementation map
+
+| Area | Backend | Mobile | Verification |
+|---|---|---|---|
+| Workout replay | `app/api/workouts.py`, workout schemas | `db/workouts.ts`, `db/outbox.ts`, `sync/outbox.ts` | `test_workouts.py`, outbox suite |
+| Quotes | `app/api/motivation.py` | `domain/motivation.ts`, Home | `test_motivation.py`, motivation suite |
+| Wallpapers | Pillow route in `app/api/motivation.py` | `app/(tabs)/wallpaper.tsx`, media/file system packages | PNG decode test, Android export |
+| Reminders | Deliberately device-local | `db/alarms.ts`, schema/migration v6, `app/(tabs)/alarms.tsx` | typecheck/lint; native scheduling requires device permissions |
+
+The Android `dist/` directory is a generated, ignored build artifact and is not part of the
+source commit. Re-run the export when validating a fresh checkout.
 
 ### Mobile — implemented and verified
 `apps/mobile/`, Expo SDK 57 + Expo Router (file-based) + expo-sqlite + Zustand.
 
-Last verified before the Phase 2 backend-only changes (no mobile file changed afterwards):
+Verified after the completed Phase 2 implementation:
 
 - `npm run typecheck` (`tsc --noEmit`) → **0 errors**.
 - `npm run lint` (`eslint .`) → **clean**, 0 errors 0 warnings.
-- `npm test` → **334 passed across 13 suites**. New: decimal-input parsing (15), macros
-  domain (14), macros query layer (20), and dashboard composition (10).
-- `npx expo-doctor` → **21/21 checks passed**.
-- `npx expo export --platform android` → **successful**, 1,437 modules bundled. The emitted
-  `dist/` was deleted afterwards.
+- `npm test` → **350 passed across 16 suites**. The new suites cover durable outbox storage,
+  atomic rollback, weight/task/nutrition wire payloads, auth refresh, ordered replay, backoff,
+  and terminal errors.
+- `npx expo-doctor` started all 21 checks, but this runner did not return its final summary;
+  rerun it in an interactive shell before treating Doctor as a release gate.
+- `npx expo export --platform android` → successful; the generated `dist/` bundle is present
+  for inspection.
 
 Module flows that work:
 
@@ -107,6 +145,12 @@ Module flows that work:
   inspect calorie/protein/carbs/fat progress, add a saved or custom food with a serving
   quantity and meal, or edit effective-dated targets. Entries are grouped by meal and can be
   deleted with a long press. Detail below.
+- **Motivation**: Home shows the deterministic local quote for the current calendar day.
+  The Wallpaper action authenticates when sync configuration exists, asks the Pillow API for
+  a 1080x1920 PNG, writes it to cache, previews it, and saves it after Photos permission.
+- **Reminders**: Home → Reminders → add or edit a label/time and optional weekday selection.
+  Empty weekday selection means daily. Rows can be reopened for editing or deleted; updates
+  cancel old native schedule IDs before creating replacements.
 
 ## Manual findings resolved after the first device run
 
@@ -343,9 +387,9 @@ Decisions worth keeping:
 - **Expo Router over React Navigation** (deviation from the planning docs): routes live in
   `app/(tabs)/<module>/`, no `src/screens/` or `src/navigation/`. Documented in
   `docs/07-repo-structure.md` — keep new modules under `app/(tabs)/`.
-- **Local-first**: the app is still 100% offline and nothing calls the backend yet. Phase 2
-  server work has started, but local writes remain authoritative until the outbox/client is
-  implemented. Seeded exercises use deterministic `seed-*` ids so sync will not duplicate
+- **Offline-first**: local writes remain authoritative. When sync configuration is present,
+  weight creates/deletes are recorded in the outbox and replayed; without it the app remains
+  fully offline. Seeded exercises use deterministic `seed-*` ids so sync will not duplicate
   them.
 - **Single user for now**: `LOCAL_USER_ID = 'local-user'` in `src/constants.ts`, re-exported
   from `src/store/workoutStore.ts` so the existing workout screens kept working. Grep the
@@ -378,45 +422,21 @@ Decisions worth keeping:
   the screen it decorates.
 - **Unit preference**: no app-wide default is stored; each set carries its own unit and
   `suggestNextSet` falls back to kg with no history (feature-spec open decision).
-- **Infra/CI written, not fully exercised**: see "Work left".
+- **Infra/CI written, not fully exercised**: see "Next session: Phase 3 entry point".
 
-## Work left
+## Next session: Phase 3 entry point
 
-Ordered by what a next session should probably do first.
+Phase 2 has no required implementation work left. Start with the movement/GPS decision in
+`docs/05-integrations-and-credentials.md` and `docs/06-roadmap.md`. Before expanding scope,
+optionally confirm GitHub CI and the Docker/Postgres smoke test; those were not runnable in
+the prior environment because Docker daemon/compose permissions were unavailable. The
+remaining workout polish items (RPE, set edit/delete, finish notes, rest-timer threshold)
+are explicitly deferred product polish, not Phase 2 blockers.
 
-1. **Build the mobile outbox + weight sync client.** Start with the one completed server
-   dataset: enqueue weight create/delete operations transactionally with the local SQLite
-   mutation, exchange the device key for tokens, retry with refresh, and acknowledge only
-   after a successful idempotent response. Preserve offline behavior when the API is absent.
-2. **Extend the authenticated backend and outbox to tasks and nutrition.** Every mobile row
-   already carries `user_id`; task completions and macro targets have uniqueness rules meant
-   to make replay safe. Add migrations/models/endpoints first, then reuse the weight sync
-   transport rather than building module-specific networking.
-3. **Refine workout upload for client-generated IDs.** Workouts are authenticated now, but
-   create/set schemas still generate backend IDs. Offline sync needs to preserve the mobile
-   session/set UUIDs and define identical replay vs conflicting reuse, as weight now does.
-4. **Confirm CI on `phase_2`.** The new Phase 2 branch has not yet been confirmed in GitHub
-   Actions. **`gh` is not installed in this environment**, so check the
-   Actions tab or install it. The backend job's Postgres service container is the important
-   portability exercise for the new migration and UTC behavior.
-5. **Docker stack smoke test** (`infra/docker-compose.yml`): `docker compose up -d postgres`,
-   `alembic upgrade head`, `uvicorn --reload`, `pytest` against it. **Still blocked in this
-   environment**, and here is exactly why, so the next session does not re-derive it:
-   `/usr/bin/docker` exists but the daemon socket returns permission denied (the user is in
-   groups `student user`, not `docker`), there is no `docker compose` plugin installed, and
-   `sudo` requires a password that is not available. Fixing it needs
-   `sudo usermod -aG docker $USER` + a re-login, plus the compose plugin. Both
-   `infra/docker-compose.yml` and `apps/backend/Dockerfile` note they are YAML-validated only.
-6. **Screen-level polish** (manual, on-device), all consciously deferred per
-   `04-feature-specs.md`: rest-timer target ("long enough" turns green at 90s), notes field
-   on finish, RPE field, set edit/delete. Nothing in the tasks module is on this list — it
-   shipped complete against its spec.
-7. **`src/store/workoutStore.ts` refinement**: `emptySession()` returns all-`null` fields, so
-   "no session open" and "session open" are not distinguishable at the type level. Worth a
-   discriminated union once an edit flow exists. Not urgent, not flagged in the code.
-
-Not on this list, and deliberately: no tasks-module follow-ups. Reminders/notifications are
-Phase 3 in `docs/06-roadmap.md`, not a gap in what shipped.
+Native reminder delivery/permission prompts and the Wallpaper Save-to-Photos action still
+deserve a physical-device smoke test. Their native configuration, persistence, scheduling,
+PNG generation, typecheck, lint, tests, and Android bundle are verified; the handoff does not
+claim those OS permission flows were physically exercised.
 
 ## Verification commands
 
@@ -424,16 +444,16 @@ Phase 3 in `docs/06-roadmap.md`, not a gap in what shipped.
 # Backend
 cd apps/backend && source .venv/bin/activate
 ruff check .            # All checks passed!
-pytest -q               # 13 passed
-alembic upgrade head    # latest: 1a6f2c9d4e70 (idempotent)
+pytest -q               # 24 passed
+alembic upgrade head    # reaches head (idempotent)
 
 # Mobile
 cd apps/mobile
 npm run typecheck       # tsc --noEmit, 0 errors
 npm run lint            # eslint ., clean
-npm test                # 334 passed (13 suites)
-npx expo-doctor         # 21/21
-npx expo export --platform android   # successful with macro routes; delete dist/ after
+npm test                # 350 passed (16 suites)
+npx expo-doctor         # rerun interactively; prior runner did not capture final summary
+npx expo export --platform android   # successful; dist/ is generated and ignored
 ```
 
 If `node_modules` or `.venv` are missing (a fresh clone, or a cleaned machine):

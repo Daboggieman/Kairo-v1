@@ -13,7 +13,7 @@ from alembic import context
 from app.core.config import settings
 
 # Importing the models registers them on SQLModel.metadata so autogenerate can see them.
-from app.models import user, weight, workout  # noqa: F401
+from app.models import nutrition, task, user, weight, workout  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)

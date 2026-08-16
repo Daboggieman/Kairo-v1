@@ -13,6 +13,7 @@ import { dayKeyFromDate } from '@/domain/dates';
 import { isValidNutritionNumber } from '@/domain/macros';
 import { parseDecimalInput } from '@/domain/numbers';
 import { colors, fontSize, radius, spacing, TAP_TARGET } from '@/theme';
+import { requestSync } from '@/sync/scheduler';
 
 export default function MacroTargetsScreen() {
   const db = useSQLiteContext();
@@ -61,6 +62,7 @@ export default function MacroTargetsScreen() {
         effectiveDate: today,
         createdAt: new Date().toISOString(),
       });
+      void requestSync(db).catch(() => {});
       router.back();
     } finally {
       setSaving(false);
