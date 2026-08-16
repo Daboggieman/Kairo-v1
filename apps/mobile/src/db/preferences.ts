@@ -11,6 +11,12 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 /** Goal body weight, always stored in kg regardless of the unit it was entered in. */
 export const GOAL_WEIGHT_KG = 'goal_weight_kg';
+export const UNIT_SYSTEM = 'unit_system';
+export const MOVEMENT_VOICE_CUES = 'movement_voice_cues';
+export const MOVEMENT_DISTANCE_CUES = 'movement_distance_cues';
+export const MOVEMENT_TIME_CUES = 'movement_time_cues';
+export const MOVEMENT_AUTOPAUSE = 'movement_autopause';
+export type UnitSystem = 'metric' | 'imperial';
 
 export async function getPreference(
   db: SQLiteDatabase,
@@ -78,4 +84,39 @@ export async function setGoalWeightKg(
 
 export async function clearGoalWeight(db: SQLiteDatabase, userId: string): Promise<void> {
   await clearPreference(db, userId, GOAL_WEIGHT_KG);
+}
+
+export async function getUnitSystem(db: SQLiteDatabase, userId: string): Promise<UnitSystem> {
+  return (await getPreference(db, userId, UNIT_SYSTEM)) === 'imperial' ? 'imperial' : 'metric';
+}
+
+export async function setUnitSystem(
+  db: SQLiteDatabase,
+  userId: string,
+  unitSystem: UnitSystem,
+): Promise<void> {
+  await setPreference(db, userId, UNIT_SYSTEM, unitSystem);
+}
+
+async function getDefaultOnFlag(db: SQLiteDatabase, userId: string, key: string): Promise<boolean> {
+  return (await getPreference(db, userId, key)) !== 'false';
+}
+
+export async function getMovementPreferences(db: SQLiteDatabase, userId: string) {
+  const [voiceCues, distanceCues, timeCues, autopause] = await Promise.all([
+    getDefaultOnFlag(db, userId, MOVEMENT_VOICE_CUES),
+    getDefaultOnFlag(db, userId, MOVEMENT_DISTANCE_CUES),
+    getDefaultOnFlag(db, userId, MOVEMENT_TIME_CUES),
+    getDefaultOnFlag(db, userId, MOVEMENT_AUTOPAUSE),
+  ]);
+  return { voiceCues, distanceCues, timeCues, autopause };
+}
+
+export async function setMovementPreference(
+  db: SQLiteDatabase,
+  userId: string,
+  key: typeof MOVEMENT_VOICE_CUES | typeof MOVEMENT_DISTANCE_CUES | typeof MOVEMENT_TIME_CUES | typeof MOVEMENT_AUTOPAUSE,
+  enabled: boolean,
+): Promise<void> {
+  await setPreference(db, userId, key, String(enabled));
 }

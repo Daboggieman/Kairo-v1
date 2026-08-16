@@ -3,7 +3,42 @@
 Handoff for the Kairo v1 sessions so far: Phase 0 scaffold, then Workouts, Weight, Tasks
 and Macros. Read before continuing.
 
-Last updated: **2026-08-15**, after completing and verifying Phase 2.
+Last updated: **2026-08-16**, during Phase 3 movement tracking implementation.
+
+## Phase 3 started — 2026-08-16
+
+Phase 3 is now explicitly Kairo-owned GPS tracking, not Strava or another provider import.
+The locked plan is in `docs/08-phase-3-movement-plan.md`: run/walk/ride, Android-first native
+spike with iOS designed in, live map, background tracking, pause/autopause, default-on time
+and distance voice cues, shared units, indefinite raw-point retention with edit revisions,
+route replay, and Kairo backend upload only after completion.
+
+Implementation has begun with mobile schema v7 (`movement_activities`, `movement_points`,
+`movement_events`, `movement_splits`), pure tracking/replay/autopause/cue logic, typed SQLite
+queries, active-session recovery, lifecycle edits, and focused tests. Expo Location, Task
+Manager, Speech, and React Native Maps are installed at SDK-compatible versions. The
+background task is defined at module scope, opens/migrates the same SQLite database, recovers
+the active state, processes location batches, and persists points atomically with summaries.
+Android/iOS location config is present, but the Android physical-device spike has not yet
+been run. Verification after this slice: typecheck clean, lint clean, **372 tests across 18
+suites passed**.
+
+Schema v8 now stores autopause candidate timestamps and next voice-cue thresholds per active
+activity. Movement settings expose metric/imperial units, default-on voice cues with separate
+distance/time toggles, and autopause. The background task evaluates those settings, persists
+autopause/voice events in order, and invokes local speech. Native voice behavior still needs
+physical Android testing, especially with the screen locked and Bluetooth audio.
+
+The first Movement UI is also wired: a sixth bottom tab, run/walk/ride readiness and
+permission flow, live map with persistent recording, pause/resume and finish, completed
+history/detail, and offline animated route replay with normalized 1x/2x/4x/8x speeds. The
+live view now respects the shared metric/imperial preference, shows run/walk pace or ride
+speed, separates moving and elapsed time, displays autopause explicitly, and lets the user
+pan before recentering. Replay uses the same unit preference and a responsive scrubber.
+Schema v8 recovery and default-on preference behavior have direct SQLite-backed tests. The
+Android Expo export bundles successfully with the new Location, Task Manager, Speech, and
+React Native Maps dependencies. Physical-device permission, background, map-tile, voice,
+and battery tests remain the release gate; automated checks cannot prove those OS behaviors.
 
 ## Status
 
@@ -84,11 +119,12 @@ Postgres as the deployment target.
 Workout, weight, task, and nutrition sync are implemented end to end when configured. Quotes,
 Pillow wallpapers, and local daily/weekly reminders are also complete.
 
-## Final Phase 2 verification (commit `af5b2da`)
+## Final Phase 2 verification (historical, commit `af5b2da`)
 
 - Backend: `ruff check .` clean; `pytest -q` **24 passed**; `alembic upgrade head` reaches head.
 - Mobile: `npm run typecheck` clean; `npm run lint` clean; `npm test -- --runInBand`
-  **350 passed across 16 suites**; Android export emitted `dist/` successfully.
+  **350 passed across 16 suites** at the Phase 2 commit. The current Phase 3 count is recorded
+  at the top of this handover.
 - Workout replay preserves client session/set IDs, accepts mobile seeded exercise IDs, and
   rejects conflicting ID reuse with `409`.
 - Quotes are deterministic by calendar day; wallpaper tests decode a nonblank 1080x1920 PNG.
@@ -420,23 +456,61 @@ Decisions worth keeping:
   unit-preference decision needs no further migration. `getGoalWeightKg` treats an
   unparseable value as unset rather than throwing — a corrupt preference should not break
   the screen it decorates.
-- **Unit preference**: no app-wide default is stored; each set carries its own unit and
-  `suggestNextSet` falls back to kg with no history (feature-spec open decision).
-- **Infra/CI written, not fully exercised**: see "Next session: Phase 3 entry point".
+- **Unit preference**: movement has one shared metric/imperial preference in
+  `user_preferences`, and live/replay displays read it. Strength sets still carry their own
+  logged unit, and `suggestNextSet` falls back to kg with no history.
+- **Infra/CI written, not fully exercised**: Docker/Postgres and GitHub CI remain optional
+  follow-up checks; they are not prerequisites for the current local movement work.
 
-## Next session: Phase 3 entry point
+## Next session: Phase 3 continuation
 
-Phase 2 has no required implementation work left. Start with the movement/GPS decision in
-`docs/05-integrations-and-credentials.md` and `docs/06-roadmap.md`. Before expanding scope,
-optionally confirm GitHub CI and the Docker/Postgres smoke test; those were not runnable in
-the prior environment because Docker daemon/compose permissions were unavailable. The
-remaining workout polish items (RPE, set edit/delete, finish notes, rest-timer threshold)
-are explicitly deferred product polish, not Phase 2 blockers.
+Do not restart the provider/integration decision. It is locked: Kairo records and owns its
+movement data; there is no Strava connection, import, segment competition, social feature,
+or third-party activity upload. Read `docs/08-phase-3-movement-plan.md` first for the complete
+product and technical contract, then inspect the current dirty worktree before editing. The
+Phase 3 implementation is not committed at this checkpoint, and the pre-existing
+`.devcontainer/setup.sh` modification belongs to the user and must be preserved.
 
-Native reminder delivery/permission prompts and the Wallpaper Save-to-Photos action still
-deserve a physical-device smoke test. Their native configuration, persistence, scheduling,
-PNG generation, typecheck, lint, tests, and Android bundle are verified; the handoff does not
-claim those OS permission flows were physically exercised.
+The most useful code entry points are:
+
+- `apps/mobile/src/domain/movement.ts` — pure GPS filtering, state transitions, timing,
+  distance/pace/speed formatting, autopause, cue scheduling, and replay interpolation.
+- `apps/mobile/src/db/schema.ts` and `src/db/migrations.ts` — append-only schemas v7 and v8.
+  Never alter a migration already shipped; add v9 for any storage change.
+- `apps/mobile/src/db/movement.ts` — activity/point/event/history/edit queries and durable
+  engine-state recovery. Point plus summary writes and event sequence allocation are
+  transactional.
+- `apps/mobile/src/services/movementTracking.ts` — module-scope Expo background task and
+  start/stop APIs. Local SQLite is authoritative throughout an active recording.
+- `apps/mobile/app/(tabs)/movement/` — readiness, active tracking, history/detail, replay,
+  and settings screens.
+- `apps/mobile/src/db/__tests__/movement.test.ts` and
+  `src/domain/__tests__/movement.test.ts` — executable persistence and domain contracts.
+
+Continue in this order:
+
+1. Run the Android development-build physical spike. Verify foreground/background permission
+   flows, the foreground-service notification, screen-lock collection, manual and automatic
+   pause/resume, force-kill recovery of already persisted points, map tiles, voice cues through
+   speaker and Bluetooth, and representative battery consumption. Continued collection after
+   force-kill is explicitly not guaranteed; persisted activity recovery is required.
+2. Fix any native issues exposed by that spike and rerun all automated checks. Expo Go is not
+   sufficient evidence for the background-service contract; use a development build on a
+   physical Android device. Keep iOS compatibility in the API and schema design, but Android
+   remains the first native validation target.
+3. Add activity trimming/edit UI and deterministic recomputation from retained raw points.
+   Raw points are retained indefinitely for now, and edits increment the activity revision.
+4. Once the mobile recording contract is stable, add authenticated backend movement replay
+   endpoints and enqueue upload only after completion. Do not add movement entities to the
+   current outbox before the backend accepts them: unsupported entity types are rejected by
+   the existing sync client.
+5. Perform the later iOS native integration and physical validation using the same product
+   contract.
+
+Native reminder delivery/permission prompts and Wallpaper Save-to-Photos also still deserve
+a physical-device smoke test, but they are Phase 2 follow-up checks rather than Phase 3
+movement blockers. Workout polish items (RPE, set edit/delete, finish notes, rest-timer
+threshold) remain explicitly deferred.
 
 ## Verification commands
 
@@ -451,9 +525,10 @@ alembic upgrade head    # reaches head (idempotent)
 cd apps/mobile
 npm run typecheck       # tsc --noEmit, 0 errors
 npm run lint            # eslint ., clean
-npm test                # 350 passed (16 suites)
+npm test -- --runInBand # 372 passed (18 suites)
 npx expo-doctor         # rerun interactively; prior runner did not capture final summary
-npx expo export --platform android   # successful; dist/ is generated and ignored
+EXPO_NO_TELEMETRY=1 npx expo export --platform android --output-dir /tmp/kairo-phase3-android-export
+                        # successful; telemetry is disabled because the sandbox cannot write ~/.expo
 ```
 
 If `node_modules` or `.venv` are missing (a fresh clone, or a cleaned machine):
@@ -466,9 +541,9 @@ pip install -e '.[dev]'` in `apps/backend`.
 built-in `node:sqlite` through the subset of the `SQLiteDatabase` interface the query layer
 uses (`execAsync`, `runAsync`, `getAllAsync`, `getFirstAsync`, `prepareAsync`). Tests get the
 real schema from `migrations.ts` and the real seed data, so SQL is exercised as written
-rather than mocked. All four query-layer suites use it.
+rather than mocked. The movement query suite uses it alongside the existing module suites.
 
-Four things to know before extending it:
+Four harness details to know before extending it:
 
 - `jest.testMatch` in `package.json` is narrowed to `**/*.test.[jt]s?(x)`. jest-expo's
   default treats every file under `__tests__/` as a suite, which made the shared `testDb.ts`

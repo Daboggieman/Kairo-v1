@@ -14,10 +14,10 @@ import { Suspense } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { SyncBootstrap } from '@/components/SyncBootstrap';
+import { DATABASE_NAME } from '@/constants';
 import { migrate } from '@/db/migrations';
+import '@/services/movementTracking';
 import { colors, fontSize, spacing } from '@/theme';
-
-export const DATABASE_NAME = 'kairo.db';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({

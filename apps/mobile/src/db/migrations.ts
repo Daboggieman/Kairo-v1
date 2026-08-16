@@ -18,6 +18,12 @@ import {
   CREATE_FOOD_ITEMS,
   CREATE_INDEXES,
   CREATE_MACRO_TARGETS,
+  CREATE_MOVEMENT_ACTIVITIES,
+  CREATE_MOVEMENT_EVENTS,
+  CREATE_MOVEMENT_INDEXES,
+  CREATE_MOVEMENT_POINTS,
+  CREATE_MOVEMENT_SPLITS,
+  CREATE_MOVEMENT_TRACKING_STATE,
   CREATE_NUTRITION_ENTRIES,
   CREATE_NUTRITION_INDEXES,
   CREATE_TASK_COMPLETIONS,
@@ -81,6 +87,14 @@ const MIGRATIONS: Migration[] = [
     },
   },
   { version: 6, up: async (db) => { await db.execAsync(CREATE_ALARMS); } },
+  { version: 7, up: async (db) => {
+    await db.execAsync(CREATE_MOVEMENT_ACTIVITIES);
+    await db.execAsync(CREATE_MOVEMENT_POINTS);
+    await db.execAsync(CREATE_MOVEMENT_EVENTS);
+    await db.execAsync(CREATE_MOVEMENT_SPLITS);
+    await db.execAsync(CREATE_MOVEMENT_INDEXES);
+  } },
+  { version: 8, up: async (db) => { await db.execAsync(CREATE_MOVEMENT_TRACKING_STATE); } },
 ];
 
 /**

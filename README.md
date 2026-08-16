@@ -28,6 +28,7 @@ See [`docs/06-roadmap.md`](docs/06-roadmap.md) for the full phased plan.
 | Motivation | Built — deterministic daily quote and Pillow wallpaper generation |
 | Daily reminders | Built — SQLite-backed local recurring notifications |
 | Mobile sync client/outbox | Built — ordered replay with refresh, backoff, and terminal errors |
+| Movement / GPS | In progress — Phase 3 plan, pure tracking foundation, and schema v7 started |
 | Later roadmap modules | Not started |
 
 The mobile app remains **offline-first** and runs with no backend or network. When
