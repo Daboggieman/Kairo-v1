@@ -68,17 +68,22 @@ creates daily or selected-weekday triggers on the device; a backend sync API is 
 deferred because local notification IDs are platform-specific.
 
 ## Runs / GPS
-- `POST /movement/workouts/{id}/replay` — upload a completed Kairo activity's metadata,
-  ordered events, and GPS points in replay-safe batches
-- `GET /movement/workouts?from=&to=&type=` — authenticated history
-- `GET /movement/workouts/{id}` — detail, points, events, splits, and current revision
-- `PATCH /movement/workouts/{id}` — rename/type correction/edit revision
-- `DELETE /movement/workouts/{id}` — idempotent deletion
+- `POST /api/v1/movements` — upload a completed Kairo activity aggregate, including points
+  and lifecycle events; exact replays are idempotent and conflicting IDs return `409`
+- `GET /api/v1/movements` — authenticated completed movement history
+- `GET /api/v1/movements/{id}` — authenticated detail with points and events
+- `PUT /api/v1/movements/{id}` — replace a higher revision after a local edit
+- `DELETE /api/v1/movements/{id}` — idempotent authenticated deletion
 
 Recording is device-local and never requires the API. Only completed run, walk, and ride
-activities upload. The server preserves client IDs, rejects conflicting reuse with `409`,
-derives ownership from JWT, and keeps partial uploads incomplete until finalization. There
-is no Strava, HealthKit, Google Fit, or social endpoint in the Phase 3 contract.
+activities upload. The server preserves client IDs, derives ownership from JWT, accepts exact
+replays, rejects conflicting reuse with `409`, and accepts only higher replacement revisions.
+There is no Strava, HealthKit, Google Fit, or social endpoint in the Phase 3 contract.
+
+Implemented backend status (2026-08-16): movement routes live in
+`apps/backend/app/api/movement.py`, with SQLModel storage in `app/models/movement.py` and
+Alembic revision `7e3b9a1c2d44`. The mobile outbox uploads only after local completion and
+uses `PUT` for later revisioned edits.
 
 ## Bible
 - `GET /bible/{translation}/{book}/{chapter}` — proxied/cached from public Bible API
