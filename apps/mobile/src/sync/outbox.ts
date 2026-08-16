@@ -9,6 +9,7 @@ import {
   markSucceeded,
   type FoodItemWire,
   type MacroTargetWire,
+  type MovementActivityWire,
   type NutritionEntryWire,
   type OutboxRow,
   type TaskCompletionWire,
@@ -97,6 +98,19 @@ async function replay(client: SyncClient, row: OutboxRow): Promise<void> {
     const payload = parsePayload<WorkoutSetWire>(row, 'workout set');
     const { session_id: sessionId, ...setPayload } = payload;
     await client.post(`/api/v1/workouts/${encodeURIComponent(sessionId)}/sets`, [setPayload]);
+    return;
+  }
+  if (row.entity_type === 'movement_activity') {
+    if (row.operation === 'delete') {
+      await client.delete(`/api/v1/movements/${encodeURIComponent(row.entity_id)}`);
+    } else if (row.operation === 'update') {
+      await client.put(
+        `/api/v1/movements/${encodeURIComponent(row.entity_id)}`,
+        parsePayload<MovementActivityWire>(row, 'movement activity'),
+      );
+    } else {
+      await client.post('/api/v1/movements', parsePayload<MovementActivityWire>(row, 'movement activity'));
+    }
     return;
   }
   if (row.entity_type === 'food_item') {

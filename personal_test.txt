@@ -1,719 +1,325 @@
-KAIRO V1 - PERSONAL DEVICE TEST RUNBOOK
-========================================
+KAIRO V1 - PHASE 2 AND PHASE 3 PHYSICAL TEST RUNBOOK
+====================================================
 
-Last updated: 2026-08-14
+Last updated: 2026-08-16
+Branch: phase_3
 Project: /home/student/Kairo-v1
 Mobile app: /home/student/Kairo-v1/apps/mobile
 
-Purpose
+PURPOSE
 -------
 
-This runbook tests the current Kairo mobile app on a real physical device before Phase 2
-sync and authentication work begins.
+This runbook is the physical acceptance test for the completed Phase 2 implementation and
+the Phase 3 release candidate. Passing the automated checks is required before testing, but
+does not prove native permissions, background GPS, map rendering, speech, Bluetooth routing,
+or battery behavior.
 
-The current implementation includes:
+Phase 3 must not be declared complete until the Android development-build section passes.
+Expo Go is useful for foreground behavior only. It cannot certify Kairo's background-location
+or foreground-service contract.
 
-- Workouts
-- Weight and progress charts
-- Daily tasks and streaks
-- Macro and nutrition tracking
-- A Home dashboard aggregating all four modules
+The product contract is:
 
-The current automated baseline is:
-
-- TypeScript typecheck: clean
-- ESLint: clean
-- Jest: 334 tests passed across 13 suites
-- Expo Doctor: 21/21 checks passed
-- Android production export: successful (1,437 modules)
-
-The physical test is for native behavior, persistence, navigation, layout, keyboard use,
-SQLite migration behavior, force-close recovery, and touch ergonomics. It is not a web test.
+- Kairo owns movement recording and history. There is no Strava connection or upload.
+- Movement types are run, walk, and ride.
+- Completed activities upload only to Kairo's authenticated backend when sync is configured.
+- Normal backgrounding and screen lock must continue recording in a development build.
+- Force-kill continuation is not guaranteed. Points persisted before termination must recover.
+- Voice cues default on and support independent distance/time toggles.
+- Raw GPS points are retained; route trims exclude points and recompute derived metrics.
 
 
-0. FOCUSED RETEST AFTER THE FIRST DEVICE RUN
----------------------------------------------
+1. RECORD THE TEST ENVIRONMENT
+------------------------------
 
-The first run fully passed the Today/tasks workflow. The following two findings were fixed
-before this retest:
+Record these values before testing:
 
-1. Confirm the five bottom tabs show real icons for Home, Today, Macros, Workouts, and Weight.
-   Placeholder rectangles with an `X` indicate that the new build was not loaded or that the
-   icon/font dependency is still broken.
+   Date:
+   Tester:
+   Device model:
+   Android/iOS version:
+   Expo Go version:
+   Development-build version:
+   Bluetooth device, if used:
+   Git commit: run `git rev-parse --short HEAD`
+   Git status: run `git status --short --branch`
 
-2. In Macros, create Chicken breast using the existing fixture and type the quantity with the
-   device's locale separator, especially `1,5`. The entry must show `1.5 × 100 g`; the
-   underlying contribution is 247.5 kcal, displayed as approximately 248 kcal, with 46.5 g
-   protein, 0.0 g carbs, and 5.4 g fat. Repeat with a saved-food quantity of `0,5`.
-
-3. In Weight, log `75,5` and verify it remains 75.5 in the history and Home trend. Add enough
-   dated entries to confirm Home uses the smoothed trend value rather than the latest raw value.
-
-4. In an active workout, log a set with weight `62,5` and verify the stored/displayed set is
-   62.5. Also enter decimal values in Macro targets and Goal weight and verify save/reload.
-
-If any of these fail, record the exact field text, displayed result, device locale, and the
-commit SHA before changing source code.
+Test the smallest available phone first. Keep the computer and phone on the same non-guest
+Wi-Fi network. Disable VPNs if LAN discovery fails.
 
 
-1. IMPORTANT TESTING RULES
---------------------------
-
-1. Test the existing database before clearing application data. This verifies the v4 SQLite
-   migration preserves workouts, weights, tasks, and completions from earlier versions.
-
-2. Do not use development-client mode. The project does not install expo-dev-client.
-
-3. Do not open the web target during this test. The app is being tested on Android or iOS.
-
-4. Do not press the Expo CLI `w` key. That starts a browser bundle and can produce a
-   wa-sqlite.wasm Metro error that is unrelated to native Android/iOS testing.
-
-5. Do not use `--localhost` for a physical phone. A phone cannot reach the computer's
-   localhost address.
-
-6. Do not clear Expo Go storage until the optional fresh-database test at the very end.
-   Clearing it can remove the local database used by this project.
-
-7. Keep the Metro terminal visible while testing. Native runtime errors and redbox messages
-   often provide the most useful failure details there.
-
-
-2. DEVICE AND COMPUTER PREPARATION
-----------------------------------
-
-Computer prerequisites:
-
-- Node.js and npm installed
-- Repository available at /home/student/Kairo-v1
-- A physical Android or iOS device
-- Expo Go installed on the device
-- Computer and phone on the same Wi-Fi network for LAN mode
-
-Before starting:
-
-1. Disable a VPN on the computer and phone if one is active.
-
-2. Do not use a guest Wi-Fi network that blocks device-to-device traffic.
-
-3. Keep the phone awake and unlocked during the first launch.
-
-4. On iOS, allow Expo Go to access the Local Network when prompted.
-
-5. On Android, allow Expo Go to use the network if Android requests permission.
-
-6. Record the test device and OS version. Example:
-
-   Device: Pixel 8
-   OS: Android 15
-   Expo Go: current App Store/Play Store version
-
-7. Record the starting commit before making any additional changes:
-
-   cd /home/student/Kairo-v1
-   git rev-parse --short HEAD
-   git status --short --branch
-
-
-3. CONFIRM THE TEST BASELINE
-----------------------------
-
-The macro and dashboard implementation has already been committed and pushed. The current
-baseline commit is:
-
-   b08aabf Add SQLite v4 nutrition storage, food logging, effective-dated macro targets,
-           cross-module Home summaries, focused tests, and the updated project handover.
-
-Confirm the repository state before testing:
-
-   cd /home/student/Kairo-v1
-   git log -1 --oneline
-   git status --short --branch
-
-The branch should report `master...origin/master` with no feature-code difference between
-local HEAD and origin/master.
-
-`personal_test.txt` is expected to be untracked unless you choose to commit this private
-runbook separately. An untracked `apps/mobile/.gitignore` may also be present after Expo CLI
-startup. It was not part of the macro/dashboard implementation; review it before deciding
-whether to keep or commit it.
-
-Do not modify application source files during the baseline test. If a test exposes a bug,
-record the evidence first, then make the fix in a separate commit.
-
-
-4. AUTOMATED PREFLIGHT
+2. AUTOMATED PREFLIGHT
 ----------------------
 
-Open a terminal and run:
+From the repository, run:
 
    cd /home/student/Kairo-v1/apps/mobile
    npm install
    npm run typecheck
    npm run lint
    npm test -- --runInBand
-   npx expo-doctor
+   EXPO_NO_TELEMETRY=1 npx expo-doctor
+   EXPO_NO_TELEMETRY=1 npx expo export --platform android --output-dir /tmp/kairo-android-test
+   EXPO_NO_TELEMETRY=1 npx expo export --platform ios --output-dir /tmp/kairo-ios-test
 
-Expected results:
+Expected mobile baseline:
 
-- `npm run typecheck` exits with code 0.
-- `npm run lint` exits with code 0 and no warnings.
-- Jest reports 334 tests passed across 13 suites.
-- Expo Doctor reports 21/21 checks passed.
+- TypeScript exits with code 0.
+- ESLint exits with code 0 and no warnings.
+- Jest reports 376 tests across 18 suites passing.
+- Expo Doctor reports 21/21 checks passing.
+- Android and iOS exports complete successfully.
 
-If any command fails, stop the device test and capture the full command output. Do not hide a
-preflight failure by changing dependencies during the test.
+Backend preflight:
 
+   cd /home/student/Kairo-v1/apps/backend
+   source .venv/bin/activate
+   ruff check .
+   pytest -q
+   alembic upgrade head
 
-5. START THE CORRECT NATIVE DEVELOPMENT SERVER
------------------------------------------------
+Expected backend baseline:
 
-Use Expo Go explicitly and force LAN mode:
+- Ruff reports all checks passed.
+- Pytest reports 28 tests passed.
+- Alembic reaches revision `7e3b9a1c2d44` without errors.
 
-   cd /home/student/Kairo-v1/apps/mobile
-   npx expo start --go --lan -c
+Stop and report the failure before physical testing if any preflight check fails.
 
-Meaning of the flags:
 
-- `--go` forces Expo Go mode.
-- `--lan` advertises the computer on the local network.
-- `-c` clears the Metro JavaScript cache.
-
-Wait for output similar to:
-
-   Using Expo Go
-   Scan the QR code above with Expo Go
-
-On Android:
-
-1. Open Expo Go.
-2. Use Expo Go's QR scanner.
-3. Scan the QR code in the Metro terminal.
-
-On iOS:
-
-1. Open the normal Camera app.
-2. Scan the QR code.
-3. Open the link in Expo Go.
-
-Do not scan a QR code that says it is for a development build. If the terminal says
-"Using development build", stop it with Ctrl+C and restart with:
-
-   npx expo start --go --lan -c
-
-If LAN cannot connect, use tunnel mode:
-
-   npx expo start --go --tunnel -c
-
-Tunnel mode may be slower and may require network access to download or start the tunnel.
-
-
-6. INITIAL LAUNCH CHECK
------------------------
-
-1. Wait for the app to load fully.
-
-2. Confirm there is no redbox, blank screen, migration error, or SQLite error.
-
-3. Confirm the bottom tabs are visible:
-
-   Home | Today | Macros | Workouts | Weight
-
-4. Tap each tab once and return to Home.
-
-5. Confirm the app remains in portrait orientation.
-
-6. Confirm the status bar, headers, tab bar, and bottom buttons do not overlap.
-
-7. Test the smallest available physical device first. Then test a larger device if available.
-
-
-7. EXISTING-DATA AND MIGRATION TEST
------------------------------------
-
-Perform this before clearing Expo Go data or reinstalling Expo Go.
-
-1. Open Workouts and confirm old workout history is still present.
-
-2. Open Weight and confirm old weigh-ins and the goal, if previously configured, remain.
-
-3. Open Today and confirm old tasks, completion states, and streak history remain.
-
-4. Open Macros. The first launch after the new build should create migration v4 without
-   removing any existing data.
-
-5. Return to Workouts, Weight, and Today and verify their old data again.
-
-6. Fully close Expo Go from the application switcher.
-
-7. Reopen the project from Expo Go's recent projects list.
-
-8. Verify all four existing modules still show their data.
-
-Pass condition: the app upgrades to v4 and all v1-v3 data survives.
-
-If the device has never run an earlier Kairo version, this manual migration scenario cannot
-be reproduced there. The automated SQLite migration suite covers the populated v3-to-v4 path.
-
-
-8. MACRO EMPTY STATE
---------------------
-
-1. Open the Macros tab.
-
-2. Confirm the selected day is today in the device's local timezone.
-
-3. Confirm the daily calorie total is zero.
-
-4. Confirm all four macro values are zero.
-
-5. Confirm these meal sections appear in order:
-
-   Breakfast
-   Lunch
-   Dinner
-   Snacks
-
-6. Confirm empty sections do not crash or collapse the layout unexpectedly.
-
-7. Tap the previous-day arrow and confirm the date changes by exactly one day.
-
-8. Tap the next-day arrow and confirm it returns to today.
-
-9. Confirm the next-day arrow is disabled while already on today.
-
-10. Confirm the Set targets action opens the targets modal.
-
-
-9. MACRO TARGETS
-----------------
-
-Use this target fixture:
-
-   Calories: 2000
-   Protein: 160 g
-   Carbs: 220 g
-   Fat: 65 g
-
-1. Enter the four values.
-
-2. Confirm Save remains disabled while required values are invalid or missing.
-
-3. Save the targets.
-
-4. Confirm the modal closes and the Macros screen displays the target values.
-
-5. Return Home and confirm the Home Macros section also reflects the target.
-
-6. Reopen targets, change calories to 2100, and save.
-
-7. Confirm the value updates instead of creating a duplicate visible target.
-
-8. Navigate to yesterday. If this is the first target ever created, yesterday should have no
-   target because the target is effective from today onward.
-
-9. Return to today and confirm the 2100 target is active again.
-
-
-10. CUSTOM FOOD CREATION AND NUTRITION MATH
--------------------------------------------
-
-Create this exact food:
-
-   Name: Chicken breast
-   Serving: 100 g
-   Calories: 165
-   Protein: 31
-   Carbs: 0
-   Fat: 3.6
-   Quantity: 1.5
-   Meal: Lunch
-
-1. Tap Add food.
-
-2. Search for a food that does not exist.
-
-3. Confirm the no-results state appears.
-
-4. Tap Create custom food.
-
-5. Fill the fields above.
-
-6. Confirm the Save action remains disabled until the required values are valid.
-
-7. Tap Save food and add.
-
-8. Confirm the entry appears under Lunch only.
-
-9. Expected contribution:
-
-   Calories: 247.5, displayed as approximately 248 kcal
-   Protein: 46.5 g
-   Carbs: 0.0 g
-   Fat: 5.4 g
-
-10. Confirm the Lunch total and daily total agree with those values.
-
-11. Return Home and confirm the Home Macros section updates without restarting the app.
-
-
-11. SAVED-FOOD SEARCH AND MEAL GROUPING
----------------------------------------
-
-1. Open Add food again.
-
-2. Search for `CHICKEN` in uppercase.
-
-3. Confirm Chicken breast appears, proving search is case-insensitive.
-
-4. Select the existing food. Do not create a second food definition.
-
-5. Set quantity to 0.5.
-
-6. Set meal to Dinner.
-
-7. Save the entry.
-
-8. Expected combined daily totals:
-
-   Calories: 330 kcal
-   Protein: 62.0 g
-   Carbs: 0.0 g
-   Fat: 7.2 g
-
-9. Confirm Lunch and Dinner contain separate rows.
-
-10. Confirm meal sections remain ordered Breakfast, Lunch, Dinner, Snacks.
-
-11. Confirm the saved food's serving label and nutrient values are displayed consistently.
-
-
-12. ENTRY DELETION AND HISTORICAL DAYS
---------------------------------------
-
-1. Long-press the Dinner entry.
-
-2. Cancel the delete confirmation once. Confirm the entry remains.
-
-3. Long-press again and confirm deletion.
-
-4. Confirm totals return to the Lunch-only values.
-
-5. Navigate to yesterday.
-
-6. Add a food entry to yesterday.
-
-7. Confirm that entry appears only on yesterday.
-
-8. Return to today and confirm today's entries are unchanged.
-
-9. Navigate away from Macros and return. Confirm the screen reloads with the correct day data.
-
-
-13. HOME DASHBOARD TEST
------------------------
-
-1. Confirm the greeting and date are visible and fit on the device.
-
-2. Create or use several tasks scheduled for today.
-
-3. Complete one task in Today.
-
-4. Return Home.
-
-5. Confirm the Today card count updates immediately.
-
-6. Confirm unfinished tasks appear in the preview and completed tasks do not.
-
-7. Confirm no more than three unfinished task rows appear in the preview.
-
-8. Confirm the Home Macros values match the Macros screen exactly.
-
-9. Confirm the Home Weight value matches the smoothed trend value on Weight, not merely the
-   latest raw weigh-in.
-
-10. Tap the Today, Macros, and Weight cards and confirm each opens the correct module.
-
-11. Change data inside a module, return Home, and confirm the card updates without a full app
-    restart.
-
-
-14. ACTIVE AND COMPLETED WORKOUT STATES
----------------------------------------
-
-1. Open Workouts and start a workout.
-
-2. Log at least one set.
-
-3. Switch directly to Home while the workout is still active.
-
-4. Confirm the Workout card says In progress and offers Resume.
-
-5. Tap Resume and confirm it opens the active workout screen.
-
-6. Finish the workout.
-
-7. Return Home.
-
-8. Confirm the Workout card now shows the latest completed session, set count, volume, and
-   date.
-
-9. Start another workout and force-close Expo Go from the application switcher.
-
-10. Reopen Kairo and confirm Workouts and Home still recognize the unfinished session.
-
-
-15. WEIGHT AND TASK REGRESSION
-------------------------------
-
-1. Log a new weight.
-
-2. Return Home and confirm the Weight card updates.
-
-3. Set or change the weight goal and confirm the Weight screen remains usable.
-
-4. Long-press a disposable weight entry and verify deletion.
-
-5. Create a disposable daily task.
-
-6. Toggle it complete and incomplete.
-
-7. Open its streak detail screen.
-
-8. Archive and restore it if the detail screen supports that action.
-
-9. Confirm these actions do not affect macros, workouts, or weight.
-
-
-16. FULL RESTART AND PERSISTENCE
---------------------------------
-
-After creating at least one target, food, nutrition entry, task, weight entry, and workout:
-
-1. Fully close Expo Go from the application switcher.
-
-2. Reopen Kairo from Expo Go's recent projects.
-
-3. Confirm saved custom foods remain searchable.
-
-4. Confirm nutrition entries remain on their original dates.
-
-5. Confirm targets remain effective on the correct dates.
-
-6. Confirm tasks, completions, streaks, weights, and workouts remain intact.
-
-7. Confirm Home reconstructs the same aggregate values.
-
-
-17. OPTIONAL CLEAN-DATABASE TEST
---------------------------------
-
-Do this only after all persistence and migration tests pass. It can delete local data.
-
-Preferred option: use a second physical device.
-
-Android option:
-
-1. Open Android Settings.
-2. Open Apps and find Expo Go.
-3. Open Storage.
-4. Clear Expo Go storage.
-
-iOS option:
-
-1. Delete Expo Go.
-2. Reinstall Expo Go from the App Store.
-
-Then:
-
-1. Reopen the Kairo project.
-2. Confirm a completely empty database starts successfully.
-3. Confirm empty states in all four modules and Home.
-4. Create one record in each module.
-5. Confirm Home updates from empty state to populated state.
-
-
-18. VISUAL AND TOUCH REVIEW
----------------------------
-
-Check the following on the smallest available phone:
-
-- No text is clipped, truncated incorrectly, or drawn over another section.
-- The Home dashboard scrolls to the bottom.
-- Macro forms remain usable with the keyboard open.
-- Save and Cancel buttons remain reachable after keyboard scrolling.
-- Long-press targets are easy to hit.
-- Day navigation buttons have comfortable tap areas.
-- Meal rows do not resize unpredictably when values change.
-- Bottom-tab labels fit without overlap.
-- Cards do not cover the bottom safe-area inset.
-- Pressed states are visible but do not move layout.
-- Empty, loading, normal, over-target, and active-workout states all render coherently.
-
-
-19. COMMON ISSUES AND FIXES
----------------------------
-
-Issue: The terminal says "Using development build".
-
-Fix: Stop Metro with Ctrl+C and run:
-
-   npx expo start --go --lan -c
-
-Do not install expo-dev-client for this test.
-
-Issue: A browser opens or Metro reports `wa-sqlite.wasm` missing.
-
-Fix: Close the browser. Do not press `w`. Restart with the native Expo Go command:
-
-   npx expo start --go --lan -c
-
-The web target is not part of this physical-device test. The WASM file is present for the
-package, but browser Metro resolution is a separate configuration concern.
-
-Issue: The QR code cannot be reached over LAN.
-
-Fixes:
-
-1. Confirm computer and phone are on the same non-guest Wi-Fi.
-2. Disable VPNs.
-3. Allow the terminal through the computer firewall.
-4. Try tunnel mode:
-
-   npx expo start --go --tunnel -c
-
-Issue: The QR code opens but the app cannot load JavaScript.
-
-Fixes:
-
-1. Confirm the computer is still running Metro.
-2. Confirm the phone is not on cellular data only.
-3. Restart with `npx expo start --go --lan -c`.
-4. Try tunnel mode.
-5. Record the exact Expo Go error and Metro terminal output.
-
-Issue: Expo Go reports that the project is incompatible.
-
-Fixes:
-
-1. Update Expo Go from the App Store or Play Store.
-2. Confirm the project is using Expo SDK 57 dependencies.
-3. Run `npm install` from `apps/mobile`.
-4. Run `npx expo-doctor`.
-5. Do not randomly upgrade Expo packages during this test.
-
-Issue: Metro says port 8081 is already in use.
-
-Fix: Stop the other Metro process, or use another port:
-
-   npx expo start --go --lan --port 8082 -c
-
-Issue: The app shows a blank screen after a code update.
-
-Fixes:
-
-1. Stop Metro.
-2. Restart with `npx expo start --go --lan -c`.
-3. Reload the project in Expo Go.
-4. Check the Metro terminal for the first error, not only the final redbox message.
-
-Issue: A migration error appears on startup.
-
-Fixes:
-
-1. Do not clear data immediately.
-2. Capture the exact SQLite error and current app state.
-3. Confirm whether the device had an older Kairo database.
-4. Compare against the automated migration test result.
-5. Only clear data after the existing-data evidence has been captured.
-
-Issue: Existing data appears to be missing.
-
-Fixes:
-
-1. Confirm you did not clear Expo Go storage.
-2. Confirm you opened the same Kairo project and not a stale QR URL.
-3. Fully close and reopen Expo Go.
-4. Check the Metro terminal for database initialization errors.
-5. Do not create replacement data until the issue is understood.
-
-Issue: The Home card is stale after returning from another module.
-
-Fixes:
-
-1. Navigate away from Home and return through the tab bar.
-2. Wait for the loading state to finish.
-3. Check whether the module write itself succeeded.
-4. Capture the sequence and data values if Home still disagrees with the module screen.
-
-Issue: Keyboard covers a form button.
-
-Fixes:
-
-1. Scroll the form while the keyboard is open.
-2. Test both decimal and numeric keyboard layouts.
-3. Record the device model, OS, orientation, and field where it occurs.
-
-Issue: Long press does nothing.
-
-Fixes:
-
-1. Press and hold the row rather than the text only.
-2. Try a longer hold, approximately one second.
-3. Confirm the row is a persisted entry and not an empty section.
-
-Issue: Expo Go closes or shows a native crash.
-
-Fixes:
-
-1. Capture device logs if available.
-2. Record the exact action immediately before the crash.
-3. Check whether the crash occurs only after force-closing or only on one device.
-4. Do not assume a JavaScript test pass rules out a native issue.
-
-
-20. FAILURE REPORT FORMAT
+3. START EXPO GO YOURSELF
 -------------------------
 
-For every failure, record:
+Use Expo Go for foreground tests:
 
-- Device model
-- OS version
-- Expo Go version
-- Kairo commit SHA
-- Exact test section and step number
-- Expected result
-- Actual result
-- Whether the issue reproduces after reload
-- Whether the issue reproduces after force-close and reopen
-- Screenshot or screen recording
-- Full Metro terminal error
-- Native device log, if available
+   cd /home/student/Kairo-v1/apps/mobile
+   EXPO_NO_TELEMETRY=1 npx expo start --go --lan -c
 
-Avoid reporting only "it does not work". The exact action and first terminal error are needed
-to diagnose the issue efficiently.
+Scan the QR code with Expo Go. Do not press `w`; the web target is not part of this test.
+Do not use `--localhost` for a physical phone.
+
+If LAN cannot connect:
+
+   EXPO_NO_TELEMETRY=1 npx expo start --go --tunnel -c
+
+Keep Metro visible and capture the first error if a red screen appears.
 
 
-21. TEST COMPLETION CHECKLIST
------------------------------
+4. PHASE 2 REGRESSION
+---------------------
 
-The device test is complete when all of these are true:
+Initial launch:
 
-- v1-v3 data survived the v4 migration.
-- Empty Macro state works.
-- Targets save and update correctly.
-- Custom foods can be created and reused.
-- Quantity math matches the expected fixture.
-- Meal grouping and ordering work.
-- Historical dates isolate entries correctly.
-- Entry deletion works.
-- Home reflects task, macro, weight, and workout changes.
-- Active workouts resume after force-close.
-- Completed workouts appear on Home.
-- Data survives full application restart.
-- Five tabs and all forms fit the physical device.
-- No recurring native, SQLite, router, or React runtime errors remain.
+1. Confirm the app opens without a blank screen, migration error, or red screen.
+2. Confirm these tabs render with icons and readable labels:
+   Home, Today, Macros, Workouts, Weight, Movement.
+3. Open every tab and return to Home.
+4. Confirm headers, tab bar, forms, and bottom buttons do not overlap.
 
-After this checklist passes, the project is ready to begin Phase 2 sync and authentication
-work. The next implementation area is backend models/endpoints for weight, tasks, and
-nutrition, authentication for workout endpoints, and an idempotent local outbox/sync path.
+Workouts:
+
+1. Start a workout and add at least two exercises.
+2. Log a decimal weight such as `62.5`; also test `62,5` if the device locale uses commas.
+3. Background Expo Go briefly, return, and confirm the active workout still displays.
+4. Finish the workout and confirm it appears in history and on Home.
+
+Weight:
+
+1. Log `75.5`, or `75,5` with a comma-decimal locale.
+2. Confirm history and Home show the same value.
+3. Set a goal, restart the app, and confirm the goal persists.
+4. Delete a test entry and confirm it disappears after navigation/reload.
+
+Today/tasks:
+
+1. Create a daily task and a selected-weekday task.
+2. Complete and clear each task.
+3. Confirm streak/rate values change correctly and survive restart.
+4. Archive and restore a task.
+
+Macros:
+
+1. Create a food with known nutrition values.
+2. Log quantities `1.5` and `0.5`, including comma-decimal input if applicable.
+3. Confirm calories and macros scale correctly.
+4. Set targets, navigate away, return, and confirm they persist.
+5. Delete an entry and confirm day totals recalculate.
+
+Phase 2 native features:
+
+1. Configure a reminder and confirm the permission prompt is understandable.
+2. Confirm a scheduled notification is delivered at a near-future test time.
+3. Generate a wallpaper, confirm it is nonblank, and test Save to Photos.
+4. Confirm denied notification/photo permission produces a recoverable state rather than a crash.
+
+
+5. EXPO GO MOVEMENT TEST
+------------------------
+
+Expo Go validates only foreground movement behavior. Keep Kairo visible while recording.
+The readiness screen must say "Expo Go test mode" and explain that background testing needs
+the development build.
+
+Permissions and start:
+
+1. Open Movement and Settings.
+2. Confirm units, voice cues, distance cues, time cues, and autopause are enabled by default.
+3. Toggle every setting off and on; leave them enabled for the first route.
+4. Select Run and start tracking.
+5. Grant foreground location permission.
+6. Confirm Kairo opens the live map and waits for a GPS fix without crashing.
+
+Foreground route:
+
+1. Walk outdoors for at least 300 meters with Kairo visible.
+2. Confirm the route line and marker update.
+3. Pan the map; confirm it stays where moved until the recenter button is pressed.
+4. Press recenter and confirm the latest position returns to view.
+5. Confirm distance increases and moving/elapsed time are separate.
+6. For Run/Walk, confirm pace is shown. Repeat a short Ride and confirm speed is shown.
+7. Manually pause for at least 20 seconds. Distance must not grow materially while paused.
+8. Resume and confirm recording continues without creating a second activity.
+9. Stand still long enough for autopause, then move long enough for auto-resume.
+10. Confirm the AUTOPAUSED indicator and voice announcements match the state.
+11. Finish and confirm the activity appears in Movement history.
+
+History, editing, and replay:
+
+1. Open the completed activity.
+2. Confirm start/end markers and the route render.
+3. Rename it and change the activity type; save and confirm revision increases.
+4. Trim at least one point from the start or end.
+5. Confirm raw history remains available, the visible route changes, metrics recompute, and
+   revision increases again.
+6. Open replay. Test play, pause, restart, 1x/2x/4x/8x, and scrubbing at different widths.
+7. Change metric/imperial settings and confirm live/history/replay units update consistently.
+8. Restart Expo Go and confirm completed history and edits remain.
+
+Voice cues:
+
+1. Use a route or simulator long enough to cross a time or distance threshold.
+2. Confirm cues do not repeat after navigating away and returning.
+3. Disable distance cues; confirm time cues can still speak.
+4. Disable time cues; confirm distance cues can still speak.
+5. Disable voice cues globally; confirm no movement speech occurs.
+
+
+6. ANDROID DEVELOPMENT BUILD - REQUIRED
+---------------------------------------
+
+Expo Go cannot pass this section. Build/install a development build using the project's Expo
+native configuration. If EAS is configured, use the repository's development profile. If it
+is not configured, generate/run the Android native project with the installed Android SDK.
+Record the exact build command and artifact version in the result report.
+
+Required Android checks:
+
+1. Launch Kairo and grant foreground location.
+2. Grant background/"Allow all the time" location when Android presents that flow.
+3. Start a Run and confirm Android shows Kairo's persistent tracking notification.
+4. Record outdoors for at least 10 minutes with:
+   - 2 minutes foreground
+   - 3 minutes screen locked
+   - 3 minutes another app foregrounded
+   - 2 minutes Kairo foreground again
+5. Confirm one continuous activity, sensible distance, and no large straight-line jump.
+6. Confirm manual pause/resume works while returning from background.
+7. Confirm autopause/auto-resume works after screen lock.
+8. Confirm time/distance speech occurs with the screen locked.
+9. Repeat speech through a connected Bluetooth headset/speaker.
+10. Deny background permission on a second attempt and confirm Kairo explains the requirement
+    without creating an unusable active activity.
+
+Force-kill contract:
+
+1. Start another activity and collect several visible points.
+2. Force-stop/swipe away Kairo.
+3. Reopen it.
+4. Kairo is not required to have collected new points while killed.
+5. It must recover the active activity and all points persisted before termination.
+6. Resume or finish it without duplicate points/events or a second activity.
+
+Battery observation:
+
+1. Record battery percentage before a representative 30-60 minute route.
+2. Record battery percentage after the route.
+3. Record whether the phone became unusually warm.
+4. Report device, OS, duration, GPS mode, screen-on time, and battery delta.
+
+
+7. IOS VALIDATION
+-----------------
+
+Run the equivalent development build on iOS when a Mac/Xcode signing environment and physical
+iPhone are available. Verify When In Use/Always permissions, blue background indicator,
+screen-lock recording, map tiles, speech/Bluetooth, recovery, and battery use. An iOS bundle
+export proves JavaScript/native configuration compatibility but not background execution.
+
+
+8. BACKEND SYNC ACCEPTANCE
+--------------------------
+
+Only run this section when `EXPO_PUBLIC_API_URL` and `EXPO_PUBLIC_DEVICE_KEY` point to the Kairo
+backend.
+
+1. Record offline and finish an activity with network disabled.
+2. Confirm the activity remains fully usable locally.
+3. Re-enable network and trigger normal app sync.
+4. Confirm exactly one movement aggregate is created on the backend.
+5. Trigger sync again; the exact replay must succeed without duplication.
+6. Trim or rename the activity and sync; confirm the backend moves to the higher revision.
+7. Delete the activity and sync; confirm deletion is replay-safe.
+8. Authenticate as another user and confirm the activity cannot be listed or opened.
+9. Confirm no data is sent to Strava or any third-party fitness service.
+
+
+9. FAILURE REPORT FORMAT
+------------------------
+
+For each failure record:
+
+   Section and step:
+   Device and OS:
+   Expo Go/development-build version:
+   Commit SHA:
+   Expected:
+   Actual:
+   Reproduces after reload: yes/no
+   Reproduces after force-close: yes/no
+   Permission state:
+   Network state:
+   Screenshot/video:
+   First Metro/native log error:
+
+Do not clear app data before collecting evidence. Do not modify source code during the test.
+
+
+10. RESULT CHECKLIST
+--------------------
+
+Mark each item PASS, FAIL, or NOT AVAILABLE:
+
+   [ ] Automated mobile preflight
+   [ ] Automated backend preflight
+   [ ] Phase 2 module regression
+   [ ] Reminder delivery
+   [ ] Wallpaper save
+   [ ] Expo Go foreground movement
+   [ ] Manual pause/resume
+   [ ] Autopause/auto-resume
+   [ ] Voice settings and threshold cues
+   [ ] History/detail
+   [ ] Trim and metadata editing
+   [ ] Offline route replay
+   [ ] Android background and screen lock
+   [ ] Android foreground-service notification
+   [ ] Android force-kill recovery contract
+   [ ] Bluetooth speech
+   [ ] Android battery observation
+   [ ] Backend upload/replay/edit/delete
+   [ ] Cross-user isolation
+   [ ] iOS native validation
+
+Phase 3 can be marked complete only when all required items are PASS. iOS may be recorded as
+NOT AVAILABLE only if the agreed release gate remains Android-first; it must remain an explicit
+follow-up before claiming full Android+iOS native validation.

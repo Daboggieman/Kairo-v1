@@ -32,7 +32,10 @@ export default function MovementReplayScreen() {
       setUnits(unitSystem);
     });
   }, [activityId, db]);
-  const accepted = useMemo(() => points.filter((point) => point.processingState === 'accepted'), [points]);
+  const accepted = useMemo(
+    () => points.filter((point) => point.processingState === 'accepted' && !point.excludedByEdit),
+    [points],
+  );
   const replayPoints = accepted.map((point) => ({
     latitude: point.latitude,
     longitude: point.longitude,

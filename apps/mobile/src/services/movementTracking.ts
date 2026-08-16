@@ -1,4 +1,5 @@
 import { randomUUID } from 'expo-crypto';
+import Constants from 'expo-constants';
 import * as Location from 'expo-location';
 import * as Speech from 'expo-speech';
 import { openDatabaseAsync } from 'expo-sqlite';
@@ -20,12 +21,12 @@ import { getMovementPreferences, getUnitSystem } from '@/db/preferences';
 import { crossedCues, evaluateAutopause, processSample } from '@/domain/movement';
 
 export const MOVEMENT_LOCATION_TASK = 'kairo-movement-location';
+export const IS_EXPO_GO = Constants.executionEnvironment === 'storeClient';
 
 type LocationTaskData = { locations?: Location.LocationObject[] };
+let foregroundSubscription: Location.LocationSubscription | null = null;
 
-TaskManager.defineTask(MOVEMENT_LOCATION_TASK, async ({ data, error }) => {
-  if (error) throw new Error(error.message);
-  const locations = (data as LocationTaskData | undefined)?.locations ?? [];
+async function processLocationBatch(locations: Location.LocationObject[]): Promise<void> {
   if (locations.length === 0) return;
 
   const db = await openDatabaseAsync(DATABASE_NAME);
@@ -107,16 +108,35 @@ TaskManager.defineTask(MOVEMENT_LOCATION_TASK, async ({ data, error }) => {
   } finally {
     await db.closeAsync();
   }
+}
+
+TaskManager.defineTask(MOVEMENT_LOCATION_TASK, async ({ data, error }) => {
+  if (error) throw new Error(error.message);
+  const locations = (data as LocationTaskData | undefined)?.locations ?? [];
+  await processLocationBatch(locations);
 });
 
 export async function requestMovementPermissions(): Promise<boolean> {
   const foreground = await Location.requestForegroundPermissionsAsync();
   if (!foreground.granted) return false;
+  if (IS_EXPO_GO) return true;
   const background = await Location.requestBackgroundPermissionsAsync();
   return background.granted;
 }
 
 export async function startMovementTracking(): Promise<void> {
+  if (IS_EXPO_GO) {
+    if (foregroundSubscription) return;
+    foregroundSubscription = await Location.watchPositionAsync(
+      {
+        accuracy: Location.Accuracy.BestForNavigation,
+        timeInterval: 3000,
+        distanceInterval: 3,
+      },
+      (location) => { void processLocationBatch([location]); },
+    );
+    return;
+  }
   if (await Location.hasStartedLocationUpdatesAsync(MOVEMENT_LOCATION_TASK)) return;
   await Location.startLocationUpdatesAsync(MOVEMENT_LOCATION_TASK, {
     accuracy: Location.Accuracy.BestForNavigation,
@@ -133,6 +153,11 @@ export async function startMovementTracking(): Promise<void> {
 }
 
 export async function stopMovementTracking(): Promise<void> {
+  if (foregroundSubscription) {
+    foregroundSubscription.remove();
+    foregroundSubscription = null;
+  }
+  if (IS_EXPO_GO) return;
   if (!(await Location.hasStartedLocationUpdatesAsync(MOVEMENT_LOCATION_TASK))) return;
   await Location.stopLocationUpdatesAsync(MOVEMENT_LOCATION_TASK);
 }

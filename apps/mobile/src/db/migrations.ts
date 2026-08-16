@@ -14,6 +14,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import {
   CREATE_BODY_WEIGHT_ENTRIES,
   CREATE_ALARMS,
+  ADD_MOVEMENT_POINT_EDIT_EXCLUSION,
   CREATE_EXERCISES,
   CREATE_FOOD_ITEMS,
   CREATE_INDEXES,
@@ -95,6 +96,12 @@ const MIGRATIONS: Migration[] = [
     await db.execAsync(CREATE_MOVEMENT_INDEXES);
   } },
   { version: 8, up: async (db) => { await db.execAsync(CREATE_MOVEMENT_TRACKING_STATE); } },
+  { version: 9, up: async (db) => {
+    const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(movement_points)');
+    if (!columns.some((column) => column.name === 'excluded_by_edit')) {
+      await db.execAsync(ADD_MOVEMENT_POINT_EDIT_EXCLUSION);
+    }
+  } },
 ];
 
 /**

@@ -2,6 +2,7 @@ import { LOCAL_USER_ID } from '@/constants';
 import { createMovementState, processSample, transition } from '@/domain/movement';
 
 import { createTestDb, type TestDatabase } from './testDb';
+import { pendingCount } from '../outbox';
 import {
   appendMovementPoint,
   appendMovementEvent,
@@ -16,6 +17,7 @@ import {
   listMovementEvents,
   listMovementPoints,
   setMovementStatus,
+  trimMovementActivity,
   updateMovementEngineState,
 } from '../movement';
 import { SCHEMA_VERSION } from '../schema';
@@ -142,11 +144,45 @@ describe('movement query layer', () => {
     expect((await listMovementActivities(db, LOCAL_USER_ID))[0].revision).toBe(2);
   });
 
+  it('trims by excluding raw points and recomputes summaries without deleting them', async () => {
+    await createMovementActivity(db, { id: 'm1', userId: LOCAL_USER_ID, activityType: 'run', startedAt: '2026-08-16T10:00:00.000Z' });
+    await setMovementStatus(db, 'm1', LOCAL_USER_ID, 'recording', '2026-08-16T10:00:00.000Z');
+    let state = transition(transition(createMovementState('run'), 'prepare'), 'started');
+    for (const [index, longitude] of [0, 0.001, 0.002].entries()) {
+      const result = processSample(state, { latitude: 0, longitude, recordedAtMs: index * 10_000 });
+      state = result.state;
+      await appendMovementPoint(db, { id: `p${index}`, userId: LOCAL_USER_ID, activityId: 'm1', point: result.point, state });
+    }
+    await completeMovementActivity(db, { id: 'm1', userId: LOCAL_USER_ID, endedAt: '2026-08-16T10:01:00.000Z' });
+    const trimmed = await trimMovementActivity(db, {
+      id: 'm1', userId: LOCAL_USER_ID, firstSequence: 1, lastSequence: 2,
+      eventId: 'trim-event', updatedAt: '2026-08-16T10:02:00.000Z',
+    });
+    const points = await listMovementPoints(db, 'm1');
+    expect(points).toHaveLength(3);
+    expect(points.map((point) => point.excludedByEdit)).toEqual([true, false, false]);
+    expect(trimmed.distanceMeters).toBeCloseTo(111.2, 0);
+    expect(trimmed.revision).toBe(2);
+    expect((await listMovementEvents(db, 'm1')).at(-1)).toMatchObject({ eventType: 'edited' });
+  });
+
   it('deletes owned activities and cascades their replay facts', async () => {
     await createMovementActivity(db, { id: 'm1', userId: LOCAL_USER_ID, activityType: 'walk', startedAt: '2026-08-16T10:00:00.000Z' });
     await appendMovementEvent(db, { id: 'e1', userId: LOCAL_USER_ID, activityId: 'm1', sequence: 1, eventType: 'started', occurredAt: '2026-08-16T10:00:00.000Z' });
     expect(await deleteMovementActivity(db, 'm1', 'other-user')).toBe(false);
     expect(await deleteMovementActivity(db, 'm1', LOCAL_USER_ID)).toBe(true);
     expect(await listMovementEvents(db, 'm1')).toEqual([]);
+  });
+
+  it('queues completed movement deletion but not an unfinished local discard', async () => {
+    await createMovementActivity(db, { id: 'draft', userId: LOCAL_USER_ID, activityType: 'walk', startedAt: '2026-08-16T09:00:00.000Z' });
+    expect(await deleteMovementActivity(db, 'draft', LOCAL_USER_ID)).toBe(true);
+    expect(await pendingCount(db)).toBe(0);
+
+    await createMovementActivity(db, { id: 'done', userId: LOCAL_USER_ID, activityType: 'walk', startedAt: '2026-08-16T10:00:00.000Z' });
+    await setMovementStatus(db, 'done', LOCAL_USER_ID, 'recording', '2026-08-16T10:00:00.000Z');
+    await completeMovementActivity(db, { id: 'done', userId: LOCAL_USER_ID, endedAt: '2026-08-16T10:10:00.000Z' });
+    expect(await deleteMovementActivity(db, 'done', LOCAL_USER_ID)).toBe(true);
+    expect(await pendingCount(db)).toBe(2);
   });
 });

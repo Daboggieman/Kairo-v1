@@ -14,7 +14,11 @@ import {
 } from '@/db/movement';
 import { getUnitSystem } from '@/db/preferences';
 import type { MovementType } from '@/db/types';
-import { requestMovementPermissions, startMovementTracking } from '@/services/movementTracking';
+import {
+  IS_EXPO_GO,
+  requestMovementPermissions,
+  startMovementTracking,
+} from '@/services/movementTracking';
 import { colors, fontSize, radius, spacing } from '@/theme';
 
 const TYPES: { type: MovementType; label: string; icon: 'run' | 'walk' | 'bike' }[] = [
@@ -35,7 +39,9 @@ export default function NewMovementScreen() {
     setError(null);
     try {
       if (!(await requestMovementPermissions())) {
-        setError('Location access is required for background route recording.');
+        setError(IS_EXPO_GO
+          ? 'Location access is required for route recording.'
+          : 'Location access is required for background route recording.');
         return;
       }
       const now = new Date().toISOString();
@@ -79,8 +85,10 @@ export default function NewMovementScreen() {
         })}
       </View>
       <View style={styles.permissionPanel}>
-        <Text style={styles.permissionTitle}>Background location</Text>
-        <Text style={styles.permissionBody}>Kairo records only while an activity is active. Android shows a persistent tracking notification.</Text>
+        <Text style={styles.permissionTitle}>{IS_EXPO_GO ? 'Expo Go test mode' : 'Background location'}</Text>
+        <Text style={styles.permissionBody}>{IS_EXPO_GO
+          ? 'Keep Kairo open during this test. Background and screen-lock recording require the Android development build.'
+          : 'Kairo records only while an activity is active. Android shows a persistent tracking notification.'}</Text>
       </View>
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <View style={styles.footer}><Button label="Start tracking" onPress={start} loading={starting} /></View>

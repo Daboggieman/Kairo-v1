@@ -76,6 +76,56 @@ export type ReplayFrame = {
   progress: number;
 };
 
+export type EditableMovementPoint = Pick<ReplayPoint, 'latitude' | 'longitude' | 'recordedAtMs'> & {
+  sequence: number;
+  accepted: boolean;
+  isPaused: boolean;
+};
+
+export type RecomputedRoute = {
+  includedSequences: number[];
+  distanceBySequence: Map<number, { distanceFromPreviousMeters: number; cumulativeDistanceMeters: number }>;
+  distanceMeters: number;
+  elapsedSeconds: number;
+  movingSeconds: number;
+};
+
+/** Rebuilds derived route metrics from retained raw points after an edit. */
+export function recomputeEditedRoute(
+  points: EditableMovementPoint[],
+  excludedSequences: ReadonlySet<number> = new Set(),
+): RecomputedRoute {
+  const included = points
+    .filter((point) => point.accepted && !excludedSequences.has(point.sequence))
+    .sort((a, b) => a.sequence - b.sequence);
+  const distanceBySequence = new Map<number, { distanceFromPreviousMeters: number; cumulativeDistanceMeters: number }>();
+  let distanceMeters = 0;
+  let elapsedSeconds = 0;
+  let movingSeconds = 0;
+  for (let index = 0; index < included.length; index += 1) {
+    const point = included[index];
+    const previous = included[index - 1];
+    const segmentDistance = previous ? haversineMeters(previous, point) : 0;
+    const segmentSeconds = previous
+      ? Math.max(0, (point.recordedAtMs - previous.recordedAtMs) / 1000)
+      : 0;
+    distanceMeters += segmentDistance;
+    elapsedSeconds += segmentSeconds;
+    if (previous && !previous.isPaused) movingSeconds += segmentSeconds;
+    distanceBySequence.set(point.sequence, {
+      distanceFromPreviousMeters: segmentDistance,
+      cumulativeDistanceMeters: distanceMeters,
+    });
+  }
+  return {
+    includedSequences: included.map((point) => point.sequence),
+    distanceBySequence,
+    distanceMeters,
+    elapsedSeconds,
+    movingSeconds,
+  };
+}
+
 export const METERS_PER_MILE = 1609.344;
 export const DEFAULT_ACCURACY_LIMIT_METERS = 50;
 

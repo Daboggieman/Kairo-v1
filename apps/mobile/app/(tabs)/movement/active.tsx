@@ -85,7 +85,9 @@ export default function ActiveMovementScreen() {
   }, [activity, db, router]);
 
   if (!activity) return <View style={styles.center}><ActivityIndicator color={colors.accent} /><Text style={styles.muted}>Recovering active movement…</Text></View>;
-  const accepted = points.filter((point) => point.processingState === 'accepted');
+  const accepted = points.filter(
+    (point) => point.processingState === 'accepted' && !point.excludedByEdit,
+  );
   const coordinates = accepted.map((point) => ({ latitude: point.latitude, longitude: point.longitude }));
   const latest = coordinates.at(-1);
   const paused = activity.status === 'manually_paused' || activity.status === 'auto_paused';

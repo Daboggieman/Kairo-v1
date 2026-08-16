@@ -9,6 +9,7 @@ import {
   haversineMeters,
   initialCueSchedule,
   processSample,
+  recomputeEditedRoute,
   replayFrameAt,
   transition,
 } from '../movement';
@@ -93,6 +94,20 @@ describe('movement domain', () => {
       cumulativeDistanceMeters: 100,
       progress: 0.5,
     });
+  });
+
+  it('recomputes derived route metrics without changing retained raw points', () => {
+    const points = [
+      { sequence: 0, latitude: 0, longitude: 0, recordedAtMs: 0, accepted: true, isPaused: false },
+      { sequence: 1, latitude: 0, longitude: 0.001, recordedAtMs: 10_000, accepted: true, isPaused: false },
+      { sequence: 2, latitude: 0, longitude: 0.002, recordedAtMs: 20_000, accepted: true, isPaused: true },
+    ];
+    const result = recomputeEditedRoute(points, new Set([1]));
+    expect(result.includedSequences).toEqual([0, 2]);
+    expect(result.distanceMeters).toBeCloseTo(222.4, 0);
+    expect(result.elapsedSeconds).toBe(20);
+    expect(result.movingSeconds).toBe(20);
+    expect(result.distanceBySequence.get(2)?.cumulativeDistanceMeters).toBeCloseTo(222.4, 0);
   });
 
   it('clamps replay before and after the recorded route', () => {

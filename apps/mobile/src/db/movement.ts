@@ -1,8 +1,9 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import type { AcceptedPoint, AutopauseState, CueSchedule, MovementState } from '@/domain/movement';
-import { initialCueSchedule } from '@/domain/movement';
+import { initialCueSchedule, recomputeEditedRoute } from '@/domain/movement';
 import type { UnitSystem } from './preferences';
+import { enqueue, type MovementActivityWire } from './outbox';
 
 import {
   type MovementActivity,
@@ -154,10 +155,48 @@ export async function completeMovementActivity(
       input.endedAt, input.endedAt, input.id, input.userId,
     );
     if (result.changes === 0) throw new Error('Movement activity cannot be completed');
+    await enqueueMovementAggregate(tx, input.id, input.userId, 'upsert');
   });
   const completed = await getMovementActivity(db, input.id, input.userId);
   if (!completed) throw new Error('Completed movement activity not found');
   return completed;
+}
+
+function toMovementActivityWire(
+  activity: MovementActivityRow,
+  points: MovementPointRow[],
+  events: MovementEventRow[],
+): MovementActivityWire {
+  return {
+    id: activity.id,
+    activity_type: activity.activity_type === 'walk' || activity.activity_type === 'ride'
+      ? activity.activity_type : 'run',
+    name: activity.name,
+    started_at: activity.started_at,
+    ended_at: activity.ended_at ?? activity.updated_at,
+    elapsed_seconds: activity.elapsed_seconds,
+    moving_seconds: activity.moving_seconds,
+    paused_seconds: activity.paused_seconds,
+    distance_meters: activity.distance_meters,
+    elevation_gain_meters: activity.elevation_gain_meters,
+    average_speed_mps: activity.average_speed_mps,
+    revision: activity.revision,
+    created_at: activity.created_at,
+    updated_at: activity.updated_at,
+    points: points.map((point) => ({
+      id: point.id, sequence: point.sequence, recorded_at: point.recorded_at,
+      latitude: point.latitude, longitude: point.longitude, altitude_meters: point.altitude_meters,
+      horizontal_accuracy_meters: point.horizontal_accuracy_meters,
+      provider_speed_mps: point.provider_speed_mps,
+      processing_state: point.processing_state === 'accepted' ? 'accepted' : 'rejected',
+      rejection_reason: point.rejection_reason, is_paused: point.is_paused === 1,
+      excluded_by_edit: point.excluded_by_edit === 1,
+    })),
+    events: events.map((event) => ({
+      id: event.id, sequence: event.sequence, event_type: event.event_type,
+      occurred_at: event.occurred_at, payload_json: event.payload_json,
+    })),
+  };
 }
 
 export async function editMovementActivity(
@@ -166,15 +205,127 @@ export async function editMovementActivity(
     id: string; userId: string; name: string | null; activityType: MovementType; updatedAt: string;
   },
 ): Promise<MovementActivity> {
-  const result = await db.runAsync(
-    `UPDATE movement_activities SET name = ?, activity_type = ?, revision = revision + 1,
-     updated_at = ? WHERE id = ? AND user_id = ? AND status = 'completed'`,
-    input.name, input.activityType, input.updatedAt, input.id, input.userId,
-  );
-  if (result.changes === 0) throw new Error('Completed movement activity not found');
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    const result = await tx.runAsync(
+      `UPDATE movement_activities SET name = ?, activity_type = ?, revision = revision + 1,
+       updated_at = ? WHERE id = ? AND user_id = ? AND status = 'completed'`,
+      input.name, input.activityType, input.updatedAt, input.id, input.userId,
+    );
+    if (result.changes === 0) throw new Error('Completed movement activity not found');
+    const sequenceRow = await tx.getFirstAsync<{ next_sequence: number }>(
+      `SELECT COALESCE(MAX(sequence), -1) + 1 AS next_sequence
+       FROM movement_events WHERE activity_id = ?`, input.id,
+    );
+    await tx.runAsync(
+      `INSERT INTO movement_events
+       (id, activity_id, sequence, event_type, occurred_at, payload_json)
+       VALUES (?, ?, ?, 'edited', ?, ?)`,
+      `${input.id}-edit-${Date.parse(input.updatedAt)}`,
+      input.id, sequenceRow?.next_sequence ?? 0, input.updatedAt,
+      JSON.stringify({ name: input.name, activityType: input.activityType }),
+    );
+    await enqueueMovementAggregate(tx, input.id, input.userId, 'update');
+  });
   const updated = await getMovementActivity(db, input.id, input.userId);
   if (!updated) throw new Error('Updated movement activity not found');
   return updated;
+}
+
+export async function trimMovementActivity(
+  db: SQLiteDatabase,
+  input: {
+    id: string; userId: string; firstSequence: number; lastSequence: number;
+    eventId: string; updatedAt: string;
+  },
+): Promise<MovementActivity> {
+  if (input.firstSequence > input.lastSequence) throw new Error('Invalid movement trim range');
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    const owned = await tx.getFirstAsync<{ id: string }>(
+      `SELECT id FROM movement_activities
+       WHERE id = ? AND user_id = ? AND status = 'completed'`,
+      input.id, input.userId,
+    );
+    if (!owned) throw new Error('Completed movement activity not found');
+
+    await tx.runAsync(
+      `UPDATE movement_points SET excluded_by_edit =
+       CASE WHEN sequence < ? OR sequence > ? THEN 1 ELSE 0 END
+       WHERE activity_id = ?`,
+      input.firstSequence, input.lastSequence, input.id,
+    );
+    const rows = await tx.getAllAsync<MovementPointRow>(
+      'SELECT * FROM movement_points WHERE activity_id = ? ORDER BY sequence ASC', input.id,
+    );
+    const excluded = new Set(rows.filter((row) => row.excluded_by_edit === 1).map((row) => row.sequence));
+    const recomputed = recomputeEditedRoute(rows.map((row) => ({
+      sequence: row.sequence,
+      latitude: row.latitude,
+      longitude: row.longitude,
+      recordedAtMs: new Date(row.recorded_at).getTime(),
+      accepted: row.processing_state === 'accepted',
+      isPaused: row.is_paused === 1,
+    })), excluded);
+    for (const row of rows) {
+      const metrics = recomputed.distanceBySequence.get(row.sequence);
+      await tx.runAsync(
+        `UPDATE movement_points SET distance_from_previous_meters = ?,
+         cumulative_distance_meters = ? WHERE id = ?`,
+        metrics?.distanceFromPreviousMeters ?? 0,
+        metrics?.cumulativeDistanceMeters ?? 0,
+        row.id,
+      );
+    }
+    const pausedSeconds = Math.max(0, recomputed.elapsedSeconds - recomputed.movingSeconds);
+    await tx.runAsync(
+      `UPDATE movement_activities SET distance_meters = ?, elapsed_seconds = ?,
+       moving_seconds = ?, paused_seconds = ?, average_speed_mps = ?,
+       revision = revision + 1, updated_at = ? WHERE id = ?`,
+      recomputed.distanceMeters, Math.round(recomputed.elapsedSeconds),
+      Math.round(recomputed.movingSeconds), Math.round(pausedSeconds),
+      recomputed.movingSeconds > 0 ? recomputed.distanceMeters / recomputed.movingSeconds : null,
+      input.updatedAt, input.id,
+    );
+    const sequenceRow = await tx.getFirstAsync<{ next_sequence: number }>(
+      `SELECT COALESCE(MAX(sequence), -1) + 1 AS next_sequence
+       FROM movement_events WHERE activity_id = ?`, input.id,
+    );
+    await tx.runAsync(
+      `INSERT INTO movement_events
+       (id, activity_id, sequence, event_type, occurred_at, payload_json)
+       VALUES (?, ?, ?, 'edited', ?, ?)`,
+      input.eventId, input.id, sequenceRow?.next_sequence ?? 0, input.updatedAt,
+      JSON.stringify({ firstSequence: input.firstSequence, lastSequence: input.lastSequence }),
+    );
+    await enqueueMovementAggregate(tx, input.id, input.userId, 'update');
+  });
+  const updated = await getMovementActivity(db, input.id, input.userId);
+  if (!updated) throw new Error('Trimmed movement activity not found');
+  return updated;
+}
+
+async function enqueueMovementAggregate(
+  db: SQLiteDatabase,
+  activityId: string,
+  userId: string,
+  operation: 'upsert' | 'update',
+): Promise<void> {
+  const activity = await db.getFirstAsync<MovementActivityRow>(
+    'SELECT * FROM movement_activities WHERE id = ? AND user_id = ?', activityId, userId,
+  );
+  const points = await db.getAllAsync<MovementPointRow>(
+    'SELECT * FROM movement_points WHERE activity_id = ? ORDER BY sequence ASC', activityId,
+  );
+  const events = await db.getAllAsync<MovementEventRow>(
+    'SELECT * FROM movement_events WHERE activity_id = ? ORDER BY sequence ASC', activityId,
+  );
+  if (!activity) throw new Error('Completed movement activity not found');
+  await enqueue(db, {
+    userId,
+    entityType: 'movement_activity',
+    entityId: activityId,
+    operation,
+    payload: toMovementActivityWire(activity, points, events),
+  });
 }
 
 export async function deleteMovementActivity(
@@ -182,10 +333,24 @@ export async function deleteMovementActivity(
   id: string,
   userId: string,
 ): Promise<boolean> {
-  const result = await db.runAsync(
-    'DELETE FROM movement_activities WHERE id = ? AND user_id = ?', id, userId,
-  );
-  return result.changes > 0;
+  let deleted = false;
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    const activity = await tx.getFirstAsync<MovementActivityRow>(
+      'SELECT * FROM movement_activities WHERE id = ? AND user_id = ?', id, userId,
+    );
+    if (!activity) return;
+    const result = await tx.runAsync(
+      'DELETE FROM movement_activities WHERE id = ? AND user_id = ?', id, userId,
+    );
+    deleted = result.changes > 0;
+    if (deleted && activity.status === 'completed') {
+      await enqueue(tx, {
+        userId, entityType: 'movement_activity', entityId: id,
+        operation: 'delete', payload: null,
+      });
+    }
+  });
+  return deleted;
 }
 
 export async function appendMovementPoint(

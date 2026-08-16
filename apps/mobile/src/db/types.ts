@@ -121,7 +121,7 @@ export type MovementPointRow = {
   vertical_accuracy_meters: number | null; provider_speed_mps: number | null;
   derived_speed_mps: number | null; distance_from_previous_meters: number;
   cumulative_distance_meters: number; processing_state: string; rejection_reason: string | null;
-  is_paused: number;
+  is_paused: number; excluded_by_edit: number;
 };
 
 export type MovementEventRow = {
@@ -247,7 +247,7 @@ export type MovementPoint = {
   verticalAccuracyMeters: number | null; providerSpeedMps: number | null;
   derivedSpeedMps: number | null; distanceFromPreviousMeters: number;
   cumulativeDistanceMeters: number; processingState: 'accepted' | 'rejected';
-  rejectionReason: string | null; isPaused: boolean;
+  rejectionReason: string | null; isPaused: boolean; excludedByEdit: boolean;
 };
 
 export type MovementEvent = {
@@ -388,6 +388,7 @@ export function toMovementPoint(row: MovementPointRow): MovementPoint {
     derivedSpeedMps: row.derived_speed_mps,
     distanceFromPreviousMeters: row.distance_from_previous_meters,
     cumulativeDistanceMeters: row.cumulative_distance_meters,
+    excludedByEdit: row.excluded_by_edit === 1,
     processingState: row.processing_state === 'accepted' ? 'accepted' : 'rejected',
     rejectionReason: row.rejection_reason, isPaused: row.is_paused === 1,
   };

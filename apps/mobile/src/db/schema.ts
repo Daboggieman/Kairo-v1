@@ -8,7 +8,7 @@
  */
 
 /** Bumped whenever a migration is appended in `migrations.ts`. */
-export const SCHEMA_VERSION = 8;
+export const SCHEMA_VERSION = 9;
 
 export const CREATE_EXERCISES = `
 CREATE TABLE IF NOT EXISTS exercises (
@@ -309,3 +309,7 @@ CREATE TABLE IF NOT EXISTS movement_tracking_state (
   next_distance_cue_meters REAL NOT NULL,
   next_time_cue_seconds INTEGER NOT NULL
 );`;
+
+/* Migration 9 — reversible edit exclusion without modifying raw GPS facts. */
+export const ADD_MOVEMENT_POINT_EDIT_EXCLUSION = `
+ALTER TABLE movement_points ADD COLUMN excluded_by_edit INTEGER NOT NULL DEFAULT 0;`;
