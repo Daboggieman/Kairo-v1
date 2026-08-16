@@ -30,9 +30,15 @@ already has momentum and daily-use value.
 - Verification: backend 24 tests, mobile 350 tests across 16 suites, Ruff, ESLint, and TypeScript.
 
 ## Phase 3 — Movement (P2a)
-- Decide GPS strategy per `05-integrations-and-credentials.md`
-- Ship the *lower-effort* path first (HealthKit/Google Fit import or Strava sync)
-- Only build custom GPS tracking if the import path proves insufficient
+- Build Kairo-owned GPS tracking for run, walk, and ride; no Strava/provider integration.
+- Android-first technical spike with a custom development build, background location,
+  screen-lock recording, SQLite persistence, maps, speech, restart recovery, and battery
+  measurement; then integrate iOS against the same pure engine and local model.
+- Ship live maps, manual pause/resume, autopause/auto-resume, time and distance voice cues,
+  offline history, editable activity summaries, and route replay.
+- Upload completed activities only, through replay-safe backend batches; never stream an
+  active route to the server or upload to an external provider.
+- Detailed scope, data model, platform contract, and gates are in `08-phase-3-movement-plan.md`.
 
 ## Phase 4 — Bible (P2b)
 - Integrate chosen public-domain Bible API, chapter caching for offline reading
