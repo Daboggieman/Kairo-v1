@@ -3,9 +3,9 @@
 Handoff for the Kairo v1 sessions so far: Phase 0 scaffold, then Workouts, Weight, Tasks
 and Macros. Read before continuing.
 
-Last updated: **2026-08-16**, during Phase 3 movement tracking implementation.
+Last updated: **2026-08-16**, after completing the executable Phase 3 implementation.
 
-## Phase 3 started — 2026-08-16
+## Phase 3 implementation checkpoint — 2026-08-16
 
 Phase 3 is now explicitly Kairo-owned GPS tracking, not Strava or another provider import.
 The locked plan is in `docs/08-phase-3-movement-plan.md`: run/walk/ride, Android-first native
@@ -13,17 +13,15 @@ spike with iOS designed in, live map, background tracking, pause/autopause, defa
 and distance voice cues, shared units, indefinite raw-point retention with edit revisions,
 route replay, and Kairo backend upload only after completion.
 
-Implementation has begun with mobile schema v7 (`movement_activities`, `movement_points`,
-`movement_events`, `movement_splits`), pure tracking/replay/autopause/cue logic, typed SQLite
-queries, active-session recovery, lifecycle edits, and focused tests. Expo Location, Task
-Manager, Speech, and React Native Maps are installed at SDK-compatible versions. The
-background task is defined at module scope, opens/migrates the same SQLite database, recovers
-the active state, processes location batches, and persists points atomically with summaries.
-Android/iOS location config is present, but the Android physical-device spike has not yet
-been run. Verification after this slice: typecheck clean, lint clean, **372 tests across 18
-suites passed**.
+Implementation is complete through the executable mobile/backend layers. Mobile schemas v7–v9
+cover activities, raw points, lifecycle events, durable engine state, and reversible raw-point
+edit exclusion. Expo Location, Task Manager, Speech, and React Native Maps are installed at
+SDK-compatible versions. The module-scope background task opens/migrates the same SQLite
+database, recovers active state, processes location batches, and persists points atomically
+with summaries. Expo Go has a foreground `watchPositionAsync` fallback for today's UI testing;
+background/screen-lock behavior still requires a custom Android development build.
 
-Schema v8 now stores autopause candidate timestamps and next voice-cue thresholds per active
+Schema v8 stores autopause candidate timestamps and next voice-cue thresholds per active
 activity. Movement settings expose metric/imperial units, default-on voice cues with separate
 distance/time toggles, and autopause. The background task evaluates those settings, persists
 autopause/voice events in order, and invokes local speech. Native voice behavior still needs
@@ -35,10 +33,17 @@ history/detail, and offline animated route replay with normalized 1x/2x/4x/8x sp
 live view now respects the shared metric/imperial preference, shows run/walk pace or ride
 speed, separates moving and elapsed time, displays autopause explicitly, and lets the user
 pan before recentering. Replay uses the same unit preference and a responsive scrubber.
-Schema v8 recovery and default-on preference behavior have direct SQLite-backed tests. The
-Android Expo export bundles successfully with the new Location, Task Manager, Speech, and
-React Native Maps dependencies. Physical-device permission, background, map-tile, voice,
-and battery tests remain the release gate; automated checks cannot prove those OS behaviors.
+Schema v8 recovery and default-on preference behavior have direct SQLite-backed tests. Schema
+v9 adds trim/recompute persistence without deleting raw points. Completed activities enqueue a
+movement aggregate only after completion; later edits enqueue higher revisions and deletes enqueue
+idempotent removal. Backend migration `7e3b9a1c2d44` provides authenticated movement upload,
+list/detail, revision replacement, ownership isolation, and replay-safe deletion.
+
+Automated verification is green: mobile typecheck/lint, **376 tests across 18 suites**, backend
+Ruff, **28 backend tests**, Alembic at head, Expo Doctor **21/21**, and Android/iOS exports.
+Physical-device results have not yet been provided by the user. Background location, screen lock,
+foreground-service notification, force-kill recovery, Bluetooth speech, battery use, and iOS
+native behavior remain acceptance gates. `personal_test.txt` is the current Phase 2/3 runbook.
 
 ## Status
 
@@ -462,21 +467,22 @@ Decisions worth keeping:
 - **Infra/CI written, not fully exercised**: Docker/Postgres and GitHub CI remain optional
   follow-up checks; they are not prerequisites for the current local movement work.
 
-## Next session: Phase 3 continuation
+## Next session: Phase 3 physical acceptance and handoff
 
 Do not restart the provider/integration decision. It is locked: Kairo records and owns its
 movement data; there is no Strava connection, import, segment competition, social feature,
 or third-party activity upload. Read `docs/08-phase-3-movement-plan.md` first for the complete
 product and technical contract, then inspect the current dirty worktree before editing. The
-Phase 3 implementation is not committed at this checkpoint, and the pre-existing
-`.devcontainer/setup.sh` modification belongs to the user and must be preserved.
+user is committing the latest implementation changes. Do not create or amend commits unless
+the user asks. Inspect `git status --short --branch` first. Preserve any pre-existing user
+changes, especially `.devcontainer/setup.sh`.
 
 The most useful code entry points are:
 
 - `apps/mobile/src/domain/movement.ts` — pure GPS filtering, state transitions, timing,
   distance/pace/speed formatting, autopause, cue scheduling, and replay interpolation.
-- `apps/mobile/src/db/schema.ts` and `src/db/migrations.ts` — append-only schemas v7 and v8.
-  Never alter a migration already shipped; add v9 for any storage change.
+- `apps/mobile/src/db/schema.ts` and `src/db/migrations.ts` — append-only schemas v7, v8, and v9.
+  v9 is defensive/idempotent because migration tests can rewind `user_version` on a current DB.
 - `apps/mobile/src/db/movement.ts` — activity/point/event/history/edit queries and durable
   engine-state recovery. Point plus summary writes and event sequence allocation are
   transactional.
@@ -487,25 +493,24 @@ The most useful code entry points are:
 - `apps/mobile/src/db/__tests__/movement.test.ts` and
   `src/domain/__tests__/movement.test.ts` — executable persistence and domain contracts.
 
-Continue in this order:
+The implementation is ready for a physical test run. Offer to check readiness, then direct the
+user to run `personal_test.txt` themselves. Do not claim the native gate passed until the user
+returns the completed checklist and device evidence. Continue in this order:
 
 1. Run the Android development-build physical spike. Verify foreground/background permission
    flows, the foreground-service notification, screen-lock collection, manual and automatic
    pause/resume, force-kill recovery of already persisted points, map tiles, voice cues through
    speaker and Bluetooth, and representative battery consumption. Continued collection after
    force-kill is explicitly not guaranteed; persisted activity recovery is required.
-2. Fix any native issues exposed by that spike and rerun all automated checks. Expo Go is not
-   sufficient evidence for the background-service contract; use a development build on a
-   physical Android device. Keep iOS compatibility in the API and schema design, but Android
-   remains the first native validation target.
-3. Add activity trimming/edit UI and deterministic recomputation from retained raw points.
-   Raw points are retained indefinitely for now, and edits increment the activity revision.
-4. Once the mobile recording contract is stable, add authenticated backend movement replay
-   endpoints and enqueue upload only after completion. Do not add movement entities to the
-   current outbox before the backend accepts them: unsupported entity types are rejected by
-   the existing sync client.
-5. Perform the later iOS native integration and physical validation using the same product
-   contract.
+2. Record the user's Android development-build results. Expo Go is not sufficient evidence for
+   the background-service contract; use a development build on a physical Android device. Keep
+   iOS compatibility in the API and schema design, but Android remains the first native target.
+3. Fix any native issues exposed by that spike and rerun all automated checks. Continued
+   collection after force-kill is explicitly not guaranteed; persisted activity recovery is
+   required.
+4. Run backend sync acceptance when API credentials are configured: offline completion, exact
+   replay, higher-revision edit, delete, and cross-user isolation.
+5. Perform later iOS native integration and physical validation using the same product contract.
 
 Native reminder delivery/permission prompts and Wallpaper Save-to-Photos also still deserve
 a physical-device smoke test, but they are Phase 2 follow-up checks rather than Phase 3
@@ -518,17 +523,18 @@ threshold) remain explicitly deferred.
 # Backend
 cd apps/backend && source .venv/bin/activate
 ruff check .            # All checks passed!
-pytest -q               # 24 passed
+pytest -q               # 28 passed
 alembic upgrade head    # reaches head (idempotent)
 
 # Mobile
 cd apps/mobile
 npm run typecheck       # tsc --noEmit, 0 errors
 npm run lint            # eslint ., clean
-npm test -- --runInBand # 372 passed (18 suites)
-npx expo-doctor         # rerun interactively; prior runner did not capture final summary
+npm test -- --runInBand # 376 passed (18 suites)
+EXPO_NO_TELEMETRY=1 npx expo-doctor # 21/21
 EXPO_NO_TELEMETRY=1 npx expo export --platform android --output-dir /tmp/kairo-phase3-android-export
-                        # successful; telemetry is disabled because the sandbox cannot write ~/.expo
+EXPO_NO_TELEMETRY=1 npx expo export --platform ios --output-dir /tmp/kairo-phase3-ios-export
+                        # both successful; telemetry disabled because the sandbox cannot write ~/.expo
 ```
 
 If `node_modules` or `.venv` are missing (a fresh clone, or a cleaned machine):
