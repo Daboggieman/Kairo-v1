@@ -64,12 +64,27 @@ records merge cleanly with the server without collision.
 model is the same either way.)*
 
 ## GPS fitness tracker
-**RunActivity**
-- id, user_id, type (run/ride/walk), started_at, ended_at, distance_m, duration_s, avg_pace, source (kairo_gps / healthkit / strava_sync)
+**MovementActivity**
+- id, user_id, type (run/walk/ride), status, name, started_at, ended_at,
+  elapsed_seconds, moving_seconds, paused_seconds, distance_meters,
+  elevation_gain_meters, average_speed_mps, revision, created_at, updated_at
 
-**RunPoint**
-- id, run_id, sequence, latitude, longitude, elevation, recorded_at
-*(Only populated if using Kairo's own GPS tracking rather than importing from HealthKit/Strava, which return summarized data instead.)*
+**MovementPoint**
+- id, activity_id, sequence, recorded_at, latitude, longitude, altitude_meters,
+  horizontal_accuracy_meters, provider_speed_mps, derived_speed_mps,
+  distance_from_previous_meters, cumulative_distance_meters, processing_state,
+  rejection_reason, is_paused
+
+**MovementEvent**
+- id, activity_id, sequence, event_type, occurred_at, payload_json
+
+**MovementSplit**
+- id, activity_id, sequence, distance_meters, duration_seconds, started_at, ended_at
+
+Raw points are retained indefinitely. Rejected points remain stored but do not affect
+distance. Edits increment the activity revision and record trim/inclusion decisions rather
+than overwriting original coordinates. Recording is local-first; only completed activities
+upload to Kairo through replay-safe batches. There are no external provider identities.
 
 ## Bible
 **BibleBookmark**

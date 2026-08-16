@@ -51,8 +51,12 @@ the feature list, and what accounts/keys you'll need to gather in advance.
   separate licensing conversation later.
 
 ## GPS / fitness tracking
-This is the most platform-constrained feature on your list. Three real options, not
-mutually exclusive:
+Phase 3 deliberately builds tracking inside Kairo. There is no Strava connection, import,
+upload, social graph, or competition layer. The selected approach is `expo-location` plus
+`expo-task-manager` with a custom development build, SQLite-backed active state,
+`react-native-maps` for live/replay routes, and local speech for time/distance cues.
+Android is the first native validation target; iOS uses the same domain and persistence
+design afterward. Three alternatives were considered:
 
 1. **Build it yourself** (`expo-location` + `expo-task-manager` for background
    updates, `react-native-maps` for the route). Real constraints: iOS requires "Always"
@@ -69,10 +73,9 @@ mutually exclusive:
 3. **Sync from Strava.** Strava has a public API (OAuth) for reading a user's
    activities. If you're already a Strava user, this is the lowest-effort path to
    "Strava-like" data in Kairo without rebuilding Strava's tracking engine.
-- **Recommendation**: ship v1 with option 2 or 3 (import, not track), and treat
-  custom GPS tracking (option 1) as a deliberate v2 project once the rest of the app
-  is stable — it's genuinely a bigger native-engineering lift than any other single
-  feature on your list.
+- **Kairo decision**: use option 1. Support run, walk, and ride first; defer hike. Record
+  offline, retain raw points indefinitely, upload only completed activities to Kairo, and
+  accept that force-killing the app cannot guarantee continued iOS recording.
 
 ## Daily alarms — platform reality check
 - Local notifications (`expo-notifications`) can absolutely handle "reminder at time

@@ -68,10 +68,17 @@ creates daily or selected-weekday triggers on the device; a backend sync API is 
 deferred because local notification IDs are platform-specific.
 
 ## Runs / GPS
-- `POST /runs` — create from on-device GPS track (batch upload of points) OR from a
-  HealthKit/Strava import
-- `GET /runs?from=&to=`
-- `GET /runs/{id}` — includes route points if source is kairo_gps
+- `POST /movement/workouts/{id}/replay` — upload a completed Kairo activity's metadata,
+  ordered events, and GPS points in replay-safe batches
+- `GET /movement/workouts?from=&to=&type=` — authenticated history
+- `GET /movement/workouts/{id}` — detail, points, events, splits, and current revision
+- `PATCH /movement/workouts/{id}` — rename/type correction/edit revision
+- `DELETE /movement/workouts/{id}` — idempotent deletion
+
+Recording is device-local and never requires the API. Only completed run, walk, and ride
+activities upload. The server preserves client IDs, rejects conflicting reuse with `409`,
+derives ownership from JWT, and keeps partial uploads incomplete until finalization. There
+is no Strava, HealthKit, Google Fit, or social endpoint in the Phase 3 contract.
 
 ## Bible
 - `GET /bible/{translation}/{book}/{chapter}` — proxied/cached from public Bible API

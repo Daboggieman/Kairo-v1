@@ -55,12 +55,16 @@ Each spec covers: purpose, core screens, key logic, and open decisions to make b
   bypassing alarm clock.
 
 ## GPS fitness tracker
-- **Purpose**: Strava/Runkeeper-style run and ride tracking.
-- **Screens**: Active Tracking (live map, distance/pace/duration), Run Summary, History,
-  Run Detail (route map + splits).
-- **Key logic**: distance via cumulative haversine between GPS points; pace = duration /
-  distance; splits computed per km/mile. See integrations doc for the build-vs-import
-  decision — this is the single most platform-constrained feature in the list.
+- **Purpose**: Kairo-owned offline run, walk, and ride tracking with durable route history.
+- **Screens**: activity selection/readiness, Active Tracking (live map, distance/pace or
+  speed/duration), summary, history, detail, edit, and route replay.
+- **Key logic**: cumulative haversine distance over accepted points; moving versus elapsed
+  time; manual pause/resume; accuracy filtering; activity-aware autopause/auto-resume;
+  time and distance voice cues; splits per km/mile; replay from points and events.
+- **Platform contract**: normal backgrounding and screen lock are supported. A force-killed
+  app is not guaranteed to continue recording, but persisted points remain recoverable.
+- **Sync**: completed activities upload to Kairo only after finalization; raw points remain
+  locally retained indefinitely and edits create revisions without overwriting raw samples.
 
 ## Bible
 - **Purpose**: read scripture, follow a plan, bookmark verses, without needing a
