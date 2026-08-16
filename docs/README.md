@@ -14,11 +14,13 @@ Read in this order:
 7. **06-roadmap.md** — phased build plan, sequenced by risk/dependency rather than by
    your original feature order
 8. **07-repo-structure.md** — proposed monorepo layout for mobile app + backend
+9. **08-phase-3-movement-plan.md** — locked scope and implementation plan for Kairo-owned
+   GPS tracking, background recording, voice cues, and route replay
 
 ## The one-paragraph summary
 Build the mobile app in React Native/Expo and the backend in Python/FastAPI +
 Postgres. Ship workout logging, weight tracking, tasks/streaks, and macros first —
-they need no backend to be useful. Add quotes, wallpapers, and alarms next. Save GPS
-tracking and Apple Music for later phases — they're the two features with real
-native-engineering and platform-policy constraints, detailed in doc 05. Bible content
-should use a public-domain translation (WEB or KJV) to sidestep licensing entirely.
+they need no backend to be useful. Add quotes, wallpapers, and alarms next. Phase 3
+builds GPS tracking inside Kairo rather than integrating an external fitness provider.
+It is Android-first for native validation, with iOS designed in from the start. Bible
+content should use a public-domain translation (WEB or KJV) to sidestep licensing.
