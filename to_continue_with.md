@@ -4,7 +4,195 @@ Handoff for the Kairo v1 sessions so far: Phase 0 scaffold, then Workouts, Weigh
 and Macros. Read before continuing.
 
 Last updated: **2026-08-17**, after fixing the Expo Go runtime gate that prevented the app from
-rendering at all on a physical device.
+rendering at all on a physical device, the shared-SQLite-connection bug it exposed, and then the
+first half of a UI restructure and branding pass. **The UI pass is unfinished — read the next
+section before touching any screen.**
+
+## UI restructure and branding — 2026-08-17 (IN PROGRESS)
+
+The brief, in the user's words: *"fix other and every issue that was found, or that stopped the app
+from running, also the reminder section has bad ui, i think we should restructure the whole app ui
+to be less congested and more, as well as an intro logo and a loader logo"*, then *"how about i go
+and find a new png icon that would be the icon we would use, and also the base theme color of the
+icon … and then u could convert the png icon to a animated loader"* — followed by the artwork
+itself (a gold Spartan helmet, transparent background). So: the user's art is the app icon, the
+app's accent is **sampled from** that art, and the art is the loader.
+
+Nothing here is committed. Typecheck and lint are clean; `npm test` has not been run since these
+changes (expected **426 passed (20 suites)** — the previous 394 plus 32 new reminder-helper cases;
+confirm from a real run before writing that number anywhere as fact).
+
+### The mark, and the accent that comes from it
+
+- `apps/mobile/assets/source/kairo-mark.png` is the user's original file, kept for provenance.
+- `apps/mobile/scripts/generate-icons.py` derives every rendered asset from it: trims to the alpha
+  bounding box, recolours near-black interior pixels to `#0B0D10` so no OLED seam shows, and fits
+  the art by its longest side. It writes `assets/logo.png` (296×512, in-app), `assets/icon.png`
+  (opaque field, `ICON_FIT = 0.80`), and `assets/adaptive-icon.png` (transparent,
+  `ADAPTIVE_FIT = 0.56` for Android's 108dp canvas where only the central 72dp is visible).
+  Re-run it if the artwork ever changes; do not hand-edit the outputs.
+- `colors.accent = '#D79E2D'` is the **measured mean gold** of that art, not a guess. The first
+  attempt at automatic extraction picked `#080000` — a near-black artifact with saturation 1.0 —
+  so the heuristic also requires HSV value > 0.45.
+- `colors.accentText = '#0B0D10'`. White on this gold is **2.38:1** and fails WCAG AA; near-black
+  is 8.17:1. That flip is why every primary `Button` label and the `Checkbox` tick is now dark on
+  gold. `colors.warning` moved to amber `#E07B39` because gold *is* the accent now, and
+  `chartColors.fat` moved to violet for the same reason.
+- Verified visually at 48/72/96 px and under a simulated circular launcher mask — nothing clips.
+
+`app.json` gained `icon`, `backgroundColor`, and `android.adaptiveIcon`, and
+`userInterfaceStyle` changed `automatic` → `dark`: the app has no light palette, so `automatic`
+only made native alerts and the keyboard clash with it.
+
+### Two hard constraints on `src/components/Logo.tsx`
+
+1. **The helmet must never rotate.** It is a figure with a top and a bottom; a spinning logo reads
+   as a rendering fault. `LogoLoader` holds the mark still and turns an SVG ring around it
+   (`react-native-svg` 15.15.4, already installed).
+2. **These components must sit on `colors.background`.** The mark's interior is opaque
+   background-coloured pixels, not transparency, so on a lighter surface it shows as dark patches.
+   `wallpaper.tsx`'s loading placeholder has a comment about exactly this.
+
+Exports: `KairoMark`, `KairoWordmark`, `LogoLoader`, `AppLoader` (the `Suspense` fallback in
+`app/_layout.tsx`), `IntroOverlay`. The intro renders **over** a mounted app rather than gating it,
+so the database opens behind it and dismissing it reveals data instead of a spinner. A module-scope
+`introPlayed` flag in `app/_layout.tsx` stops it replaying on Fast Refresh or an ErrorBoundary
+retry. `expo-splash-screen` is **not** installed — the intro is JS, not a native splash.
+
+### The shared shell
+
+`src/components/Layout.tsx` is new and is where screen structure now lives: `Screen`,
+`ScreenScroll` (owns the `insets.bottom + layout.scrollFooter` footer every screen was computing
+differently), `ScreenHeader`, `Section`, `Card`, `Notice` (tones `info`/`warning`/`danger`/`accent`,
+tinted fill plus a left rule), `EmptyState`, `Field`, `Divider`, `Stat`.
+
+Three token groups in `src/theme/index.ts` back it: `layout` (screen/card/section rhythm — absolute
+values, because `spacing` was being used for both "gap between two icons" and "screen margin" and
+everything ended up 16px from everything else), `lineHeight` (React Native leaves it unset at
+~1.15×, which was the single largest cause of the cramped feel), and `chartColors`.
+
+### Screens rewritten so far — 3 of 16
+
+- **`app/(tabs)/alarms.tsx`** — the "bad ui" the user named. It had light-theme hex on a dark
+  scene, so the title and every reminder's time rendered **black on near-black**; it duplicated the
+  native header's title; and its time field used `keyboardType="numbers-and-punctuation"`, which is
+  iOS-only, so on Android there was no colon key and the field could not be filled. Now: one
+  `FlatList` with the runtime notice and form as its header, a day-of-week picker, a per-row
+  `isActive` Switch (the DB layer already supported it), a delete confirmation, "Saved, not
+  scheduled" on any row the OS never took, and digit-only time entry.
+- **`app/(tabs)/wallpaper.tsx`** — same invisible-text problem, plus it spun forever when sync was
+  unconfigured *while* showing a line of text saying sync was unconfigured, and swallowed every
+  failure into that same spinner. Now four explicit states (`unconfigured`/`loading`/`ready`/
+  `error`), a retry, and errors that name the step that failed.
+- **`app/(tabs)/index.tsx`** (Home) — was six cards of equal weight, so a one-line navigation
+  shortcut looked as important as the day's macros. Now four data cards plus a compact "More" row
+  group, `chartColors` instead of hardcoded hex, `LogoLoader`, and a `Notice` when the load fails.
+
+New pure helpers in `src/domain/reminders.ts`, all tested: `describeRepeat` (agrees with
+`reminderTriggers` on the ugly case — a non-empty list with no valid day says "Never", not "Every
+day"), `weekdayInitials`, `formatTimeOfDay`, `formatTimeInput`, `parseTimeOfDay`.
+
+### Two lint rules that will bite
+
+The repo gate is **0 errors and 0 warnings**, and this ESLint config is React-Compiler-era:
+
+- `react-hooks/refs` rejects `useRef(new Animated.Value(0)).current` — reading a ref during render.
+  `Logo.tsx` has a local `useAnimatedValue()` (`useState` with an initialiser) for this; reuse it
+  rather than reinventing it. This will hit any new animated component.
+- `react-hooks/set-state-in-effect` rejects calling `setState` *synchronously* inside an effect.
+  That is why `wallpaper.tsx` derives its status from a result tagged with its attempt number
+  instead of storing a status and setting it to `'loading'` at the top of the fetch. Setting state
+  after an `await` is fine.
+
+### What is left — this is the resume point
+
+1. **`app/(tabs)/macros/index.tsx`**: replace its local `MACRO_COLORS` (`carbs: '#58A6FF'`,
+   `fat: '#D29922'`) with `chartColors`, keeping `calories: colors.accent`. This was the file open
+   when the session ended; nothing in it has been changed yet.
+2. **Unguarded loaders — 13 screens.** Every one loads with an async IIFE and no `.catch`, which is
+   why one dead SQLite connection printed ~57 unhandled rejections instead of one visible error.
+   Each needs the `catch` → `Notice tone="danger"` treatment now used in `index.tsx`, `alarms.tsx`,
+   and `wallpaper.tsx`:
+   `macros/index.tsx`, `tasks/index.tsx`, `weight/index.tsx`, `weight/goal.tsx`,
+   `workouts/index.tsx`, `workouts/active.tsx`, `workouts/exercises.tsx`,
+   `workouts/[sessionId].tsx`, `movement/index.tsx`, `movement/active.tsx`,
+   `movement/settings.tsx`, `movement/replay.tsx`, `movement/[activityId].tsx`.
+   (Their `requestSync(db).catch(() => {})` calls are deliberate and unrelated — sync is
+   best-effort.)
+3. **Full-screen `ActivityIndicator` → `LogoLoader`**: `movement/[activityId].tsx:87`,
+   `movement/active.tsx:87` and `:116`. Keep `ActivityIndicator` inside `Button`, where it has to
+   fit a 56px control.
+4. **Density pass on the 12 screens still setting their own screen padding**: `padding: spacing.lg`
+   → `layout.screenPadding`, gaps → `layout.cardGap`/`layout.sectionGap`, and `lineHeight` on body
+   text. `macros/index.tsx`, `macros/add.tsx`, `macros/targets.tsx`, `tasks/index.tsx`,
+   `tasks/new.tsx`, `tasks/[taskId].tsx`, `weight/log.tsx`, `weight/goal.tsx`,
+   `workouts/active.tsx`, `workouts/[sessionId].tsx`, `movement/new.tsx`, `movement/settings.tsx`.
+   Adopt `Layout.tsx` primitives where a screen's own container adds nothing; only `wallpaper`,
+   `alarms`, and `index` import it so far.
+5. Re-run `npm run typecheck` and `npm run lint`, then have the user run `npm test`.
+
+Two things the tab bar does **not** need: `alarms` and `wallpaper` are already `href: null` with
+six visible tabs, and both are reachable from Home's "More" rows. No navigation restructure.
+
+### Working tree at handoff — nothing committed, branch `phase_3`
+
+Modified: `app.json`, `app/_layout.tsx`, `app/(tabs)/{index,alarms,wallpaper}.tsx`,
+`src/theme/index.ts`, `src/domain/reminders.ts`, `src/domain/__tests__/reminders.test.ts`,
+`src/services/movementTracking.ts` (the SQLite fix), `personal_test.txt`, `to_continue_with.md`.
+New and untracked: `apps/mobile/assets/`, `apps/mobile/scripts/`, `apps/mobile/types/assets.d.ts`
+(declares `*.png` as `number`, without which the asset imports fail typecheck — nothing in
+`node_modules` provides it), `src/components/Layout.tsx`, `src/components/Logo.tsx`, `media/`.
+
+Do not commit or amend unless the user asks. One question is still open from before this work:
+`npx expo install --check` reports four packages a patch behind (`expo-location`,
+`expo-notifications`, `expo-router`, `expo-task-manager`). The recommendation was to leave them —
+nothing observed traces to those versions — and the user has not decided.
+
+## Shared SQLite connection — 2026-08-17
+
+Once the app rendered, a second physical run produced ~57 identical unhandled rejections:
+
+```
+Call to function 'NativeDatabase.prepareAsync' has been rejected.
+→ Caused by: java.lang.NullPointerException
+```
+
+**Read that signature precisely: it means the native database peer was destroyed while JS still
+believed the connection was open.** Proven from `node_modules/expo-sqlite`'s Android source rather
+than inferred:
+
+- `SQLiteModule.closeDatabase` sets `isClosed = true`, and every entry point calls
+  `maybeThrowForClosedDatabase` first. An ordinary close therefore reports
+  `AccessClosedResourceException`, **never** an NPE.
+- `NativeDatabaseBinding.close()` is `mHybridData.resetNative()`, which destroys the C++ peer.
+  fbjni then throws a bare `NullPointerException` for any later call on that object.
+- The only path that resets the peer *without* setting `isClosed` is
+  `NativeDatabase.sharedObjectDidRelease()` → `this.ref.close()`, which fires when a **JS handle
+  is garbage-collected**.
+- `SQLiteModule.kt`'s `NativeDatabase` constructor returns a **cached** native database for a
+  matching path + options (`findCachedDatabase { … && !options.useNewConnection }`), bumping a
+  reference count. So two JS handles can share one native peer, and the reference count guards
+  `closeAsync` but cannot guard the garbage collector.
+
+Kairo's trigger was `src/services/movementTracking.ts`: `processLocationBatch` opened
+`openDatabaseAsync(DATABASE_NAME)` and closed it in a `finally` **on every GPS batch**. That open
+returned the `SQLiteProvider`'s own native database; when the extra JS handle was later collected,
+it destroyed the peer every screen was still using, and the whole app's SQLite access died at an
+unpredictable moment shortly after tracking started — permanently, with no error surfaced to the
+user. The same call also re-ran the entire `migrate()` roughly every three seconds.
+
+It now opens **one** connection per process, with `useNewConnection: true` so the cache is bypassed
+and the handle owns its own peer, held at module scope so it is never collected, migrated once, and
+never closed. WAL (set by `migrate`) is what makes a second writer safe, and calling `migrate` on
+it also applies the per-connection `PRAGMA foreign_keys = ON`.
+
+The rule: **never call `openDatabaseAsync(DATABASE_NAME)` with default options.** Screens take the
+handle from `useSQLiteContext()`; anything outside the React tree opens with
+`useNewConnection: true` and does not close it.
+
+Related: every screen loaded with `query().then(setState)` and no `.catch`, which is why one dead
+connection printed ~57 unhandled rejections instead of one visible error. Fixed on Home, reminders,
+and wallpaper; **13 screens still unguarded** — see the UI section above for the list.
 
 ## Expo Go runtime gate — 2026-08-17
 
@@ -582,6 +770,10 @@ Decisions worth keeping:
 
 ## Next session: Phase 3 physical acceptance and handoff
 
+**Before any of this, finish the UI pass at the top of this file.** It is mid-flight, uncommitted,
+and three of sixteen screens in; a device run against a half-restyled app produces findings that
+have to be re-collected afterwards. Phase 3 acceptance below is the step after it.
+
 Do not restart the provider/integration decision. It is locked: Kairo records and owns its
 movement data; there is no Strava connection, import, segment competition, social feature,
 or third-party activity upload. Read `docs/08-phase-3-movement-plan.md` first for the complete
@@ -613,7 +805,9 @@ returns the completed checklist and device evidence. Continue in this order:
 0. Relaunch Expo Go and confirm the app now renders: no `expo-notifications` error, no
    "missing the required default export" warning, no `ExpoMediaLibraryNext` error, and all six
    tabs reachable. That is the 2026-08-17 fix above, verified only by typecheck/lint/tests so
-   far. Then run the Expo Go foreground sections of the runbook.
+   far. Confirm too that the intro plays once, the reminders and wallpaper screens are legible
+   (they were black-on-black), and no `NativeDatabase … NullPointerException` appears after a
+   movement recording starts. Then run the Expo Go foreground sections of the runbook.
 1. Run the Android development-build physical spike. Verify foreground/background permission
    flows, the foreground-service notification, screen-lock collection, manual and automatic
    pause/resume, force-kill recovery of already persisted points, map tiles, voice cues through
@@ -647,11 +841,23 @@ alembic upgrade head    # reaches head (idempotent)
 cd apps/mobile
 npm run typecheck       # tsc --noEmit, 0 errors
 npm run lint            # eslint ., clean
-npm test -- --runInBand # 394 passed (20 suites)
+npm test -- --runInBand # 394 passed (20 suites) as of the last full run.
+                        # Expect 426 after the 2026-08-17 reminder-helper cases; not yet measured.
 EXPO_NO_TELEMETRY=1 npx expo-doctor # 21/21
 EXPO_NO_TELEMETRY=1 npx expo export --platform android --output-dir /tmp/kairo-phase3-android-export
 EXPO_NO_TELEMETRY=1 npx expo export --platform ios --output-dir /tmp/kairo-phase3-ios-export
                         # both successful; telemetry disabled because the sandbox cannot write ~/.expo
+```
+
+`typecheck` and `lint` were last run clean **after** the 2026-08-17 UI work. `npm test`,
+`expo-doctor`, and both `expo export` runs predate it. The user runs the test suite, the exports,
+and every device check personally — their words: *"i will run all the tests myself and return their
+output"*. Offer to check readiness; do not run those yourself.
+
+To regenerate the app icons after an artwork change (needs Pillow):
+
+```sh
+cd apps/mobile && python3 scripts/generate-icons.py
 ```
 
 If `node_modules` or `.venv` are missing (a fresh clone, or a cleaned machine):

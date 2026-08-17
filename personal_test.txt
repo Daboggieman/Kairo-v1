@@ -121,6 +121,17 @@ Expected Metro output on a healthy Expo Go launch:
        sudo chmod 4755 "$HOME/.cache/dotslash/64/ed7915e5fef86802e862c274e17f780fa75388/React Native DevTools-linux-x64/chrome-sandbox"
   - `npm error ETIMEDOUT` while `npx` downloads `expo-doctor`. Rerun the command.
 
+Stop the run and report immediately if you see this line, at any point:
+
+   Call to function 'NativeDatabase.prepareAsync' has been rejected.
+   → Caused by: java.lang.NullPointerException
+
+It means something destroyed the shared native database connection and every screen's queries are
+now failing. Record what you were doing in the seconds before it appeared - especially whether a
+movement recording was active - because the trigger is a second SQLite connection, not the query
+that reports the error. Expect it to repeat dozens of times; the first occurrence is the only one
+that matters.
+
 
 4. PHASE 2 REGRESSION
 ---------------------
