@@ -40,8 +40,9 @@ activities enter the sync outbox.
 
 ## Local model
 
-The next mobile migration will add `movement_activities`, `movement_points`,
-`movement_events`, `movement_splits`, and movement preferences. Canonical values are SI:
+Mobile schema v7 introduces `movement_activities`, `movement_points`, `movement_events`,
+and `movement_splits`; shared/movement preferences remain in the existing preference
+table. Canonical values are SI:
 meters, meters/second, kilograms, and seconds. Raw points are retained even when a point
 is rejected for distance calculations, with a processing state and rejection reason.
 

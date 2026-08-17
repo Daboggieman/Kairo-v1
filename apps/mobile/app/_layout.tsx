@@ -9,24 +9,22 @@
 import { SQLiteProvider } from 'expo-sqlite';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import * as Notifications from 'expo-notifications';
 import { Suspense } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { SyncBootstrap } from '@/components/SyncBootstrap';
+import { DATABASE_NAME } from '@/constants';
 import { migrate } from '@/db/migrations';
+import '@/services/movementTracking';
+import { configureNotificationHandler } from '@/services/notifications';
 import { colors, fontSize, spacing } from '@/theme';
 
-export const DATABASE_NAME = 'kairo.db';
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+/**
+ * Never import `expo-notifications` here. Its barrel entry throws as it evaluates on Android in
+ * Expo Go, and a module-scope throw in the root layout takes the entire app down before
+ * `ErrorBoundary` below can ever render. `@/services/notifications` owns that gate.
+ */
+configureNotificationHandler();
 
 /** Expo Router renders this instead of crashing when a child throws — including `onInit`. */
 export function ErrorBoundary({ error, retry }: { error: Error; retry: () => Promise<void> }) {

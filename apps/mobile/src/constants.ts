@@ -11,3 +11,4 @@
  * is the one place that assumption lives — grep it to find everything that has to change.
  */
 export const LOCAL_USER_ID = 'local-user';
+export const DATABASE_NAME = 'kairo.db';

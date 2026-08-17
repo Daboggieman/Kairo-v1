@@ -22,7 +22,16 @@
       "expo-sqlite",
       "expo-font",
       "expo-notifications",
-      "expo-media-library"
+      "expo-media-library",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Kairo to record your route during an active workout.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true,
+          "isIosBackgroundLocationEnabled": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

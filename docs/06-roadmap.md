@@ -27,7 +27,8 @@ already has momentum and daily-use value.
 - Deterministic daily quotes with an offline mobile fallback.
 - Synchronous Pillow wallpaper generation (`1080x1920` PNG) with mobile preview and Photos save.
 - SQLite-backed local daily/weekly reminders via `expo-notifications`; no server push required.
-- Verification: backend 24 tests, mobile 350 tests across 16 suites, Ruff, ESLint, and TypeScript.
+- Historical verification: backend 24 tests, mobile 350 tests across 16 suites, Ruff, ESLint,
+  and TypeScript.
 
 ## Phase 3 — Movement (P2a)
 - Build Kairo-owned GPS tracking for run, walk, and ride; no Strava/provider integration.
@@ -39,6 +40,27 @@ already has momentum and daily-use value.
 - Upload completed activities only, through replay-safe backend batches; never stream an
   active route to the server or upload to an external provider.
 - Detailed scope, data model, platform contract, and gates are in `08-phase-3-movement-plan.md`.
+
+### Phase 3 implementation status — 2026-08-16
+
+The implementation is complete through the executable mobile/backend layers:
+
+- Mobile schema v9 adds raw-point edit exclusion while retaining original GPS facts.
+- Local tracking supports foreground Expo Go fallback, background task integration for a
+  development build, live maps, pause/autopause, cues, replay, trimming, metadata edits, and
+  revisioned summaries.
+- Backend migration `7e3b9a1c2d44` adds authenticated movement aggregate upload, detail/list,
+  revision replacement, idempotent delete, ownership isolation, and replay-safe point/event
+  data.
+- Completed activities enqueue a movement aggregate only after completion; later edits enqueue
+  replacement revisions and deletes enqueue idempotent removal.
+- Automated verification is green: mobile 376 tests across 18 suites, backend 28 tests, Ruff,
+  TypeScript, ESLint, Expo Doctor 21/21, and Android/iOS exports.
+
+Physical Android development-build results have not yet been provided by the user. Background
+location, screen lock, foreground-service notification, force-kill recovery, Bluetooth speech,
+battery use, and iOS native behavior remain acceptance gates. Use `personal_test.txt` for the
+required test sequence; do not mark Phase 3 complete until those results are recorded.
 
 ## Phase 4 — Bible (P2b)
 - Integrate chosen public-domain Bible API, chapter caching for offline reading

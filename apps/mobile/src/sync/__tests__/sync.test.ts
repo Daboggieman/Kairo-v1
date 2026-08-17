@@ -1,6 +1,13 @@
 import { LOCAL_USER_ID } from '@/constants';
 import { createTestDb, type TestDatabase } from '@/db/__tests__/testDb';
 import { pendingCount } from '@/db/outbox';
+import {
+  appendMovementEvent,
+  completeMovementActivity,
+  createMovementActivity,
+  setMovementStatus,
+  trimMovementActivity,
+} from '@/db/movement';
 import { addEntry, deleteEntry } from '@/db/weight';
 import { clearCompletion, createTask, deleteTask, setArchived, setCompletion } from '@/db/tasks';
 import {
@@ -173,6 +180,42 @@ describe('outbox replay', () => {
     });
     expect(result.status).toBe('disabled');
     expect(await pendingCount(db)).toBe(1);
+  });
+
+  it('uploads movement only after completion and replays a later edit as a replacement', async () => {
+    await createMovementActivity(db, {
+      id: 'movement-sync', userId: LOCAL_USER_ID, activityType: 'run',
+      startedAt: '2026-08-16T08:00:00.000Z',
+    });
+    expect(await pendingCount(db)).toBe(0);
+    await setMovementStatus(db, 'movement-sync', LOCAL_USER_ID, 'recording', '2026-08-16T08:00:00.000Z');
+    await appendMovementEvent(db, {
+      id: 'movement-started', userId: LOCAL_USER_ID, activityId: 'movement-sync', sequence: 0,
+      eventType: 'started', occurredAt: '2026-08-16T08:00:00.000Z',
+    });
+    await completeMovementActivity(db, {
+      id: 'movement-sync', userId: LOCAL_USER_ID, endedAt: '2026-08-16T08:20:00.000Z',
+    });
+    await trimMovementActivity(db, {
+      id: 'movement-sync', userId: LOCAL_USER_ID, firstSequence: 0, lastSequence: 0,
+      eventId: 'movement-edited', updatedAt: '2026-08-16T08:21:00.000Z',
+    });
+    expect(await pendingCount(db)).toBe(2);
+
+    const fetchMock = fetchSequence([
+      { status: 200, body: tokens() }, { status: 201 }, { status: 200 },
+    ]);
+    const client = new SyncClient(
+      { apiUrl: 'http://api.test', deviceKey: 'device-key' }, fetchMock,
+    );
+    const result = await syncOutbox(db, { client, nowMs: Date.now() + 1000 });
+    const calls = (fetchMock as jest.Mock).mock.calls.slice(1);
+    expect(result).toMatchObject({ processed: 2, succeeded: 2, failed: 0 });
+    expect(calls.map(([url, init]) => [url, init.method])).toEqual([
+      ['http://api.test/api/v1/movements', 'POST'],
+      ['http://api.test/api/v1/movements/movement-sync', 'PUT'],
+    ]);
+    expect(JSON.parse(calls[1][1].body)).toMatchObject({ id: 'movement-sync', revision: 2 });
   });
 
   it('replays the complete task lifecycle through the shared transport', async () => {

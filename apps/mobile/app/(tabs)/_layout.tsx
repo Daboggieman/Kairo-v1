@@ -76,6 +76,16 @@ export default function TabsLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="movement"
+        options={{
+          title: 'Move',
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="map-marker-path" color={color} size={size} />
+          ),
+        }}
+      />
       <Tabs.Screen name="alarms" options={{ href: null, title: 'Reminders' }} />
       <Tabs.Screen name="wallpaper" options={{ href: null, title: 'Wallpaper' }} />
     </Tabs>

@@ -8,7 +8,7 @@
  */
 
 /** Bumped whenever a migration is appended in `migrations.ts`. */
-export const SCHEMA_VERSION = 6;
+export const SCHEMA_VERSION = 9;
 
 export const CREATE_EXERCISES = `
 CREATE TABLE IF NOT EXISTS exercises (
@@ -255,3 +255,61 @@ CREATE TABLE IF NOT EXISTS alarms (
   notification_id TEXT,
   is_active INTEGER NOT NULL DEFAULT 1
 );`;
+
+/* -------------------------------------------------------------------------- */
+/* Migration 7 — Kairo-owned movement tracking                               */
+/* -------------------------------------------------------------------------- */
+
+export const CREATE_MOVEMENT_ACTIVITIES = `
+CREATE TABLE IF NOT EXISTS movement_activities (
+  id TEXT PRIMARY KEY NOT NULL, user_id TEXT NOT NULL, activity_type TEXT NOT NULL,
+  status TEXT NOT NULL, name TEXT, started_at TEXT NOT NULL, ended_at TEXT,
+  elapsed_seconds INTEGER NOT NULL DEFAULT 0, moving_seconds INTEGER NOT NULL DEFAULT 0,
+  paused_seconds INTEGER NOT NULL DEFAULT 0, distance_meters REAL NOT NULL DEFAULT 0,
+  elevation_gain_meters REAL NOT NULL DEFAULT 0, average_speed_mps REAL, calories_estimate REAL,
+  revision INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+  CHECK (activity_type IN ('run', 'walk', 'ride'))
+);`;
+
+export const CREATE_MOVEMENT_POINTS = `
+CREATE TABLE IF NOT EXISTS movement_points (
+  id TEXT PRIMARY KEY NOT NULL, activity_id TEXT NOT NULL REFERENCES movement_activities(id) ON DELETE CASCADE,
+  sequence INTEGER NOT NULL, recorded_at TEXT NOT NULL, latitude REAL NOT NULL, longitude REAL NOT NULL,
+  altitude_meters REAL, horizontal_accuracy_meters REAL, vertical_accuracy_meters REAL,
+  provider_speed_mps REAL, derived_speed_mps REAL, distance_from_previous_meters REAL NOT NULL DEFAULT 0,
+  cumulative_distance_meters REAL NOT NULL DEFAULT 0, processing_state TEXT NOT NULL, rejection_reason TEXT,
+  is_paused INTEGER NOT NULL DEFAULT 0, UNIQUE(activity_id, sequence)
+);`;
+
+export const CREATE_MOVEMENT_EVENTS = `
+CREATE TABLE IF NOT EXISTS movement_events (
+  id TEXT PRIMARY KEY NOT NULL, activity_id TEXT NOT NULL REFERENCES movement_activities(id) ON DELETE CASCADE,
+  sequence INTEGER NOT NULL, event_type TEXT NOT NULL, occurred_at TEXT NOT NULL, payload_json TEXT,
+  UNIQUE(activity_id, sequence)
+);`;
+
+export const CREATE_MOVEMENT_SPLITS = `
+CREATE TABLE IF NOT EXISTS movement_splits (
+  id TEXT PRIMARY KEY NOT NULL, activity_id TEXT NOT NULL REFERENCES movement_activities(id) ON DELETE CASCADE,
+  sequence INTEGER NOT NULL, distance_meters REAL NOT NULL, duration_seconds INTEGER NOT NULL,
+  started_at TEXT NOT NULL, ended_at TEXT NOT NULL, UNIQUE(activity_id, sequence)
+);`;
+
+export const CREATE_MOVEMENT_INDEXES = `
+CREATE INDEX IF NOT EXISTS idx_movement_activity_user_started ON movement_activities(user_id, started_at DESC);
+CREATE INDEX IF NOT EXISTS idx_movement_points_activity_sequence ON movement_points(activity_id, sequence);
+CREATE INDEX IF NOT EXISTS idx_movement_events_activity_sequence ON movement_events(activity_id, sequence);`;
+
+/* Migration 8 — durable movement engine state across background callbacks. */
+export const CREATE_MOVEMENT_TRACKING_STATE = `
+CREATE TABLE IF NOT EXISTS movement_tracking_state (
+  activity_id TEXT PRIMARY KEY NOT NULL REFERENCES movement_activities(id) ON DELETE CASCADE,
+  below_threshold_since_ms INTEGER,
+  above_threshold_since_ms INTEGER,
+  next_distance_cue_meters REAL NOT NULL,
+  next_time_cue_seconds INTEGER NOT NULL
+);`;
+
+/* Migration 9 — reversible edit exclusion without modifying raw GPS facts. */
+export const ADD_MOVEMENT_POINT_EDIT_EXCLUSION = `
+ALTER TABLE movement_points ADD COLUMN excluded_by_edit INTEGER NOT NULL DEFAULT 0;`;

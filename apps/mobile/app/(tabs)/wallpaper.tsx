@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Button, Image, StyleSheet, Text, View } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
-import * as MediaLibrary from 'expo-media-library';
 import { quoteForDate } from '@/domain/motivation';
+import { mediaLibraryAvailable, saveImageToLibrary } from '@/services/mediaLibrary';
 import { syncConfig } from '@/sync/config';
 
 export default function WallpaperScreen() {
   const quote = useMemo(() => quoteForDate(new Date()), []);
   const [uri, setUri] = useState<string | null>(null);
+  const canSave = mediaLibraryAvailable();
   useEffect(() => {
     (async () => {
       if (!syncConfig.apiUrl || !syncConfig.deviceKey) return;
@@ -24,11 +25,11 @@ export default function WallpaperScreen() {
   }, [quote]);
   async function save() {
     if (!uri) return;
-    const permission = await MediaLibrary.requestPermissionsAsync();
-    if (!permission.granted) { Alert.alert('Photos permission is required to save wallpapers.'); return; }
-    await MediaLibrary.saveToLibraryAsync(uri);
-    Alert.alert('Wallpaper saved');
+    const result = await saveImageToLibrary(uri);
+    if (result === 'saved') Alert.alert('Wallpaper saved');
+    else if (result === 'permission-denied') Alert.alert('Photos permission is required to save wallpapers.');
+    else Alert.alert('Saving to Photos needs a development build.');
   }
-  return <View style={styles.screen}><Text style={styles.title}>Today&apos;s wallpaper</Text>{uri ? <Image source={{ uri }} style={styles.preview} /> : <ActivityIndicator />}{uri ? <Button title="Save to Photos" onPress={save} /> : <Text style={styles.muted}>Connect sync settings to generate a wallpaper.</Text>}</View>;
+  return <View style={styles.screen}><Text style={styles.title}>Today&apos;s wallpaper</Text>{uri ? <Image source={{ uri }} style={styles.preview} /> : <ActivityIndicator />}{uri && canSave ? <Button title="Save to Photos" onPress={save} /> : null}{uri && !canSave ? <Text style={styles.muted}>Preview only — saving to Photos needs a development build.</Text> : null}{uri ? null : <Text style={styles.muted}>Connect sync settings to generate a wallpaper.</Text>}</View>;
 }
 const styles = StyleSheet.create({ screen: { flex: 1, padding: 24, gap: 16 }, title: { fontSize: 24, fontWeight: '700' }, preview: { width: '100%', aspectRatio: 9 / 16, borderRadius: 8 }, muted: { color: '#64748B' } });

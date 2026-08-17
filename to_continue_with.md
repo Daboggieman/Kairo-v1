@@ -3,7 +3,155 @@
 Handoff for the Kairo v1 sessions so far: Phase 0 scaffold, then Workouts, Weight, Tasks
 and Macros. Read before continuing.
 
-Last updated: **2026-08-15**, after completing and verifying Phase 2.
+Last updated: **2026-08-17**, after fixing the Expo Go runtime gate that prevented the app from
+rendering at all on a physical device.
+
+## Expo Go runtime gate — 2026-08-17
+
+The first Expo Go LAN run on a physical Android device never rendered a single screen. The ~22
+Metro lines the user reported came from **three** app-level root causes plus two environment
+items; everything else was downstream noise.
+
+**1. `expo-notifications` cannot be imported in Expo Go on Android — and it took the whole app
+down.** Its barrel entry has a module-scope side effect (`DevicePushTokenAutoRegistration.fx`)
+that registers a device-push-token listener as the module evaluates, and that listener *throws*
+on Android in Expo Go because SDK 53 removed remote notifications from it. `app/_layout.tsx`
+imported it at line 12, so the root layout never finished evaluating. Expo Router reported the
+casualty as `Route "./_layout.tsx" is missing the required default export`, and rendering died on
+`Cannot read property 'ErrorBoundary' of undefined` — the exported `ErrorBoundary` cannot catch a
+throw in its own module. `src/db/alarms.ts` imported it too, which is why `./(tabs)/alarms.tsx`
+warned as well. Read the repeated identical errors as *one* failure re-thrown from Metro's module
+cache, not eight.
+
+**2. `expo-media-library`'s default entry is wrong twice over.** It resolves the
+`ExpoMediaLibraryNext` native module at module scope, which Expo Go does not ship — hence
+`Cannot find native module 'ExpoMediaLibraryNext'` and a dead `wallpaper.tsx` route. In SDK 57
+that entry's `saveToLibraryAsync` is also a deprecated stub that *throws* and tells you to import
+from `expo-media-library/legacy`, so Save to Photos could not have worked in a development build
+either. The legacy entry needs only the older `ExpoMediaLibrary` module and is where
+`saveToLibraryAsync` still lives.
+
+**3. Two smaller defects found in the same code.** `deleteAlarm` awaited
+`cancelScheduledNotificationAsync` without a catch, so a schedule the OS had already dropped
+would reject and abort the `DELETE`, leaving a row the user could not remove. And the alarms
+screen validated `hour > 23` without a lower bound, so `-1:00` passed the screen and hit the
+`alarms` CHECK constraint as an unhandled rejection.
+
+**Environment, not app**: the React Native DevTools `chrome-sandbox` SUID error (affects only the
+`j` debugger; `chown root` + `chmod 4755` fixes it) and one `npm ETIMEDOUT` fetching
+`expo-doctor`, which passed 21/21 on the retry. Both are documented in `personal_test.txt`.
+
+### The fix: capability tiers, required lazily
+
+The rule this establishes, and the reason `src/services/runtime.ts` exists: **a native package
+Expo Go may lack is never imported at module scope.** A static import is hoisted past every
+guard, and its failure is not a degraded feature — it is a dead route, reported as a missing
+default export.
+
+| File | Role |
+|---|---|
+| `src/services/runtime.ts` | `IS_EXPO_GO` (`Constants.executionEnvironment === 'storeClient'`), moved out of `movementTracking.ts` and re-exported from it so `movement/new.tsx` is untouched |
+| `src/services/notifications.ts` | `notificationsMode()` → `full` \| `local-only` \| `unavailable`, plus `configureNotificationHandler`, `scheduleReminder`, `cancelReminder` |
+| `src/services/mediaLibrary.ts` | `mediaLibraryAvailable()` and `saveImageToLibrary()` over `expo-media-library/legacy` |
+| `src/domain/reminders.ts` | pure `reminderTriggers` — the daily-versus-weekly decision and weekday validation |
+
+`notificationsMode()` resolves once, lazily, through three tiers: the public barrel (development
+builds, production, and Expo Go on **iOS**, where it only warns); the deep local-only modules
+(`expo-notifications/build/{NotificationPermissions,scheduleNotificationAsync,cancelScheduledNotificationAsync,NotificationsHandler}`)
+for Expo Go on Android, which do not pull the push side effect in and still schedule local
+reminders; then `unavailable`. The deep paths are private API reached through a try/catch
+`tryRequire`, so a future SDK restructuring `build/` degrades to a banner rather than a crash —
+the exact failure this module exists to prevent. `expo-notifications` has no `exports` map today,
+which is what makes the subpaths resolvable.
+
+**Metro resolves `require()` at build time, so the path must be a literal.** The first version of
+this module passed the path as a parameter (`require(request)`), which is not a runtime failure but
+a *bundling* failure — `Invalid call at line 70: require(request)`, thrown by
+`metro-transform-worker`, taking down the whole bundle rather than one route. Each path is now
+written out at its own call site and handed over as a thunk (`tryRequire(() => require('…'))`);
+the laziness was always in the closure, never in the dynamic path, so the tiers are unaffected.
+Anything added here must keep the literal, and the five deliberate requires sit inside one scoped
+`eslint-disable @typescript-eslint/no-require-imports` pair (that rule is `warn`, and the repo gate
+is zero warnings).
+
+Behaviour that follows from it:
+
+- **Rows always save.** `scheduleReminder` returns `null` for an unavailable runtime, a denied
+  permission, or a row whose time/weekdays do not describe a schedule; `createAlarm` stores
+  `notification_id = NULL` and keeps the row, so the reminder starts working once the missing
+  piece is in place. `src/db/alarms.ts` no longer mentions `expo-notifications`.
+- **The reminders screen states the runtime.** A muted line for `local-only`, an amber notice for
+  `unavailable`, and "Saved, but not scheduled" when a working runtime denied permission — the
+  case that otherwise looks like a silent no-op.
+- **The wallpaper screen offers Save to Photos only when it can.** Otherwise "Preview only".
+  `saveImageToLibrary` returns `saved` / `permission-denied` / `unavailable` instead of throwing,
+  because those are three different messages to the user.
+- **An empty `repeatDays` means daily** (the screen's contract). A non-empty list whose weekdays
+  are all invalid schedules *nothing* rather than falling back to daily — firing seven times a
+  week is a worse answer than not firing. Weekdays here are `1`–`7` (Sunday first), which is
+  `getDay() + 1`, **not** the `getDay()` numbering `src/domain/tasks.ts` uses.
+
+Verified this session: `npm run typecheck` clean, `npm run lint` clean, and
+`npm test -- --runInBand` → **394 passed across 20 suites** (up from 376/18; new suites
+`src/domain/__tests__/reminders.test.ts` and `src/db/__tests__/alarms.test.ts`, the latter
+mocking `@/services/notifications` to pin that rows persist when scheduling is unavailable and
+that deletion works for a row that was never scheduled). The Android/iOS exports and
+`expo-doctor` were **not** re-run after these edits, and no physical-device result has been
+returned yet — the user is running the checks themselves.
+
+**Expo Go now bundles and launches.** `npx expo start --go --lan -c` reached
+`Android Bundled 68023ms node_modules/expo-router/entry.js (1741 modules)` with no
+`expo-notifications` error, no missing-default-export warning, and no `ExpoMediaLibraryNext`
+error. The one remaining `WARN` — Expo Go "can no longer provide full access to the media
+library" — is emitted by the **Expo Go client's own native code** (the string appears nowhere in
+`node_modules`), which is positive evidence that `expo-media-library/legacy` bound to a native
+module that is actually present. `mediaLibraryAvailable()` therefore returns true in Expo Go and
+the Save button renders; whether the file reaches the gallery is still the device check.
+
+Still device-gated, unchanged: everything in the Phase 3 native list below, plus reminder
+delivery and Save to Photos, which now need a development build to be *proven* rather than a
+development build to avoid crashing.
+
+## Phase 3 implementation checkpoint — 2026-08-16
+
+Phase 3 is now explicitly Kairo-owned GPS tracking, not Strava or another provider import.
+The locked plan is in `docs/08-phase-3-movement-plan.md`: run/walk/ride, Android-first native
+spike with iOS designed in, live map, background tracking, pause/autopause, default-on time
+and distance voice cues, shared units, indefinite raw-point retention with edit revisions,
+route replay, and Kairo backend upload only after completion.
+
+Implementation is complete through the executable mobile/backend layers. Mobile schemas v7–v9
+cover activities, raw points, lifecycle events, durable engine state, and reversible raw-point
+edit exclusion. Expo Location, Task Manager, Speech, and React Native Maps are installed at
+SDK-compatible versions. The module-scope background task opens/migrates the same SQLite
+database, recovers active state, processes location batches, and persists points atomically
+with summaries. Expo Go has a foreground `watchPositionAsync` fallback for today's UI testing;
+background/screen-lock behavior still requires a custom Android development build.
+
+Schema v8 stores autopause candidate timestamps and next voice-cue thresholds per active
+activity. Movement settings expose metric/imperial units, default-on voice cues with separate
+distance/time toggles, and autopause. The background task evaluates those settings, persists
+autopause/voice events in order, and invokes local speech. Native voice behavior still needs
+physical Android testing, especially with the screen locked and Bluetooth audio.
+
+The first Movement UI is also wired: a sixth bottom tab, run/walk/ride readiness and
+permission flow, live map with persistent recording, pause/resume and finish, completed
+history/detail, and offline animated route replay with normalized 1x/2x/4x/8x speeds. The
+live view now respects the shared metric/imperial preference, shows run/walk pace or ride
+speed, separates moving and elapsed time, displays autopause explicitly, and lets the user
+pan before recentering. Replay uses the same unit preference and a responsive scrubber.
+Schema v8 recovery and default-on preference behavior have direct SQLite-backed tests. Schema
+v9 adds trim/recompute persistence without deleting raw points. Completed activities enqueue a
+movement aggregate only after completion; later edits enqueue higher revisions and deletes enqueue
+idempotent removal. Backend migration `7e3b9a1c2d44` provides authenticated movement upload,
+list/detail, revision replacement, ownership isolation, and replay-safe deletion.
+
+Automated verification is green: mobile typecheck/lint, **376 tests across 18 suites** at this
+checkpoint (**394 across 20** after the 2026-08-17 Expo Go fix above), backend
+Ruff, **28 backend tests**, Alembic at head, Expo Doctor **21/21**, and Android/iOS exports.
+Physical-device results have not yet been provided by the user. Background location, screen lock,
+foreground-service notification, force-kill recovery, Bluetooth speech, battery use, and iOS
+native behavior remain acceptance gates. `personal_test.txt` is the current Phase 2/3 runbook.
 
 ## Status
 
@@ -84,11 +232,12 @@ Postgres as the deployment target.
 Workout, weight, task, and nutrition sync are implemented end to end when configured. Quotes,
 Pillow wallpapers, and local daily/weekly reminders are also complete.
 
-## Final Phase 2 verification (commit `af5b2da`)
+## Final Phase 2 verification (historical, commit `af5b2da`)
 
 - Backend: `ruff check .` clean; `pytest -q` **24 passed**; `alembic upgrade head` reaches head.
 - Mobile: `npm run typecheck` clean; `npm run lint` clean; `npm test -- --runInBand`
-  **350 passed across 16 suites**; Android export emitted `dist/` successfully.
+  **350 passed across 16 suites** at the Phase 2 commit. The current Phase 3 count is recorded
+  at the top of this handover.
 - Workout replay preserves client session/set IDs, accepts mobile seeded exercise IDs, and
   rejects conflicting ID reuse with `409`.
 - Quotes are deterministic by calendar day; wallpaper tests decode a nonblank 1080x1920 PNG.
@@ -100,8 +249,8 @@ Pillow wallpapers, and local daily/weekly reminders are also complete.
 |---|---|---|---|
 | Workout replay | `app/api/workouts.py`, workout schemas | `db/workouts.ts`, `db/outbox.ts`, `sync/outbox.ts` | `test_workouts.py`, outbox suite |
 | Quotes | `app/api/motivation.py` | `domain/motivation.ts`, Home | `test_motivation.py`, motivation suite |
-| Wallpapers | Pillow route in `app/api/motivation.py` | `app/(tabs)/wallpaper.tsx`, media/file system packages | PNG decode test, Android export |
-| Reminders | Deliberately device-local | `db/alarms.ts`, schema/migration v6, `app/(tabs)/alarms.tsx` | typecheck/lint; native scheduling requires device permissions |
+| Wallpapers | Pillow route in `app/api/motivation.py` | `app/(tabs)/wallpaper.tsx`, `src/services/mediaLibrary.ts` (legacy media-library entry), file system package | PNG decode test, Android export |
+| Reminders | Deliberately device-local | `db/alarms.ts`, `src/services/notifications.ts`, `src/domain/reminders.ts`, schema/migration v6, `app/(tabs)/alarms.tsx` | `src/db/__tests__/alarms.test.ts`, `src/domain/__tests__/reminders.test.ts`; delivery still requires a device |
 
 The Android `dist/` directory is a generated, ignored build artifact and is not part of the
 source commit. Re-run the export when validating a fresh checkout.
@@ -420,23 +569,70 @@ Decisions worth keeping:
   unit-preference decision needs no further migration. `getGoalWeightKg` treats an
   unparseable value as unset rather than throwing — a corrupt preference should not break
   the screen it decorates.
-- **Unit preference**: no app-wide default is stored; each set carries its own unit and
-  `suggestNextSet` falls back to kg with no history (feature-spec open decision).
-- **Infra/CI written, not fully exercised**: see "Next session: Phase 3 entry point".
+- **Unit preference**: movement has one shared metric/imperial preference in
+  `user_preferences`, and live/replay displays read it. Strength sets still carry their own
+  logged unit, and `suggestNextSet` falls back to kg with no history.
+- **A native package Expo Go may lack is never imported at module scope.** Import it lazily
+  behind a capability check in `src/services/`, expose a mode/availability function, and have the
+  screen say which tier it is in. A static import is hoisted past every guard, and in Expo Router
+  its failure presents as "Route ... is missing the required default export" rather than as the
+  native error it is — see the 2026-08-17 section above for the day that cost.
+- **Infra/CI written, not fully exercised**: Docker/Postgres and GitHub CI remain optional
+  follow-up checks; they are not prerequisites for the current local movement work.
 
-## Next session: Phase 3 entry point
+## Next session: Phase 3 physical acceptance and handoff
 
-Phase 2 has no required implementation work left. Start with the movement/GPS decision in
-`docs/05-integrations-and-credentials.md` and `docs/06-roadmap.md`. Before expanding scope,
-optionally confirm GitHub CI and the Docker/Postgres smoke test; those were not runnable in
-the prior environment because Docker daemon/compose permissions were unavailable. The
-remaining workout polish items (RPE, set edit/delete, finish notes, rest-timer threshold)
-are explicitly deferred product polish, not Phase 2 blockers.
+Do not restart the provider/integration decision. It is locked: Kairo records and owns its
+movement data; there is no Strava connection, import, segment competition, social feature,
+or third-party activity upload. Read `docs/08-phase-3-movement-plan.md` first for the complete
+product and technical contract, then inspect the current dirty worktree before editing. The
+user is committing the latest implementation changes. Do not create or amend commits unless
+the user asks. Inspect `git status --short --branch` first. Preserve any pre-existing user
+changes, especially `.devcontainer/setup.sh`.
 
-Native reminder delivery/permission prompts and the Wallpaper Save-to-Photos action still
-deserve a physical-device smoke test. Their native configuration, persistence, scheduling,
-PNG generation, typecheck, lint, tests, and Android bundle are verified; the handoff does not
-claim those OS permission flows were physically exercised.
+The most useful code entry points are:
+
+- `apps/mobile/src/domain/movement.ts` — pure GPS filtering, state transitions, timing,
+  distance/pace/speed formatting, autopause, cue scheduling, and replay interpolation.
+- `apps/mobile/src/db/schema.ts` and `src/db/migrations.ts` — append-only schemas v7, v8, and v9.
+  v9 is defensive/idempotent because migration tests can rewind `user_version` on a current DB.
+- `apps/mobile/src/db/movement.ts` — activity/point/event/history/edit queries and durable
+  engine-state recovery. Point plus summary writes and event sequence allocation are
+  transactional.
+- `apps/mobile/src/services/movementTracking.ts` — module-scope Expo background task and
+  start/stop APIs. Local SQLite is authoritative throughout an active recording.
+- `apps/mobile/app/(tabs)/movement/` — readiness, active tracking, history/detail, replay,
+  and settings screens.
+- `apps/mobile/src/db/__tests__/movement.test.ts` and
+  `src/domain/__tests__/movement.test.ts` — executable persistence and domain contracts.
+
+The implementation is ready for a physical test run. Offer to check readiness, then direct the
+user to run `personal_test.txt` themselves. Do not claim the native gate passed until the user
+returns the completed checklist and device evidence. Continue in this order:
+
+0. Relaunch Expo Go and confirm the app now renders: no `expo-notifications` error, no
+   "missing the required default export" warning, no `ExpoMediaLibraryNext` error, and all six
+   tabs reachable. That is the 2026-08-17 fix above, verified only by typecheck/lint/tests so
+   far. Then run the Expo Go foreground sections of the runbook.
+1. Run the Android development-build physical spike. Verify foreground/background permission
+   flows, the foreground-service notification, screen-lock collection, manual and automatic
+   pause/resume, force-kill recovery of already persisted points, map tiles, voice cues through
+   speaker and Bluetooth, and representative battery consumption. Continued collection after
+   force-kill is explicitly not guaranteed; persisted activity recovery is required.
+2. Record the user's Android development-build results. Expo Go is not sufficient evidence for
+   the background-service contract; use a development build on a physical Android device. Keep
+   iOS compatibility in the API and schema design, but Android remains the first native target.
+3. Fix any native issues exposed by that spike and rerun all automated checks. Continued
+   collection after force-kill is explicitly not guaranteed; persisted activity recovery is
+   required.
+4. Run backend sync acceptance when API credentials are configured: offline completion, exact
+   replay, higher-revision edit, delete, and cross-user isolation.
+5. Perform later iOS native integration and physical validation using the same product contract.
+
+Native reminder delivery/permission prompts and Wallpaper Save-to-Photos also still deserve
+a physical-device smoke test, but they are Phase 2 follow-up checks rather than Phase 3
+movement blockers. Workout polish items (RPE, set edit/delete, finish notes, rest-timer
+threshold) remain explicitly deferred.
 
 ## Verification commands
 
@@ -444,16 +640,18 @@ claim those OS permission flows were physically exercised.
 # Backend
 cd apps/backend && source .venv/bin/activate
 ruff check .            # All checks passed!
-pytest -q               # 24 passed
+pytest -q               # 28 passed
 alembic upgrade head    # reaches head (idempotent)
 
 # Mobile
 cd apps/mobile
 npm run typecheck       # tsc --noEmit, 0 errors
 npm run lint            # eslint ., clean
-npm test                # 350 passed (16 suites)
-npx expo-doctor         # rerun interactively; prior runner did not capture final summary
-npx expo export --platform android   # successful; dist/ is generated and ignored
+npm test -- --runInBand # 394 passed (20 suites)
+EXPO_NO_TELEMETRY=1 npx expo-doctor # 21/21
+EXPO_NO_TELEMETRY=1 npx expo export --platform android --output-dir /tmp/kairo-phase3-android-export
+EXPO_NO_TELEMETRY=1 npx expo export --platform ios --output-dir /tmp/kairo-phase3-ios-export
+                        # both successful; telemetry disabled because the sandbox cannot write ~/.expo
 ```
 
 If `node_modules` or `.venv` are missing (a fresh clone, or a cleaned machine):
@@ -466,9 +664,9 @@ pip install -e '.[dev]'` in `apps/backend`.
 built-in `node:sqlite` through the subset of the `SQLiteDatabase` interface the query layer
 uses (`execAsync`, `runAsync`, `getAllAsync`, `getFirstAsync`, `prepareAsync`). Tests get the
 real schema from `migrations.ts` and the real seed data, so SQL is exercised as written
-rather than mocked. All four query-layer suites use it.
+rather than mocked. The movement query suite uses it alongside the existing module suites.
 
-Four things to know before extending it:
+Four harness details to know before extending it:
 
 - `jest.testMatch` in `package.json` is narrowed to `**/*.test.[jt]s?(x)`. jest-expo's
   default treats every file under `__tests__/` as a suite, which made the shared `testDb.ts`

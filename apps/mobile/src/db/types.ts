@@ -8,6 +8,18 @@
 
 export type WeightUnit = 'kg' | 'lb';
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+export type MovementType = 'run' | 'walk' | 'ride';
+export type MovementStatus =
+  | 'draft'
+  | 'preparing'
+  | 'recording'
+  | 'manually_paused'
+  | 'auto_paused'
+  | 'finishing'
+  | 'completed'
+  | 'cancelled'
+  | 'discarded'
+  | 'interrupted';
 
 export type ExerciseRow = {
   id: string;
@@ -93,6 +105,28 @@ export type MacroTargetRow = {
   fat_g: number;
   effective_date: string;
   created_at: string;
+};
+
+export type MovementActivityRow = {
+  id: string; user_id: string; activity_type: string; status: string; name: string | null;
+  started_at: string; ended_at: string | null; elapsed_seconds: number; moving_seconds: number;
+  paused_seconds: number; distance_meters: number; elevation_gain_meters: number;
+  average_speed_mps: number | null; calories_estimate: number | null; revision: number;
+  created_at: string; updated_at: string;
+};
+
+export type MovementPointRow = {
+  id: string; activity_id: string; sequence: number; recorded_at: string; latitude: number;
+  longitude: number; altitude_meters: number | null; horizontal_accuracy_meters: number | null;
+  vertical_accuracy_meters: number | null; provider_speed_mps: number | null;
+  derived_speed_mps: number | null; distance_from_previous_meters: number;
+  cumulative_distance_meters: number; processing_state: string; rejection_reason: string | null;
+  is_paused: number; excluded_by_edit: number;
+};
+
+export type MovementEventRow = {
+  id: string; activity_id: string; sequence: number; event_type: string;
+  occurred_at: string; payload_json: string | null;
 };
 
 export type Exercise = {
@@ -197,6 +231,28 @@ export type MacroTarget = {
   fatG: number;
   effectiveDate: string;
   createdAt: string;
+};
+
+export type MovementActivity = {
+  id: string; userId: string; activityType: MovementType; status: MovementStatus;
+  name: string | null; startedAt: string; endedAt: string | null; elapsedSeconds: number;
+  movingSeconds: number; pausedSeconds: number; distanceMeters: number;
+  elevationGainMeters: number; averageSpeedMps: number | null; caloriesEstimate: number | null;
+  revision: number; createdAt: string; updatedAt: string;
+};
+
+export type MovementPoint = {
+  id: string; activityId: string; sequence: number; recordedAt: string; latitude: number;
+  longitude: number; altitudeMeters: number | null; horizontalAccuracyMeters: number | null;
+  verticalAccuracyMeters: number | null; providerSpeedMps: number | null;
+  derivedSpeedMps: number | null; distanceFromPreviousMeters: number;
+  cumulativeDistanceMeters: number; processingState: 'accepted' | 'rejected';
+  rejectionReason: string | null; isPaused: boolean; excludedByEdit: boolean;
+};
+
+export type MovementEvent = {
+  id: string; activityId: string; sequence: number; eventType: string;
+  occurredAt: string; payload: unknown;
 };
 
 export function toExercise(row: ExerciseRow): Exercise {
@@ -306,5 +362,45 @@ export function toMacroTarget(row: MacroTargetRow): MacroTarget {
     fatG: row.fat_g,
     effectiveDate: row.effective_date,
     createdAt: row.created_at,
+  };
+}
+
+export function toMovementActivity(row: MovementActivityRow): MovementActivity {
+  const activityType: MovementType = row.activity_type === 'walk' || row.activity_type === 'ride'
+    ? row.activity_type : 'run';
+  return {
+    id: row.id, userId: row.user_id, activityType, status: row.status as MovementStatus,
+    name: row.name, startedAt: row.started_at, endedAt: row.ended_at,
+    elapsedSeconds: row.elapsed_seconds, movingSeconds: row.moving_seconds,
+    pausedSeconds: row.paused_seconds, distanceMeters: row.distance_meters,
+    elevationGainMeters: row.elevation_gain_meters, averageSpeedMps: row.average_speed_mps,
+    caloriesEstimate: row.calories_estimate, revision: row.revision,
+    createdAt: row.created_at, updatedAt: row.updated_at,
+  };
+}
+
+export function toMovementPoint(row: MovementPointRow): MovementPoint {
+  return {
+    id: row.id, activityId: row.activity_id, sequence: row.sequence, recordedAt: row.recorded_at,
+    latitude: row.latitude, longitude: row.longitude, altitudeMeters: row.altitude_meters,
+    horizontalAccuracyMeters: row.horizontal_accuracy_meters,
+    verticalAccuracyMeters: row.vertical_accuracy_meters, providerSpeedMps: row.provider_speed_mps,
+    derivedSpeedMps: row.derived_speed_mps,
+    distanceFromPreviousMeters: row.distance_from_previous_meters,
+    cumulativeDistanceMeters: row.cumulative_distance_meters,
+    excludedByEdit: row.excluded_by_edit === 1,
+    processingState: row.processing_state === 'accepted' ? 'accepted' : 'rejected',
+    rejectionReason: row.rejection_reason, isPaused: row.is_paused === 1,
+  };
+}
+
+export function toMovementEvent(row: MovementEventRow): MovementEvent {
+  let payload: unknown = null;
+  if (row.payload_json !== null) {
+    try { payload = JSON.parse(row.payload_json) as unknown; } catch { payload = null; }
+  }
+  return {
+    id: row.id, activityId: row.activity_id, sequence: row.sequence,
+    eventType: row.event_type, occurredAt: row.occurred_at, payload,
   };
 }

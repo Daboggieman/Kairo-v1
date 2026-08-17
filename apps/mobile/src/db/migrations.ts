@@ -14,10 +14,17 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import {
   CREATE_BODY_WEIGHT_ENTRIES,
   CREATE_ALARMS,
+  ADD_MOVEMENT_POINT_EDIT_EXCLUSION,
   CREATE_EXERCISES,
   CREATE_FOOD_ITEMS,
   CREATE_INDEXES,
   CREATE_MACRO_TARGETS,
+  CREATE_MOVEMENT_ACTIVITIES,
+  CREATE_MOVEMENT_EVENTS,
+  CREATE_MOVEMENT_INDEXES,
+  CREATE_MOVEMENT_POINTS,
+  CREATE_MOVEMENT_SPLITS,
+  CREATE_MOVEMENT_TRACKING_STATE,
   CREATE_NUTRITION_ENTRIES,
   CREATE_NUTRITION_INDEXES,
   CREATE_TASK_COMPLETIONS,
@@ -81,6 +88,20 @@ const MIGRATIONS: Migration[] = [
     },
   },
   { version: 6, up: async (db) => { await db.execAsync(CREATE_ALARMS); } },
+  { version: 7, up: async (db) => {
+    await db.execAsync(CREATE_MOVEMENT_ACTIVITIES);
+    await db.execAsync(CREATE_MOVEMENT_POINTS);
+    await db.execAsync(CREATE_MOVEMENT_EVENTS);
+    await db.execAsync(CREATE_MOVEMENT_SPLITS);
+    await db.execAsync(CREATE_MOVEMENT_INDEXES);
+  } },
+  { version: 8, up: async (db) => { await db.execAsync(CREATE_MOVEMENT_TRACKING_STATE); } },
+  { version: 9, up: async (db) => {
+    const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(movement_points)');
+    if (!columns.some((column) => column.name === 'excluded_by_edit')) {
+      await db.execAsync(ADD_MOVEMENT_POINT_EDIT_EXCLUSION);
+    }
+  } },
 ];
 
 /**

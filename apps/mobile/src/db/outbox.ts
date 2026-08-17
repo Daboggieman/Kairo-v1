@@ -10,7 +10,8 @@ export type SyncEntity =
   | 'nutrition_entry'
   | 'macro_target'
   | 'workout_session'
-  | 'workout_set';
+  | 'workout_set'
+  | 'movement_activity';
 export type SyncOperation = 'upsert' | 'update' | 'delete';
 
 export type WeightEntryWire = {
@@ -83,6 +84,32 @@ export type WorkoutSetWire = {
   weight_unit: 'kg' | 'lb';
   rpe: number | null;
   rest_seconds: number | null;
+};
+
+export type MovementActivityWire = {
+  id: string;
+  activity_type: 'run' | 'walk' | 'ride';
+  name: string | null;
+  started_at: string;
+  ended_at: string;
+  elapsed_seconds: number;
+  moving_seconds: number;
+  paused_seconds: number;
+  distance_meters: number;
+  elevation_gain_meters: number;
+  average_speed_mps: number | null;
+  revision: number;
+  created_at: string;
+  updated_at: string;
+  points: {
+    id: string; sequence: number; recorded_at: string; latitude: number; longitude: number;
+    altitude_meters: number | null; horizontal_accuracy_meters: number | null;
+    provider_speed_mps: number | null; processing_state: 'accepted' | 'rejected';
+    rejection_reason: string | null; is_paused: boolean; excluded_by_edit: boolean;
+  }[];
+  events: {
+    id: string; sequence: number; event_type: string; occurred_at: string; payload_json: string | null;
+  }[];
 };
 
 export type OutboxRow = {

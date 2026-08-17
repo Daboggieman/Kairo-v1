@@ -73,7 +73,7 @@ model is the same either way.)*
 - id, activity_id, sequence, recorded_at, latitude, longitude, altitude_meters,
   horizontal_accuracy_meters, provider_speed_mps, derived_speed_mps,
   distance_from_previous_meters, cumulative_distance_meters, processing_state,
-  rejection_reason, is_paused
+  rejection_reason, is_paused, excluded_by_edit
 
 **MovementEvent**
 - id, activity_id, sequence, event_type, occurred_at, payload_json
