@@ -29,6 +29,20 @@ The product contract is:
 - Raw GPS points are retained; route trims exclude points and recompute derived metrics.
 
 
+READ THIS FIRST - THE UI IS MID-REWRITE AS OF 2026-08-17
+--------------------------------------------------------
+
+A UI restructure is in flight and only Home, the reminders screen, and the wallpaper screen have
+been converted. The other thirteen screens still set their own padding and still lack the loader
+`.catch` that turns a failed query into one visible error instead of dozens of unhandled
+rejections. `to_continue_with.md` has the file-by-file list.
+
+Do not run sections 4-8 end to end until that pass is finished. Findings collected against a
+half-converted app have to be collected again. What is worth running now is section 2, section 3,
+and the launch and legibility checks at the top of section 4 - those are what the rewrite is
+meant to fix, and they are cheap to repeat.
+
+
 1. RECORD THE TEST ENVIRONMENT
 ------------------------------
 
@@ -66,7 +80,9 @@ Expected mobile baseline:
 
 - TypeScript exits with code 0.
 - ESLint exits with code 0 and no warnings.
-- Jest reports 394 tests across 20 suites passing.
+- Jest reports 426 tests across 20 suites passing. The last measured run was 394 across 20
+  suites; the 2026-08-17 reminder-helper cases add 32 and have not been run yet, so treat a
+  426 as confirmation and anything else as a real result worth reporting.
 - Expo Doctor reports 21/21 checks passing.
 - Android and iOS exports complete successfully.
 
