@@ -1,5 +1,4 @@
 import { randomUUID } from 'expo-crypto';
-import Constants from 'expo-constants';
 import * as Location from 'expo-location';
 import * as Speech from 'expo-speech';
 import { openDatabaseAsync } from 'expo-sqlite';
@@ -19,9 +18,11 @@ import {
 import { migrate } from '@/db/migrations';
 import { getMovementPreferences, getUnitSystem } from '@/db/preferences';
 import { crossedCues, evaluateAutopause, processSample } from '@/domain/movement';
+import { IS_EXPO_GO } from '@/services/runtime';
 
 export const MOVEMENT_LOCATION_TASK = 'kairo-movement-location';
-export const IS_EXPO_GO = Constants.executionEnvironment === 'storeClient';
+/** Re-exported so the movement screens keep one import for the tracking surface. */
+export { IS_EXPO_GO };
 
 type LocationTaskData = { locations?: Location.LocationObject[] };
 let foregroundSubscription: Location.LocationSubscription | null = null;

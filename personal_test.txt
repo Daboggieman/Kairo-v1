@@ -1,7 +1,7 @@
 KAIRO V1 - PHASE 2 AND PHASE 3 PHYSICAL TEST RUNBOOK
 ====================================================
 
-Last updated: 2026-08-16
+Last updated: 2026-08-17
 Branch: phase_3
 Project: /home/student/Kairo-v1
 Mobile app: /home/student/Kairo-v1/apps/mobile
@@ -66,7 +66,7 @@ Expected mobile baseline:
 
 - TypeScript exits with code 0.
 - ESLint exits with code 0 and no warnings.
-- Jest reports 376 tests across 18 suites passing.
+- Jest reports 394 tests across 20 suites passing.
 - Expo Doctor reports 21/21 checks passing.
 - Android and iOS exports complete successfully.
 
@@ -103,6 +103,23 @@ If LAN cannot connect:
    EXPO_NO_TELEMETRY=1 npx expo start --go --tunnel -c
 
 Keep Metro visible and capture the first error if a red screen appears.
+
+Expected Metro output on a healthy Expo Go launch:
+
+- `Android Bundled <ms> node_modules/expo-router/entry.js (~1741 modules)`.
+- No `expo-notifications` error, and no "Route ... is missing the required default export"
+  warning. Both meant the root layout failed to evaluate and the app could not render.
+- No `Cannot find native module 'ExpoMediaLibraryNext'`.
+- One expected warning: "Due to changes in Androids permission requirements, Expo Go can no
+  longer provide full access to the media library." Expo Go itself prints this, and it confirms
+  the media-library native module is present and responding. Not a failure; record it and
+  continue.
+- These two Metro lines are environment noise, not app failures:
+  - "An unknown error occurred while installing React Native DevTools ... chrome-sandbox".
+    Only the `j` debugger is affected. Fix it with:
+       sudo chown root:root "$HOME/.cache/dotslash/64/ed7915e5fef86802e862c274e17f780fa75388/React Native DevTools-linux-x64/chrome-sandbox"
+       sudo chmod 4755 "$HOME/.cache/dotslash/64/ed7915e5fef86802e862c274e17f780fa75388/React Native DevTools-linux-x64/chrome-sandbox"
+  - `npm error ETIMEDOUT` while `npx` downloads `expo-doctor`. Rerun the command.
 
 
 4. PHASE 2 REGRESSION
@@ -147,10 +164,27 @@ Macros:
 
 Phase 2 native features:
 
+Kairo gates these two on what the runtime actually provides, so record which runtime you are
+in. In Expo Go the reminders screen shows a notice above the form, and the wallpaper screen may
+offer preview only. Neither is a failure in Expo Go; both must work in the development build.
+
 1. Configure a reminder and confirm the permission prompt is understandable.
-2. Confirm a scheduled notification is delivered at a near-future test time.
-3. Generate a wallpaper, confirm it is nonblank, and test Save to Photos.
-4. Confirm denied notification/photo permission produces a recoverable state rather than a crash.
+2. Record the reminders-screen notice verbatim:
+   - "Expo Go: local reminders fire, remote notifications need a development build" means
+     scheduling is active here. Continue to step 3.
+   - "Notifications are not available in this build" means the reminder saves but cannot fire
+     here. Skip to step 6 and test delivery in section 6 instead.
+3. Confirm a scheduled notification is delivered at a near-future test time.
+4. Edit that reminder's time, save, and confirm only the new time fires.
+5. Delete a reminder and confirm the row disappears. Deletion must succeed even when the OS has
+   already dropped the schedule.
+6. Deny notification permission on a new reminder and confirm Kairo says "Saved, but not
+   scheduled" rather than failing silently or crashing.
+7. Generate a wallpaper and confirm it is nonblank.
+8. If "Save to Photos" is offered, save it and confirm it reaches the gallery. If the screen
+   says "Preview only - saving to Photos needs a development build", record that and test
+   saving in section 6.
+9. Confirm denied photo permission produces a recoverable state rather than a crash.
 
 
 5. EXPO GO MOVEMENT TEST
@@ -245,6 +279,16 @@ Battery observation:
 2. Record battery percentage after the route.
 3. Record whether the phone became unusually warm.
 4. Report device, OS, duration, GPS mode, screen-on time, and battery delta.
+
+Phase 2 native features in the development build:
+
+The development build is the only runtime where these are expected to work fully. Anything
+recorded as "needs a development build" in section 4 must be retested here.
+
+1. Confirm the reminders screen shows no runtime notice at all.
+2. Confirm a scheduled reminder is delivered, including with the screen locked.
+3. Confirm "Save to Photos" is offered on the wallpaper screen and the saved image appears in
+   the gallery at 1080x1920.
 
 
 7. IOS VALIDATION
