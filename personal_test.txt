@@ -155,10 +155,26 @@ that matters.
 Initial launch:
 
 1. Confirm the app opens without a blank screen, migration error, or red screen.
-2. Confirm these tabs render with icons and readable labels:
+2. Confirm the Kairo intro plays once - the helmet mark fades in over the dark background, then
+   the app appears. It must not replay when moving between tabs, and the helmet itself must never
+   spin. Only the ring around it rotates, and only while something is loading.
+3. Confirm these tabs render with icons and readable labels:
    Home, Today, Macros, Workouts, Weight, Movement.
-3. Open every tab and return to Home.
-4. Confirm headers, tab bar, forms, and bottom buttons do not overlap.
+4. Read every screen in daylight and in a dark room. No text may be dark-on-dark or
+   white-on-gold; every label must be legible without tilting the phone. Two screens shipped
+   unreadable before the rewrite, which is what this step exists to catch.
+5. Confirm Home shows four data cards - Today, Macros, Weight, Workout - above a "More" section
+   holding two rows, Daily focus and Reminders. Tap both rows and confirm they open the wallpaper
+   and reminders screens with a back arrow and a correct header title.
+6. Open every tab and return to Home.
+7. Confirm headers, tab bar, forms, and bottom buttons do not overlap.
+8. Where a screen is still loading, confirm it shows the rotating Kairo ring rather than a
+   generic spinner. Home, reminders, and wallpaper are converted; the movement screens are not
+   yet, so a plain spinner there is expected for now, not a failure.
+9. The launcher icon can only be checked in a development build - in Expo Go the icon on the
+   home screen is Expo Go's. When you do install a development build, confirm the launcher shows
+   the gold helmet on a dark tile, centered and not clipped, on both a round and a square icon
+   mask.
 
 Workouts:
 
@@ -195,23 +211,52 @@ Kairo gates these two on what the runtime actually provides, so record which run
 in. In Expo Go the reminders screen shows a notice above the form, and the wallpaper screen may
 offer preview only. Neither is a failure in Expo Go; both must work in the development build.
 
-1. Configure a reminder and confirm the permission prompt is understandable.
-2. Record the reminders-screen notice verbatim:
+Reminders. This screen was rewritten on 2026-08-17 and its input behavior changed, so read the
+steps rather than working from memory of the old screen.
+
+1. Open Reminders from Home's "More" section. With no reminders saved, confirm an empty state
+   says so rather than showing a bare list.
+2. Record the runtime notice verbatim:
    - "Expo Go: local reminders fire, remote notifications need a development build" means
-     scheduling is active here. Continue to step 3.
+     scheduling is active here. Continue.
    - "Notifications are not available in this build" means the reminder saves but cannot fire
-     here. Skip to step 6 and test delivery in section 6 instead.
-3. Confirm a scheduled notification is delivered at a near-future test time.
-4. Edit that reminder's time, save, and confirm only the new time fires.
-5. Delete a reminder and confirm the row disappears. Deletion must succeed even when the OS has
-   already dropped the schedule.
-6. Deny notification permission on a new reminder and confirm Kairo says "Saved, but not
-   scheduled" rather than failing silently or crashing.
-7. Generate a wallpaper and confirm it is nonblank.
-8. If "Save to Photos" is offered, save it and confirm it reaches the gallery. If the screen
-   says "Preview only - saving to Photos needs a development build", record that and test
-   saving in section 6.
-9. Confirm denied photo permission produces a recoverable state rather than a crash.
+     here. Skip to step 9 and test delivery in section 6 instead.
+   - In a development build there must be no notice at all.
+3. Type a time using only digits. The field takes `0700` and shows `07:00`; the colon is inserted
+   for you and there is no colon key on Android's numeric keypad, which is why the old screen
+   could not be filled in at all on Android. Confirm a fifth digit is ignored and that
+   backspacing back through the colon works.
+4. Enter an impossible time such as `2500` and confirm Kairo refuses to save it with a readable
+   message instead of scheduling something wrong.
+5. Save a reminder with no weekday selected and confirm it reads as "Every day" - no selection
+   means daily, not never.
+6. Save a second reminder with two weekdays selected and confirm the row names those days.
+7. Confirm a scheduled notification is delivered at a near-future test time.
+8. Toggle a reminder's switch off and confirm it stops firing; toggle it back on and confirm it
+   fires again at the same time, with its label and days unchanged.
+9. Edit a reminder's time, save, and confirm only the new time fires.
+10. Delete a reminder. Confirm Kairo asks first, then that the row disappears. Deletion must
+    succeed even when the OS has already dropped the schedule.
+11. Deny notification permission on a new reminder and confirm Kairo says "Saved, but not
+    scheduled" rather than failing silently or crashing. Confirm the saved row is visibly marked
+    as not scheduled.
+
+Wallpaper. Also rewritten on 2026-08-17. It now has exactly four states and each one names
+itself; the old screen showed the same anonymous spinner for all of them, including forever when
+sync was simply not configured.
+
+12. Open Daily focus from Home. Confirm the quote and its author render legibly regardless of
+    whether sync is configured - the quote is local and must never depend on the network.
+13. Record which state the wallpaper section is in: "Sync is not configured", the rotating ring
+    with "Rendering today's wallpaper", a rendered preview, or "Could not generate a wallpaper".
+    A spinner shown at the same time as any of the other three is a failure.
+14. With sync configured, confirm the preview is nonblank and 9:16.
+15. Break sync deliberately - wrong device key, or airplane mode - and confirm the error names
+    the step that failed, then confirm "Try again" re-attempts and can recover once sync works.
+16. If "Save to Photos" is offered, save it and confirm it reaches the gallery. If the screen
+    says "Preview only - saving to Photos needs a development build", record that and test
+    saving in section 6.
+17. Confirm denied photo permission produces a recoverable state rather than a crash.
 
 
 5. EXPO GO MOVEMENT TEST
@@ -372,9 +417,11 @@ Mark each item PASS, FAIL, or NOT AVAILABLE:
 
    [ ] Automated mobile preflight
    [ ] Automated backend preflight
+   [ ] Intro, loader, and screen legibility
+   [ ] Launcher icon (development build only)
    [ ] Phase 2 module regression
-   [ ] Reminder delivery
-   [ ] Wallpaper save
+   [ ] Reminder entry, scheduling, and delivery
+   [ ] Wallpaper states and save
    [ ] Expo Go foreground movement
    [ ] Manual pause/resume
    [ ] Autopause/auto-resume
