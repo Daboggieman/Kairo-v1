@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE OFFERING</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Cinzel:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        /* Hide scrollbar for clean look */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                            "on-tertiary-fixed": "#001d37",
+                            "surface-container-highest": "#32353a",
+                            "primary-container": "#d79e2d",
+                            "inverse-surface": "#e1e2e9",
+                            "on-primary-container": "#523800",
+                            "on-tertiary-container": "#003f6e",
+                            "outline": "#9c8f7c",
+                            "secondary-container": "#44474a",
+                            "outline-variant": "#504535",
+                            "surface-container": "#1d2025",
+                            "error": "#ffb4ab",
+                            "primary-fixed-dim": "#f9bc4a",
+                            "secondary-fixed": "#e0e3e6",
+                            "surface-dim": "#101418",
+                            "on-secondary": "#2d3133",
+                            "tertiary": "#9fcaff",
+                            "on-secondary-fixed": "#191c1e",
+                            "on-error-container": "#ffdad6",
+                            "tertiary-fixed": "#d2e4ff",
+                            "on-tertiary": "#003259",
+                            "surface-tint": "#f9bc4a",
+                            "on-primary-fixed": "#271900",
+                            "inverse-primary": "#7d5700",
+                            "on-surface": "#e1e2e9",
+                            "surface-bright": "#36393f",
+                            "surface": "#101418",
+                            "on-surface-variant": "#d4c4af",
+                            "on-error": "#690005",
+                            "on-primary-fixed-variant": "#5f4100",
+                            "tertiary-fixed-dim": "#9fcaff",
+                            "surface-container-low": "#191c21",
+                            "surface-container-lowest": "#0b0e13",
+                            "background": "#101418",
+                            "on-primary": "#422c00",
+                            "primary-fixed": "#ffdeaa",
+                            "secondary-fixed-dim": "#c4c7ca",
+                            "inverse-on-surface": "#2e3036",
+                            "on-secondary-fixed-variant": "#44474a",
+                            "secondary": "#c4c7ca",
+                            "on-secondary-container": "#b3b5b8",
+                            "surface-container-high": "#272a2f",
+                            "tertiary-container": "#6dacf3",
+                            "on-tertiary-fixed-variant": "#00497e",
+                            "primary": "#f9bc4a",
+                            "surface-variant": "#32353a",
+                            "on-background": "#e1e2e9",
+                            "error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                            "DEFAULT": "0.25rem",
+                            "lg": "0.5rem",
+                            "xl": "0.75rem",
+                            "full": "9999px"
+                    },
+                    "spacing": {
+                            "unit": "8px",
+                            "container-padding": "24px",
+                            "fluting-width": "1px",
+                            "gutter": "16px"
+                    },
+                    "fontFamily": {
+                            "body-md": [
+                                    "Inter"
+                            ],
+                            "display-lg": [
+                                    "Cinzel"
+                            ],
+                            "headline-sm": [
+                                    "Cinzel"
+                            ],
+                            "display-md": [
+                                    "Cinzel"
+                            ],
+                            "label-md": [
+                                    "Inter"
+                            ],
+                            "label-sm": [
+                                    "Inter"
+                            ],
+                            "body-lg": [
+                                    "Inter"
+                            ]
+                    },
+                    "fontSize": {
+                            "body-md": [
+                                    "16px",
+                                    {
+                                            "lineHeight": "24px",
+                                            "letterSpacing": "0.01em",
+                                            "fontWeight": "400"
+                                    }
+                            ],
+                            "display-lg": [
+                                    "40px",
+                                    {
+                                            "lineHeight": "48px",
+                                            "letterSpacing": "0.15em",
+                                            "fontWeight": "700"
+                                    }
+                            ],
+                            "headline-sm": [
+                                    "20px",
+                                    {
+                                            "lineHeight": "28px",
+                                            "letterSpacing": "0.1em",
+                                            "fontWeight": "600"
+                                    }
+                            ],
+                            "display-md": [
+                                    "28px",
+                                    {
+                                            "lineHeight": "34px",
+                                            "letterSpacing": "0.12em",
+                                            "fontWeight": "700"
+                                    }
+                            ],
+                            "label-md": [
+                                    "14px",
+                                    {
+                                            "lineHeight": "20px",
+                                            "letterSpacing": "0.05em",
+                                            "fontWeight": "600"
+                                    }
+                            ],
+                            "label-sm": [
+                                    "12px",
+                                    {
+                                            "lineHeight": "16px",
+                                            "letterSpacing": "0.05em",
+                                            "fontWeight": "500"
+                                    }
+                            ],
+                            "body-lg": [
+                                    "18px",
+                                    {
+                                            "lineHeight": "28px",
+                                            "letterSpacing": "0.01em",
+                                            "fontWeight": "400"
+                                    }
+                            ]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body-md min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+<!-- Background Decoration: Meander pattern hairline -->
+<div class="absolute inset-0 pointer-events-none opacity-5" style="background-image: repeating-linear-gradient(0deg, transparent, transparent 15px, #9c8f7c 15px, #9c8f7c 16px); background-size: 100% 16px;"></div>
+<!-- Mobile Container (Max width 480px to simulate phone screen) -->
+<div class="w-full max-w-[480px] h-[100dvh] bg-surface relative flex flex-col border-x border-outline-variant/30 sm:shadow-2xl overflow-hidden">
+<!-- Background Fluting -->
+<div class="absolute inset-0 flex justify-between px-container-padding opacity-10 pointer-events-none z-0">
+<div class="w-[1px] h-full bg-outline"></div>
+<div class="w-[1px] h-full bg-outline"></div>
+<div class="w-[1px] h-full bg-outline"></div>
+<div class="w-[1px] h-full bg-outline"></div>
+</div>
+<!-- FULL HEIGHT MODAL SHEET (View 1: Search) -->
+<div class="absolute inset-0 bg-surface z-10 flex flex-col transition-transform duration-300" id="view-search">
+<!-- Header Handle & Actions -->
+<div class="flex items-center justify-between px-container-padding pt-6 pb-4 border-b border-outline-variant bg-surface sticky top-0 z-20">
+<div class="w-12"></div> <!-- Spacer -->
+<div class="flex flex-col items-center justify-center">
+<div class="w-10 h-1 bg-secondary rounded-full mb-4"></div>
+<h1 class="font-headline-sm text-headline-sm uppercase text-on-surface tracking-widest text-center">THE OFFERING</h1>
+</div>
+<button class="w-12 text-right font-label-md text-label-md text-primary tracking-widest hover:text-primary-fixed uppercase">Cancel</button>
+</div>
+<!-- Scrollable Content Area -->
+<div class="flex-1 overflow-y-auto px-container-padding pt-6 pb-24 relative z-10">
+<!-- Search Input -->
+<div class="relative w-full mb-8 group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full h-14 bg-surface-container-low border border-outline-variant text-on-surface pl-12 pr-4 rounded-none font-body-md focus:border-primary focus:ring-0 transition-colors placeholder:text-on-surface-variant" placeholder="Search your foods" type="text"/>
+</div>
+<!-- Section Eyebrow -->
+<h2 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest mb-4">YOUR STORES</h2>
+<!-- Food List Rows -->
+<div class="flex flex-col space-y-0">
+<!-- Row 1 -->
+<button class="w-full h-[72px] flex items-center justify-between border-b border-outline-variant/50 hover:bg-surface-container-low transition-colors group text-left px-2" onclick="toggleView()">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Chicken breast, raw</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">100 g · 165 kcal · 31 P / 0 C / 3.6 F</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+<!-- Row 2 -->
+<button class="w-full h-[72px] flex items-center justify-between border-b border-outline-variant/50 hover:bg-surface-container-low transition-colors group text-left px-2" onclick="toggleView()">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Whey protein scoop</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">30 g · 120 kcal · 24 P / 3 C / 1.5 F</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+<!-- Row 3 -->
+<button class="w-full h-[72px] flex items-center justify-between border-b border-outline-variant/50 hover:bg-surface-container-low transition-colors group text-left px-2" onclick="toggleView()">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">White rice, cooked</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">100 g · 130 kcal · 2.7 P / 28 C / 0.3 F</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+<!-- Row 4 -->
+<button class="w-full h-[72px] flex items-center justify-between border-b border-outline-variant/50 hover:bg-surface-container-low transition-colors group text-left px-2" onclick="toggleView()">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Olive oil, extra virgin</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">15 ml · 119 kcal · 0 P / 0 C / 13.5 F</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+<!-- Row 5 -->
+<button class="w-full h-[72px] flex items-center justify-between border-b border-outline-variant/50 hover:bg-surface-container-low transition-colors group text-left px-2" onclick="toggleView()">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Greek yoghurt, 0% fat</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">100 g · 59 kcal · 10.3 P / 4 C / 0 F</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+<!-- Row 6 -->
+<button class="w-full h-[72px] flex items-center justify-between border-b border-outline-variant/50 hover:bg-surface-container-low transition-colors group text-left px-2" onclick="toggleView()">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Almonds, raw</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">30 g · 173 kcal · 6.3 P / 6 C / 15 F</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Pinned Bottom Action -->
+<div class="absolute bottom-0 w-full p-container-padding bg-surface border-t border-outline-variant z-20 shadow-[0_-10px_40px_rgba(16,20,24,0.9)]">
+<button class="w-full h-14 border border-outline text-on-surface font-label-md text-label-md uppercase tracking-widest hover:border-primary hover:text-primary transition-colors bg-transparent flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">add</span>
+                    FORGE A NEW FOOD
+                </button>
+</div>
+</div>
+<!-- FULL HEIGHT MODAL SHEET (View 2: Quantity & Meal Selection) -->
+<div class="absolute inset-0 bg-surface z-20 flex flex-col translate-x-full transition-transform duration-300" id="view-details">
+<!-- Header Handle & Actions -->
+<div class="flex items-center justify-between px-container-padding pt-6 pb-4 border-b border-outline-variant bg-surface sticky top-0 z-20">
+<button class="w-12 text-left font-label-md text-label-md text-on-surface-variant hover:text-primary" onclick="toggleView()">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="flex flex-col items-center justify-center">
+<div class="w-10 h-1 bg-secondary rounded-full mb-4"></div>
+<h1 class="font-headline-sm text-headline-sm uppercase text-on-surface tracking-widest text-center">THE OFFERING</h1>
+</div>
+<div class="w-12"></div> <!-- Spacer -->
+</div>
+<!-- Scrollable Content Area -->
+<div class="flex-1 overflow-y-auto px-container-padding pt-8 pb-32 relative z-10 flex flex-col space-y-10">
+<!-- Selected Food Header -->
+<div class="text-center border-b border-outline-variant/30 pb-6">
+<h2 class="font-headline-sm text-headline-sm text-primary mb-2">Chicken breast, raw</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">100 g · 165 kcal · 31 P / 0 C / 3.6 F per serving</p>
+</div>
+<!-- Quantity Section -->
+<div class="flex flex-col space-y-4">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">QUANTITY (SERVINGS)</label>
+<!-- Stepper Input -->
+<div class="flex items-center justify-between h-14 bg-surface-container border border-outline-variant px-2">
+<button class="w-11 h-11 flex items-center justify-center text-on-surface hover:text-primary hover:bg-surface-container-high transition-colors active:scale-95">
+<span class="material-symbols-outlined">remove</span>
+</button>
+<input class="w-20 text-center bg-transparent border-none text-on-surface font-headline-sm text-headline-sm focus:ring-0 p-0" step="0.1" type="number" value="1.5"/>
+<button class="w-11 h-11 flex items-center justify-center text-on-surface hover:text-primary hover:bg-surface-container-high transition-colors active:scale-95">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+<!-- Quick Chips -->
+<div class="flex space-x-2 pt-2">
+<button class="flex-1 py-2 border border-outline-variant text-on-surface-variant font-label-md text-label-md hover:border-primary hover:text-primary transition-colors">0.5</button>
+<button class="flex-1 py-2 border border-outline-variant text-on-surface-variant font-label-md text-label-md hover:border-primary hover:text-primary transition-colors">1.0</button>
+<button class="flex-1 py-2 border border-primary bg-primary/10 text-primary font-label-md text-label-md transition-colors relative overflow-hidden">
+                            1.5
+                            <div class="absolute bottom-0 left-0 w-full h-[2px] bg-primary"></div>
+</button>
+<button class="flex-1 py-2 border border-outline-variant text-on-surface-variant font-label-md text-label-md hover:border-primary hover:text-primary transition-colors">2.0</button>
+</div>
+</div>
+<!-- Meal Selection -->
+<div class="flex flex-col space-y-4">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">MEAL</label>
+<div class="grid grid-cols-2 gap-2">
+<button class="h-14 border border-outline-variant text-on-surface-variant font-label-md text-label-md uppercase tracking-wider hover:border-primary hover:text-primary transition-colors">DAWN</button>
+<button class="h-14 border border-primary bg-primary/5 text-primary font-label-md text-label-md uppercase tracking-wider relative">
+                            ZENITH
+                            <div class="absolute bottom-0 left-0 w-full h-[2px] bg-primary"></div>
+</button>
+<button class="h-14 border border-outline-variant text-on-surface-variant font-label-md text-label-md uppercase tracking-wider hover:border-primary hover:text-primary transition-colors">DUSK</button>
+<button class="h-14 border border-outline-variant text-on-surface-variant font-label-md text-label-md uppercase tracking-wider hover:border-primary hover:text-primary transition-colors">EMBERS</button>
+</div>
+</div>
+<!-- Computed Preview Card -->
+<div class="bg-surface-container border border-primary/30 p-6 relative overflow-hidden mt-4">
+<div class="absolute inset-0 bg-primary/5 pointer-events-none"></div>
+<div class="absolute -right-10 -bottom-10 opacity-10 text-primary pointer-events-none">
+<span class="material-symbols-outlined" style="font-size: 120px;">local_fire_department</span>
+</div>
+<h3 class="font-label-md text-label-md text-primary uppercase tracking-widest mb-4 relative z-10">TRIBUTE TOTAL</h3>
+<div class="flex justify-between items-end relative z-10">
+<div class="flex flex-col">
+<span class="font-display-md text-display-md text-on-surface">248</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">KCAL</span>
+</div>
+<div class="w-[1px] h-10 bg-outline-variant/50"></div>
+<div class="flex flex-col items-center">
+<span class="font-headline-sm text-headline-sm text-on-surface">46.5<span class="text-sm">g</span></span>
+<span class="font-label-sm text-label-sm text-primary uppercase">P</span>
+</div>
+<div class="w-[1px] h-10 bg-outline-variant/50"></div>
+<div class="flex flex-col items-center">
+<span class="font-headline-sm text-headline-sm text-on-surface">0<span class="text-sm">g</span></span>
+<span class="font-label-sm text-label-sm text-tertiary-container uppercase">C</span>
+</div>
+<div class="w-[1px] h-10 bg-outline-variant/50"></div>
+<div class="flex flex-col items-center">
+<span class="font-headline-sm text-headline-sm text-on-surface">5.4<span class="text-sm">g</span></span>
+<span class="font-label-sm text-label-sm text-error uppercase">F</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Pinned Bottom Action -->
+<div class="absolute bottom-0 w-full p-container-padding bg-surface border-t border-outline-variant z-20 shadow-[0_-10px_40px_rgba(16,20,24,0.9)]">
+<button class="w-full h-14 bg-primary text-on-primary font-label-md text-label-md uppercase tracking-widest hover:bg-primary-fixed transition-colors active:scale-95 flex items-center justify-center">
+                    MAKE THE OFFERING
+                </button>
+</div>
+</div>
+</div>
+<script>
+        // Simple logic to toggle between views for demonstration
+        let showDetails = false;
+        
+        function toggleView() {
+            showDetails = !showDetails;
+            const searchView = document.getElementById('view-search');
+            const detailsView = document.getElementById('view-details');
+            
+            if (showDetails) {
+                // searchView.classList.add('-translate-x-1/4'); // Optional parallax
+                detailsView.classList.remove('translate-x-full');
+            } else {
+                // searchView.classList.remove('-translate-x-1/4');
+                detailsView.classList.add('translate-x-full');
+            }
+        }
+    </script>
+</body></html>

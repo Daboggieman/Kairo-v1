@@ -1,0 +1,297 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Kairo - The Gates (Onboarding)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#001d37",
+                        "surface-container-highest": "#32353a",
+                        "primary-container": "#d79e2d",
+                        "inverse-surface": "#e1e2e9",
+                        "on-primary-container": "#523800",
+                        "on-tertiary-container": "#003f6e",
+                        "outline": "#9c8f7c",
+                        "secondary-container": "#44474a",
+                        "outline-variant": "#504535",
+                        "surface-container": "#1d2025",
+                        "error": "#ffb4ab",
+                        "primary-fixed-dim": "#f9bc4a",
+                        "secondary-fixed": "#e0e3e6",
+                        "surface-dim": "#101418",
+                        "on-secondary": "#2d3133",
+                        "tertiary": "#9fcaff",
+                        "on-secondary-fixed": "#191c1e",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed": "#d2e4ff",
+                        "on-tertiary": "#003259",
+                        "surface-tint": "#f9bc4a",
+                        "on-primary-fixed": "#271900",
+                        "inverse-primary": "#7d5700",
+                        "on-surface": "#e1e2e9",
+                        "surface-bright": "#36393f",
+                        "surface": "#101418",
+                        "on-surface-variant": "#d4c4af",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#5f4100",
+                        "tertiary-fixed-dim": "#9fcaff",
+                        "surface-container-low": "#191c21",
+                        "surface-container-lowest": "#0b0e13",
+                        "background": "#101418",
+                        "on-primary": "#422c00",
+                        "primary-fixed": "#ffdeaa",
+                        "secondary-fixed-dim": "#c4c7ca",
+                        "inverse-on-surface": "#2e3036",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "secondary": "#c4c7ca",
+                        "on-secondary-container": "#b3b5b8",
+                        "surface-container-high": "#272a2f",
+                        "tertiary-container": "#6dacf3",
+                        "on-tertiary-fixed-variant": "#00497e",
+                        "primary": "#f9bc4a",
+                        "surface-variant": "#32353a",
+                        "on-background": "#e1e2e9",
+                        "error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "container-padding": "24px",
+                        "fluting-width": "1px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "display-lg": ["Cinzel"],
+                        "headline-sm": ["Cinzel"],
+                        "display-md": ["Cinzel"],
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                        "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "0.15em", "fontWeight": "700"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                        "display-md": ["28px", {"lineHeight": "34px", "letterSpacing": "0.12em", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Meander (Greek Key) Pattern - Horizontal */
+        .bg-meander {
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='10' viewBox='0 0 40 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10V0h10v10h10V0h10v10h10V0' stroke='%23d79e2d' stroke-width='1' fill='none' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+            background-repeat: repeat-x;
+            background-size: auto 4px;
+            background-position: center;
+        }
+        
+        /* Hide scrollbar for the horizontal snapping container */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col items-center justify-center m-0 p-0 overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- Mobile Container Wrapper for the 3 Panels -->
+<main class="relative w-full max-w-[480px] h-[100dvh] mx-auto bg-surface-container-lowest flex flex-col border-x border-outline-variant/30 overflow-hidden">
+<!-- Scrolling Container -->
+<div class="flex-1 flex overflow-x-auto snap-x snap-mandatory no-scrollbar h-full w-full" id="onboarding-carousel">
+<!-- PANEL 1: KAIRO (Welcome) -->
+<section class="flex-none w-full h-full snap-center flex flex-col items-center justify-between py-12 px-container-padding relative" id="panel-1">
+<!-- Top / Center content -->
+<div class="flex-1 flex flex-col items-center justify-center text-center w-full">
+<!-- Spartan Helmet Placeholder (SVG) -->
+<div class="w-[120px] h-[120px] mb-8 text-primary flex items-center justify-center"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTkkzMtOksX_6GLQYH0SfAeg27e5j4vsI-pHhzugkQZI7nZzzgywJVbXtXA3ssTyjkSPzWsylcxFG4kFkB3ZTXMSm9dTcbHz3iYzqsWjQn1e48-OdD9ncCxxUZrQZn2H4peCZ9qgOoAsufGUJqrrMufsIZiLcC0nPX9W7w_PmtTzbz1p7dSfLXh-e6Vu0Ad1d3Fg4A1kYzaAGxX1M14FCbQlwBWQ_C2qFnVNBGtIk9-UsJuv_rnVAreioi-J5_O9T8Cok" alt="Kairo Logo" class="w-full h-full object-contain"></div>
+<h1 class="font-display-md text-display-md text-on-surface tracking-widest uppercase mb-4">KAIRO</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-xs mx-auto">
+                        One app for the work you owe yourself.
+                    </p>
+</div>
+<!-- Bottom Action -->
+<div class="w-full flex flex-col gap-6 mt-auto">
+<!-- Decorative line -->
+<div class="w-full h-1 bg-meander opacity-50"></div>
+<button class="w-full h-[56px] bg-primary-container text-on-primary-container font-label-md text-label-md uppercase tracking-widest flex items-center justify-center transition-transform active:scale-[0.98]" onclick="nextPanel(1)" type="button">
+                        Enter
+                    </button>
+</div>
+</section>
+<!-- PANEL 2: THE MEASURES (Settings) -->
+<section class="flex-none w-full h-full snap-center flex flex-col py-12 px-container-padding relative border-l border-outline-variant/20" id="panel-2">
+<div class="flex-1 flex flex-col w-full">
+<h2 class="font-headline-sm text-headline-sm text-primary uppercase tracking-widest mb-2">The Measures</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-10 border-b border-outline-variant/30 pb-6">
+                        Set the metrics of your discipline. These can be altered in the Citadel later.
+                    </p>
+<!-- Settings Rows -->
+<div class="flex flex-col gap-6 w-full">
+<!-- Row 1: Weight -->
+<div class="flex items-center justify-between group">
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider">Weight</span>
+<div class="flex items-center rounded border border-outline-variant overflow-hidden">
+<button class="px-4 py-2 bg-primary-container text-on-primary-container font-label-sm text-label-sm uppercase">KG</button>
+<button class="px-4 py-2 bg-surface text-on-surface-variant font-label-sm text-label-sm uppercase hover:bg-surface-variant transition-colors">LB</button>
+</div>
+</div>
+<!-- Divider (Fluting) -->
+<div class="h-px w-full bg-outline-variant/30"></div>
+<!-- Row 2: Distance -->
+<div class="flex items-center justify-between group">
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider">Distance</span>
+<div class="flex items-center rounded border border-outline-variant overflow-hidden">
+<button class="px-4 py-2 bg-surface text-on-surface-variant font-label-sm text-label-sm uppercase hover:bg-surface-variant transition-colors">KM</button>
+<button class="px-4 py-2 bg-primary-container text-on-primary-container font-label-sm text-label-sm uppercase">MI</button>
+</div>
+</div>
+<!-- Divider (Fluting) -->
+<div class="h-px w-full bg-outline-variant/30"></div>
+<!-- Row 3: Week Starts -->
+<div class="flex items-center justify-between group">
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider">Week Starts</span>
+<div class="flex items-center rounded border border-outline-variant overflow-hidden">
+<button class="px-4 py-2 bg-primary-container text-on-primary-container font-label-sm text-label-sm uppercase">MON</button>
+<button class="px-4 py-2 bg-surface text-on-surface-variant font-label-sm text-label-sm uppercase hover:bg-surface-variant transition-colors">SUN</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Action -->
+<div class="w-full mt-auto pt-8">
+<button class="w-full h-[56px] bg-primary-container text-on-primary-container font-label-md text-label-md uppercase tracking-widest flex items-center justify-center transition-transform active:scale-[0.98]" onclick="nextPanel(2)" type="button">
+                        Continue
+                    </button>
+</div>
+</section>
+<!-- PANEL 3: THE GATEKEEPERS (Permissions) -->
+<section class="flex-none w-full h-full snap-center flex flex-col py-12 px-container-padding relative border-l border-outline-variant/20" id="panel-3">
+<div class="flex-1 flex flex-col w-full">
+<h2 class="font-headline-sm text-headline-sm text-primary uppercase tracking-widest mb-2">The Gatekeepers</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-8 border-b border-outline-variant/30 pb-6">
+                        Grant passage to the tools required for absolute tracking.
+                    </p>
+<!-- Permission Cards -->
+<div class="flex flex-col gap-4 w-full">
+<!-- Card 1 -->
+<label class="flex items-center p-4 bg-surface border border-outline-variant rounded-sm cursor-pointer hover:border-primary-container transition-colors group">
+<div class="w-10 h-10 flex items-center justify-center bg-surface-container rounded-sm mr-4 text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</div>
+<div class="flex-1">
+<h3 class="font-label-md text-label-md text-on-surface uppercase mb-1">Reminders</h3>
+<p class="text-[12px] leading-[16px] text-on-surface-variant font-body-md">Never miss a rite.</p>
+</div>
+<div class="relative flex items-center justify-center w-6 h-6 border-2 border-outline-variant rounded-sm">
+<input checked="" class="absolute opacity-0 w-full h-full cursor-pointer peer" type="checkbox">
+<span class="material-symbols-outlined text-[16px] text-primary opacity-0 peer-checked:opacity-100" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</label>
+<!-- Card 2 -->
+<label class="flex items-center p-4 bg-surface border border-outline-variant rounded-sm cursor-pointer hover:border-primary-container transition-colors group">
+<div class="w-10 h-10 flex items-center justify-center bg-surface-container rounded-sm mr-4 text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined">location_on</span>
+</div>
+<div class="flex-1">
+<h3 class="font-label-md text-label-md text-on-surface uppercase mb-1">Location</h3>
+<p class="text-[12px] leading-[16px] text-on-surface-variant font-body-md">Track the path forged.</p>
+</div>
+<div class="relative flex items-center justify-center w-6 h-6 border-2 border-outline-variant rounded-sm">
+<input class="absolute opacity-0 w-full h-full cursor-pointer peer" type="checkbox">
+<span class="material-symbols-outlined text-[16px] text-primary opacity-0 peer-checked:opacity-100" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</label>
+<!-- Card 3 -->
+<label class="flex items-center p-4 bg-surface border border-outline-variant rounded-sm cursor-pointer hover:border-primary-container transition-colors group">
+<div class="w-10 h-10 flex items-center justify-center bg-surface-container rounded-sm mr-4 text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined">photo_camera</span>
+</div>
+<div class="flex-1">
+<h3 class="font-label-md text-label-md text-on-surface uppercase mb-1">Photos</h3>
+<p class="text-[12px] leading-[16px] text-on-surface-variant font-body-md">Document the physical toll.</p>
+</div>
+<div class="relative flex items-center justify-center w-6 h-6 border-2 border-outline-variant rounded-sm">
+<input class="absolute opacity-0 w-full h-full cursor-pointer peer" type="checkbox">
+<span class="material-symbols-outlined text-[16px] text-primary opacity-0 peer-checked:opacity-100" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</label>
+</div>
+</div>
+<!-- Bottom Action -->
+<div class="w-full mt-auto pt-8">
+<button class="w-full h-[56px] bg-primary-container text-on-primary-container font-label-md text-label-md uppercase tracking-widest flex items-center justify-center transition-transform active:scale-[0.98]" type="button">
+                        Cross the threshold
+                    </button>
+</div>
+</section>
+</div>
+<!-- Progress Indicator (Fixed Bottom) -->
+<div class="absolute bottom-6 left-0 w-full flex justify-center items-center gap-3 z-10 pointer-events-none">
+<div class="w-2 h-2 rounded-full bg-primary transition-all duration-300" id="dot-0"></div>
+<div class="w-2 h-2 rounded-full bg-outline-variant transition-all duration-300" id="dot-1"></div>
+<div class="w-2 h-2 rounded-full bg-outline-variant transition-all duration-300" id="dot-2"></div>
+</div>
+</main>
+<script>
+        const carousel = document.getElementById('onboarding-carousel');
+        const dots = [
+            document.getElementById('dot-0'),
+            document.getElementById('dot-1'),
+            document.getElementById('dot-2')
+        ];
+
+        // Function to scroll to the next panel
+        function nextPanel(currentIndex) {
+            const width = carousel.offsetWidth;
+            carousel.scrollTo({
+                left: width * currentIndex,
+                behavior: 'smooth'
+            });
+        }
+
+        // Update dots based on scroll position
+        carousel.addEventListener('scroll', () => {
+            const width = carousel.offsetWidth;
+            const scrollLeft = carousel.scrollLeft;
+            
+            // Calculate active index with a slight threshold
+            const activeIndex = Math.round(scrollLeft / width);
+
+            // Update dot styling
+            dots.forEach((dot, index) => {
+                if (index === activeIndex) {
+                    dot.classList.remove('bg-outline-variant');
+                    dot.classList.add('bg-primary');
+                    // Add slight scale to active dot
+                    dot.style.transform = 'scale(1.2)';
+                } else {
+                    dot.classList.remove('bg-primary');
+                    dot.classList.add('bg-outline-variant');
+                    dot.style.transform = 'scale(1)';
+                }
+            });
+        });
+    </script>
+
+
+</body></html>

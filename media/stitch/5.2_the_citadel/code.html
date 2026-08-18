@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kairo - Citadel</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed": "#e0e3e6",
+                      "surface-container": "#1d2025",
+                      "on-primary-fixed-variant": "#5f4100",
+                      "on-error-container": "#ffdad6",
+                      "on-secondary-container": "#b3b5b8",
+                      "secondary": "#c4c7ca",
+                      "surface": "#101418",
+                      "inverse-surface": "#e1e2e9",
+                      "secondary-container": "#44474a",
+                      "inverse-on-surface": "#2e3036",
+                      "on-background": "#e1e2e9",
+                      "on-surface-variant": "#d4c4af",
+                      "background": "#101418",
+                      "on-tertiary-container": "#003f6e",
+                      "on-primary-container": "#523800",
+                      "on-secondary-fixed-variant": "#44474a",
+                      "inverse-primary": "#7d5700",
+                      "on-error": "#690005",
+                      "tertiary": "#9fcaff",
+                      "surface-dim": "#101418",
+                      "error": "#ffb4ab",
+                      "surface-container-highest": "#32353a",
+                      "on-primary": "#422c00",
+                      "on-secondary-fixed": "#191c1e",
+                      "tertiary-fixed": "#d2e4ff",
+                      "secondary-fixed-dim": "#c4c7ca",
+                      "tertiary-fixed-dim": "#9fcaff",
+                      "outline-variant": "#504535",
+                      "surface-tint": "#f9bc4a",
+                      "surface-container-low": "#191c21",
+                      "on-tertiary-fixed": "#001d37",
+                      "outline": "#9c8f7c",
+                      "surface-container-high": "#272a2f",
+                      "on-surface": "#e1e2e9",
+                      "surface-container-lowest": "#0b0e13",
+                      "primary-fixed-dim": "#f9bc4a",
+                      "on-tertiary": "#003259",
+                      "surface-variant": "#32353a",
+                      "on-primary-fixed": "#271900",
+                      "tertiary-container": "#6dacf3",
+                      "primary": "#f9bc4a",
+                      "surface-bright": "#36393f",
+                      "on-secondary": "#2d3133",
+                      "on-tertiary-fixed-variant": "#00497e",
+                      "error-container": "#93000a",
+                      "primary-fixed": "#ffdeaa",
+                      "primary-container": "#d79e2d"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "16px",
+                      "container-padding": "24px",
+                      "unit": "8px",
+                      "fluting-width": "1px"
+              },
+              "fontFamily": {
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "headline-sm": [
+                              "Cinzel"
+                      ],
+                      "label-sm": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Cinzel"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "display-md": [
+                              "Cinzel"
+                      ]
+              },
+              "fontSize": {
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-sm": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "letterSpacing": "0.1em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-lg": [
+                              "40px",
+                              {
+                                      "lineHeight": "48px",
+                                      "letterSpacing": "0.15em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-md": [
+                              "28px",
+                              {
+                                      "lineHeight": "34px",
+                                      "letterSpacing": "0.12em",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .greek-key {
+            background-image: url("data:image/svg+xml,%3Csvg width='24' height='4' viewBox='0 0 24 4' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0H24V4H0V0ZM2 2H4V4H2V2ZM6 0H8V2H6V0ZM10 2H12V4H10V2ZM14 0H16V2H14V0ZM18 2H20V4H18V2ZM22 0H24V2H22V0Z' fill='%23D79E2D'/%3E%3C/svg%3E");
+            background-repeat: repeat-x;
+        }
+      </style>
+</head>
+<body class="bg-background text-on-surface font-body-md pb-24 h-screen overflow-y-auto">
+<!-- Top Header -->
+<header class="px-container-padding pt-8 pb-4 relative">
+<div class="flex">
+<!-- Fluting -->
+<div class="w-1 border-r border-outline-variant mr-4 hidden sm:block"></div>
+<div class="w-1 border-r border-outline-variant mr-4"></div>
+<div class="flex-1">
+<!-- Top Row -->
+<div class="flex justify-between items-center mb-6">
+<div class="flex items-center gap-3">
+<img alt="Spartan Helmet Mark" class="w-7 h-7 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_DTD1p-CXuKo3VSTqx1r1oB_Uh-MzWa2nceGSOnLN8TeVG-x0N2BlQNl65g9PEV4coBNK8osEgpMVgAgJnMaEsOYuC2e0OwpPHNNlOxNX-STJkEwVS0da7r9MOKOOQ6iXSJLH2YNGu8zsq-EBuH5xgcKGtUk_YaVwbLyRI9lALzfW_kXmlxSQnovEnQ1jkqUeLB4En8LDDVr5LviXOK19q3r-eDle3ho4eGMHoZit2KKK-iG62kp3_RVP6x16m0oeMzk"/>
+<h1 class="font-headline-sm text-headline-sm text-[#F2F4F7] uppercase tracking-[0.1em]">KAIRO</h1>
+</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-[#98A2B3] text-[22px]" data-icon="settings">settings</span>
+<span class="material-symbols-outlined text-[#98A2B3] text-[22px]" data-icon="emoji_events">emoji_events</span>
+</div>
+</div>
+<!-- Title Row -->
+<div>
+<h2 class="font-display-md text-display-md text-[#F2F4F7] mb-1">Good evening</h2>
+<p class="text-[14px] text-[#98A2B3] font-body-md">Monday, 18 August</p>
+</div>
+</div>
+</div>
+<!-- Greek Key Decor -->
+<div class="h-1 w-full greek-key mt-6 opacity-80"></div>
+</header>
+<!-- Main Content Canvas -->
+<main class="px-container-padding flex flex-col gap-4 max-w-4xl mx-auto">
+<!-- Card 1: THE RITES -->
+<article class="bg-surface border border-outline-variant p-4">
+<header class="flex justify-between items-center mb-4 border-b border-outline-variant pb-2">
+<h3 class="font-label-sm text-label-sm uppercase text-secondary">THE RITES</h3>
+<button class="font-label-sm text-label-sm text-primary uppercase flex items-center hover:opacity-80 transition-opacity">
+                    OPEN <span class="material-symbols-outlined text-[14px] ml-1">chevron_right</span>
+</button>
+</header>
+<div class="flex items-baseline gap-2 mb-4">
+<span class="font-display-md text-display-md">4 / 6</span>
+<span class="text-secondary font-body-md">kept today</span>
+</div>
+<ul class="flex flex-col gap-3 mb-4">
+<li class="flex items-center gap-3 font-body-md">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="flex-1">Cold shower</span>
+<span class="text-secondary text-sm">14d</span>
+</li>
+<li class="flex items-center gap-3 font-body-md">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="flex-1">Read 20 pages</span>
+<span class="text-secondary text-sm">14d</span>
+</li>
+<li class="flex items-center gap-3 font-body-md opacity-50">
+<div class="w-2 h-2 rounded-full bg-error"></div>
+<span class="flex-1">Stretch</span>
+<span class="text-secondary text-sm">0d</span>
+</li>
+</ul>
+<div class="text-error font-label-md text-label-md uppercase tracking-wider">
+                1 flame guttering
+            </div>
+</article>
+<!-- Card 2: THE FEAST -->
+<article class="bg-surface border border-outline-variant p-4">
+<header class="flex justify-between items-center mb-4 border-b border-outline-variant pb-2">
+<h3 class="font-label-sm text-label-sm uppercase text-secondary">THE FEAST</h3>
+<button class="font-label-sm text-label-sm text-primary uppercase flex items-center hover:opacity-80 transition-opacity">
+                    OPEN <span class="material-symbols-outlined text-[14px] ml-1">chevron_right</span>
+</button>
+</header>
+<div class="flex items-baseline gap-2 mb-6">
+<span class="font-display-md text-display-md">1,540 kcal</span>
+<span class="text-secondary font-body-md">of 2,600</span>
+</div>
+<div class="flex flex-col gap-4">
+<div>
+<div class="flex justify-between text-sm mb-1">
+<span class="text-secondary">Protein Den</span>
+<span class="text-[#4ade80]">62%</span>
+</div>
+<div class="h-1 bg-surface-variant w-full">
+<div class="h-full bg-[#4ade80]" style="width: 62%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-sm mb-1">
+<span class="text-secondary">The Granary</span>
+<span class="text-[#60a5fa]">48%</span>
+</div>
+<div class="h-1 bg-surface-variant w-full">
+<div class="h-full bg-[#60a5fa]" style="width: 48%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-sm mb-1">
+<span class="text-secondary">The Fat Pool</span>
+<span class="text-[#a78bfa]">71%</span>
+</div>
+<div class="h-1 bg-surface-variant w-full">
+<div class="h-full bg-[#a78bfa]" style="width: 71%"></div>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 3: THE SCALES -->
+<article class="bg-surface border border-outline-variant p-4">
+<header class="flex justify-between items-center mb-4 border-b border-outline-variant pb-2">
+<h3 class="font-label-sm text-label-sm uppercase text-secondary">THE SCALES</h3>
+<button class="font-label-sm text-label-sm text-primary uppercase flex items-center hover:opacity-80 transition-opacity">
+                    OPEN <span class="material-symbols-outlined text-[14px] ml-1">chevron_right</span>
+</button>
+</header>
+<div class="flex justify-between items-end">
+<div>
+<div class="font-display-md text-display-md mb-1">74.8 kg</div>
+<div class="text-secondary font-body-md text-sm">7-day trend</div>
+</div>
+<div class="text-right">
+<div class="font-label-sm text-label-sm text-secondary mb-1">30 DAYS</div>
+<div class="text-[#4ade80] font-body-md">−1.4 kg</div>
+</div>
+</div>
+</article>
+<!-- Card 4: THE FORGE -->
+<article class="bg-surface border border-outline-variant p-4">
+<header class="flex justify-between items-center mb-4 border-b border-outline-variant pb-2">
+<h3 class="font-label-sm text-label-sm uppercase text-secondary">THE FORGE</h3>
+<button class="font-label-sm text-label-sm text-primary uppercase flex items-center hover:opacity-80 transition-opacity">
+                    RESUME <span class="material-symbols-outlined text-[14px] ml-1">chevron_right</span>
+</button>
+</header>
+<div class="flex items-center gap-3">
+<div class="w-[10px] h-[10px] rounded-full bg-[#4ade80]"></div>
+<div>
+<div class="font-display-md text-display-md mb-1">In progress</div>
+<div class="text-secondary font-body-md text-sm">24m 10s</div>
+</div>
+</div>
+</article>
+<!-- THE OUTER WARD -->
+<section class="mt-4 mb-8">
+<h3 class="font-label-sm text-label-sm uppercase text-secondary mb-2 pl-4">THE OUTER WARD</h3>
+<div class="bg-surface border border-outline-variant">
+<div class="p-4 border-b border-outline-variant flex justify-between items-center hover:bg-surface-variant transition-colors cursor-pointer">
+<span class="font-body-md">The Oracle</span>
+<span class="material-symbols-outlined text-secondary text-sm">chevron_right</span>
+</div>
+<div class="p-4 border-b border-outline-variant flex justify-between items-center hover:bg-surface-variant transition-colors cursor-pointer">
+<span class="font-body-md">The Call</span>
+<span class="material-symbols-outlined text-secondary text-sm">chevron_right</span>
+</div>
+<div class="p-4 flex justify-between items-center hover:bg-surface-variant transition-colors cursor-pointer">
+<span class="font-body-md">The Annals</span>
+<span class="material-symbols-outlined text-secondary text-sm">chevron_right</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Shell -->
+<nav class="md:hidden bg-surface-container dark:bg-surface-container fixed bottom-0 w-full z-50 flex justify-around items-center h-20 pb-safe px-2">
+<!-- CITADEL (Active) -->
+<a class="flex flex-col items-center justify-center text-primary border-t-2 border-primary pt-2 w-16 group" href="#">
+<span class="material-symbols-outlined mb-1 transition-transform group-active:scale-95" data-icon="fort" style="font-variation-settings: 'FILL' 1;">fort</span>
+<span class="font-label-sm text-[10px] uppercase tracking-widest mt-1">CITADEL</span>
+</a>
+<!-- RITES -->
+<a class="flex flex-col items-center justify-center text-secondary pt-2 w-16 group hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined mb-1 transition-transform group-active:scale-95" data-icon="task_alt">task_alt</span>
+<span class="font-label-sm text-[10px] uppercase tracking-widest mt-1">RITES</span>
+</a>
+<!-- FORGE -->
+<a class="flex flex-col items-center justify-center text-secondary pt-2 w-16 group hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined mb-1 transition-transform group-active:scale-95" data-icon="fitness_center">fitness_center</span>
+<span class="font-label-sm text-[10px] uppercase tracking-widest mt-1">FORGE</span>
+</a>
+<!-- FEAST -->
+<a class="flex flex-col items-center justify-center text-secondary pt-2 w-16 group hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined mb-1 transition-transform group-active:scale-95" data-icon="restaurant">restaurant</span>
+<span class="font-label-sm text-[10px] uppercase tracking-widest mt-1">FEAST</span>
+</a>
+<!-- SCALES -->
+<a class="flex flex-col items-center justify-center text-secondary pt-2 w-16 group hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined mb-1 transition-transform group-active:scale-95" data-icon="balance">balance</span>
+<span class="font-label-sm text-[10px] uppercase tracking-widest mt-1">SCALES</span>
+</a>
+</nav>
+</body></html>

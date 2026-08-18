@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Chronicle</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#001d37",
+                        "surface-container-highest": "#32353a",
+                        "primary-container": "#d79e2d",
+                        "inverse-surface": "#e1e2e9",
+                        "on-primary-container": "#523800",
+                        "on-tertiary-container": "#003f6e",
+                        "outline": "#9c8f7c",
+                        "secondary-container": "#44474a",
+                        "outline-variant": "#504535",
+                        "surface-container": "#1d2025",
+                        "error": "#ffb4ab",
+                        "primary-fixed-dim": "#f9bc4a",
+                        "secondary-fixed": "#e0e3e6",
+                        "surface-dim": "#101418",
+                        "on-secondary": "#2d3133",
+                        "tertiary": "#9fcaff",
+                        "on-secondary-fixed": "#191c1e",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed": "#d2e4ff",
+                        "on-tertiary": "#003259",
+                        "surface-tint": "#f9bc4a",
+                        "on-primary-fixed": "#271900",
+                        "inverse-primary": "#7d5700",
+                        "on-surface": "#e1e2e9",
+                        "surface-bright": "#36393f",
+                        "surface": "#101418",
+                        "on-surface-variant": "#d4c4af",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#5f4100",
+                        "tertiary-fixed-dim": "#9fcaff",
+                        "surface-container-low": "#191c21",
+                        "surface-container-lowest": "#0b0e13",
+                        "background": "#101418",
+                        "on-primary": "#422c00",
+                        "primary-fixed": "#ffdeaa",
+                        "secondary-fixed-dim": "#c4c7ca",
+                        "inverse-on-surface": "#2e3036",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "secondary": "#c4c7ca",
+                        "on-secondary-container": "#b3b5b8",
+                        "surface-container-high": "#272a2f",
+                        "tertiary-container": "#6dacf3",
+                        "on-tertiary-fixed-variant": "#00497e",
+                        "primary": "#f9bc4a",
+                        "surface-variant": "#32353a",
+                        "on-background": "#e1e2e9",
+                        "error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "container-padding": "24px",
+                        "fluting-width": "1px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "display-lg": ["Cinzel"],
+                        "headline-sm": ["Cinzel"],
+                        "display-md": ["Cinzel"],
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "0.15em", "fontWeight": "700" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "display-md": ["28px", { "lineHeight": "34px", "letterSpacing": "0.12em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #101418; color: #e1e2e9; }
+        .greek-key-border {
+            background-image: url("data:image/svg+xml,%3Csvg width='24' height='4' viewBox='0 0 24 4' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 4V0H4V3H3V1H1V3H2V4H0ZM6 4V0H10V3H9V1H7V3H8V4H6ZM12 4V0H16V3H15V1H13V3H14V4H12ZM18 4V0H22V3H21V1H19V3H20V4H18Z' fill='%239c8f7c'/%3E%3C/svg%3E");
+            background-repeat: repeat-x;
+            height: 4px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md antialiased pb-24">
+<!-- TopAppBar (Transactional - Nav hidden) -->
+<header class="fixed top-0 w-full z-50 bg-surface border-b-fluting-width border-outline flex justify-between items-center px-container-padding h-16">
+<button class="text-primary hover:opacity-80 transition-opacity duration-200">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm uppercase text-primary tracking-widest">THE CHRONICLE</h1>
+<button class="text-primary hover:opacity-80 transition-opacity duration-200">
+<span class="material-symbols-outlined" data-icon="edit" style="font-size: 22px;">edit</span>
+</button>
+</header>
+<main class="pt-16 px-container-padding space-y-6 max-w-2xl mx-auto">
+<!-- Map Card -->
+<div class="relative w-full h-[200px] border border-outline rounded-DEFAULT overflow-hidden mt-6 bg-surface-container">
+<div class="w-full h-full bg-cover bg-center" data-alt="A dark, high-contrast topological map view showing a stylized running route. The terrain is rendered in deep charcoal and obsidian tones, almost abstract, with sharp, brutalist geographic features. A single, glowing, vibrant bronze line cuts through the dark landscape representing the path taken. The lighting emphasizes the high contrast between the bronze route and the matte black background, reinforcing a severe, warrior-focused aesthetic." data-location="Athens" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDywTxxe-Wl_Bi9n1n5T9lCdCSevo8JwG4VL7v_Mtrc-gApdoSGAnuGdG3on874FdMF0usGrLnHJR1kbIfrydWIq0BFM2w1W1FOTuFGD71n29LhwyLW6UxhBBlproV23k9TmDzRmZaLLhvNYOoO2qQei1WnFMKBKXdRN8woA2PKH8WtvQBDuBmex6jjB1Mp7r_9mfq6hE5LZjkJemAyXU-Pr-PqPEbMbddQskNdoJAhD9oAb3nXsS_1kg')"></div>
+<div class="absolute bottom-3 left-3 bg-surface text-primary border border-primary px-3 py-1 font-label-sm text-label-sm uppercase rounded-full">
+                DROMOS
+            </div>
+<button class="absolute bottom-3 right-3 flex items-center justify-center bg-surface-container/80 backdrop-blur-sm border border-outline text-primary rounded-full px-4 py-2 hover:bg-surface transition-colors">
+<span class="material-symbols-outlined mr-2" data-icon="play_circle">play_circle</span>
+<span class="font-label-md text-label-md uppercase">The retelling</span>
+</button>
+</div>
+<!-- Title Block -->
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Evening dromos</h2>
+<span class="material-symbols-outlined text-outline-variant cursor-pointer hover:text-primary transition-colors" data-icon="edit">edit</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">Saturday 16 August · 18:12</p>
+<div class="greek-key-border mt-4"></div>
+</div>
+<!-- Stats Grid -->
+<div class="bg-surface border border-outline rounded-DEFAULT p-4">
+<div class="grid grid-cols-2 md:grid-cols-3 gap-y-6 relative">
+<!-- Vertical Fluting Dividers -->
+<div class="absolute inset-y-0 left-1/2 md:left-1/3 w-fluting-width bg-outline hidden md:block"></div>
+<div class="absolute inset-y-0 left-2/3 w-fluting-width bg-outline hidden md:block"></div>
+<div class="absolute inset-y-0 left-1/2 w-fluting-width bg-outline md:hidden"></div>
+<div class="absolute top-1/2 left-0 w-full h-fluting-width bg-outline md:hidden"></div>
+<div class="flex flex-col px-4 text-center">
+<span class="font-display-md text-display-md text-on-surface">8.42 <span class="text-headline-sm">km</span></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase mt-1">DISTANCE</span>
+</div>
+<div class="flex flex-col px-4 text-center">
+<span class="font-display-md text-display-md text-on-surface">42:10</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase mt-1">MOVING</span>
+</div>
+<div class="flex flex-col px-4 text-center">
+<span class="font-display-md text-display-md text-on-surface">44:02</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase mt-1">ELAPSED</span>
+</div>
+<div class="flex flex-col px-4 text-center mt-0 md:mt-4">
+<span class="font-display-md text-display-md text-on-surface">5:00 <span class="text-headline-sm">/km</span></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase mt-1">AVG PACE</span>
+</div>
+<div class="flex flex-col px-4 text-center mt-0 md:mt-4">
+<span class="font-display-md text-display-md text-on-surface">112 <span class="text-headline-sm">m</span></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase mt-1">CLIMB</span>
+</div>
+<div class="flex flex-col px-4 text-center mt-0 md:mt-4">
+<span class="font-display-md text-display-md text-on-surface">01:52</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase mt-1">HELD</span>
+</div>
+</div>
+</div>
+<!-- The Splits -->
+<div class="space-y-4">
+<h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest border-b border-outline-variant pb-2">THE SPLITS</h3>
+<div class="bg-surface border border-outline rounded-DEFAULT p-4 space-y-4">
+<div class="flex items-center">
+<div class="w-12 font-label-md text-label-md text-on-surface-variant">1 KM</div>
+<div class="flex-grow mx-4 bg-surface-container h-2 rounded-sm overflow-hidden">
+<div class="bg-primary h-full rounded-r-none" style="width: 85%;"></div>
+</div>
+<div class="w-12 text-right font-body-md text-body-md text-on-surface">4:52</div>
+</div>
+<div class="flex items-center">
+<div class="w-12 font-label-md text-label-md text-on-surface-variant">2 KM</div>
+<div class="flex-grow mx-4 bg-surface-container h-2 rounded-sm overflow-hidden">
+<div class="bg-primary h-full rounded-r-none" style="width: 90%;"></div>
+</div>
+<div class="w-12 text-right font-body-md text-body-md text-on-surface">5:05</div>
+</div>
+<div class="flex items-center">
+<div class="w-12 font-label-md text-label-md text-on-surface-variant">3 KM</div>
+<div class="flex-grow mx-4 bg-surface-container h-2 rounded-sm overflow-hidden">
+<div class="bg-primary h-full rounded-r-none" style="width: 80%;"></div>
+</div>
+<div class="w-12 text-right font-body-md text-body-md text-on-surface">4:45</div>
+</div>
+</div>
+</div>
+<!-- Elevation -->
+<div class="space-y-4">
+<h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest border-b border-outline-variant pb-2">ELEVATION</h3>
+<div class="bg-surface border border-outline rounded-DEFAULT p-4 h-[120px] relative flex items-end">
+<!-- Decorative Area Chart Representation using CSS -->
+<div class="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-50 m-4"></div>
+<div class="w-full h-1/2 border-t-2 border-primary relative z-10" style="clip-path: polygon(0 100%, 10% 80%, 20% 90%, 30% 60%, 40% 70%, 50% 40%, 60% 50%, 70% 20%, 80% 30%, 90% 10%, 100% 0, 100% 100%); background: #d79e2d;"></div>
+</div>
+</div>
+<!-- The Timeline -->
+<div class="space-y-4">
+<h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest border-b border-outline-variant pb-2">THE TIMELINE</h3>
+<div class="border-l-2 border-outline ml-4 pl-6 space-y-6 relative py-2">
+<div class="relative">
+<div class="absolute -left-[31px] top-1 w-4 h-4 bg-surface border-2 border-primary rounded-full"></div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">18:12</p>
+<p class="font-body-md text-body-md text-on-surface">Began the ascent</p>
+</div>
+<div class="relative">
+<div class="absolute -left-[31px] top-1 w-4 h-4 bg-surface border-2 border-primary rounded-full"></div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">18:34</p>
+<p class="font-body-md text-body-md text-on-surface">Pace peaked at 4:10/km</p>
+</div>
+<div class="relative">
+<div class="absolute -left-[31px] top-1 w-4 h-4 bg-surface border-2 border-primary rounded-full"></div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">18:56</p>
+<p class="font-body-md text-body-md text-on-surface">Concluded the trial</p>
+</div>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="pt-8 space-y-4">
+<button class="w-full h-14 bg-transparent border border-outline text-on-surface font-label-md text-label-md uppercase tracking-widest hover:bg-surface-container transition-colors rounded-DEFAULT flex items-center justify-center">
+<span class="material-symbols-outlined mr-2" data-icon="edit">edit</span>
+                Edit the record
+            </button>
+<button class="w-full h-14 bg-transparent border border-error text-error font-label-md text-label-md uppercase tracking-widest hover:bg-error/10 transition-colors rounded-DEFAULT flex items-center justify-center">
+<span class="material-symbols-outlined mr-2" data-icon="delete">delete</span>
+                Delete
+            </button>
+</div>
+</main>
+</body></html>

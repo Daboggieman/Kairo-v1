@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE CANON - Kairo Design System</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Cinzel:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#e0e3e6",
+                    "surface-container": "#1d2025",
+                    "on-primary-fixed-variant": "#5f4100",
+                    "on-error-container": "#ffdad6",
+                    "on-secondary-container": "#b3b5b8",
+                    "secondary": "#c4c7ca",
+                    "surface": "#101418",
+                    "inverse-surface": "#e1e2e9",
+                    "secondary-container": "#44474a",
+                    "inverse-on-surface": "#2e3036",
+                    "on-background": "#e1e2e9",
+                    "on-surface-variant": "#d4c4af",
+                    "background": "#101418",
+                    "on-tertiary-container": "#003f6e",
+                    "on-primary-container": "#523800",
+                    "on-secondary-fixed-variant": "#44474a",
+                    "inverse-primary": "#7d5700",
+                    "on-error": "#690005",
+                    "tertiary": "#9fcaff",
+                    "surface-dim": "#101418",
+                    "error": "#ffb4ab",
+                    "surface-container-highest": "#32353a",
+                    "on-primary": "#422c00",
+                    "on-secondary-fixed": "#191c1e",
+                    "tertiary-fixed": "#d2e4ff",
+                    "secondary-fixed-dim": "#c4c7ca",
+                    "tertiary-fixed-dim": "#9fcaff",
+                    "outline-variant": "#504535",
+                    "surface-tint": "#f9bc4a",
+                    "surface-container-low": "#191c21",
+                    "on-tertiary-fixed": "#001d37",
+                    "outline": "#9c8f7c",
+                    "surface-container-high": "#272a2f",
+                    "on-surface": "#e1e2e9",
+                    "surface-container-lowest": "#0b0e13",
+                    "primary-fixed-dim": "#f9bc4a",
+                    "on-tertiary": "#003259",
+                    "surface-variant": "#32353a",
+                    "on-primary-fixed": "#271900",
+                    "tertiary-container": "#6dacf3",
+                    "primary": "#f9bc4a",
+                    "surface-bright": "#36393f",
+                    "on-secondary": "#2d3133",
+                    "on-tertiary-fixed-variant": "#00497e",
+                    "error-container": "#93000a",
+                    "primary-fixed": "#ffdeaa",
+                    "primary-container": "#d79e2d"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "container-padding": "24px",
+                    "unit": "8px",
+                    "fluting-width": "1px"
+            },
+            "fontFamily": {
+                    "body-md": [
+                            "Inter"
+                    ],
+                    "headline-sm": [
+                            "Cinzel"
+                    ],
+                    "label-sm": [
+                            "Inter"
+                    ],
+                    "display-lg": [
+                            "Cinzel"
+                    ],
+                    "label-md": [
+                            "Inter"
+                    ],
+                    "body-lg": [
+                            "Inter"
+                    ],
+                    "display-md": [
+                            "Cinzel"
+                    ]
+            },
+            "fontSize": {
+                    "body-md": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "letterSpacing": "0.01em",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-sm": [
+                            "20px",
+                            {
+                                    "lineHeight": "28px",
+                                    "letterSpacing": "0.1em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "label-sm": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "display-lg": [
+                            "40px",
+                            {
+                                    "lineHeight": "48px",
+                                    "letterSpacing": "0.15em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "label-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-lg": [
+                            "18px",
+                            {
+                                    "lineHeight": "28px",
+                                    "letterSpacing": "0.01em",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "display-md": [
+                            "28px",
+                            {
+                                    "lineHeight": "34px",
+                                    "letterSpacing": "0.12em",
+                                    "fontWeight": "700"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<style>
+        /* Meander pattern for decor */
+        .meander-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10h4v-4h4v8h4v-12h4v16h-16v-8' stroke='currentColor' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+            background-repeat: repeat-x;
+            height: 20px;
+        }
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body-md text-body-md pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface border-b-4 border-primary flex justify-between items-center px-container-padding h-16">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary hover:opacity-80 transition-opacity duration-200">security</span>
+</div>
+<h1 class="font-display-md text-display-md text-primary tracking-widest font-extrabold uppercase">THE CANON</h1>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant hover:opacity-80 transition-opacity duration-200">settings</span>
+</div>
+</header>
+<main class="max-w-[390px] mx-auto mt-20 px-container-padding space-y-[18px]">
+<!-- Section: Colors -->
+<section>
+<h2 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-2">1. Color Swatches</h2>
+<div class="grid grid-cols-4 gap-2 mb-2">
+<div class="h-12 bg-background border border-surface-variant rounded flex flex-col items-center justify-end p-1"><span class="text-[10px] text-on-surface-variant">bg</span></div>
+<div class="h-12 bg-surface border border-surface-variant rounded flex flex-col items-center justify-end p-1"><span class="text-[10px] text-on-surface-variant">surface</span></div>
+<div class="h-12 bg-surface-container-high border border-surface-variant rounded flex flex-col items-center justify-end p-1"><span class="text-[10px] text-on-surface-variant">raised</span></div>
+<div class="h-12 bg-outline-variant rounded flex flex-col items-center justify-end p-1"><span class="text-[10px] text-on-surface-variant">border</span></div>
+</div>
+<div class="grid grid-cols-4 gap-2 mb-2">
+<div class="h-12 bg-on-surface rounded flex flex-col items-center justify-end p-1"><span class="text-[10px] text-surface-container-lowest">text</span></div>
+<div class="h-12 bg-on-surface-variant rounded flex flex-col items-center justify-end p-1"><span class="text-[10px] text-surface-container-lowest">muted</span></div>
+<div class="h-12 bg-primary rounded flex flex-col items-center justify-end p-1"><span class="text-[10px] text-on-primary">accent</span></div>
+<div class="h-12 bg-primary-container rounded flex flex-col items-center justify-end p-1"><span class="text-[10px] text-on-primary-container">acc-txt</span></div>
+</div>
+<div class="grid grid-cols-4 gap-2">
+<div class="h-12 bg-[#2E7D32] rounded flex flex-col items-center justify-end p-1"><span class="text-[10px] text-white">success</span></div>
+<div class="h-12 bg-error rounded flex flex-col items-center justify-end p-1"><span class="text-[10px] text-on-error">danger</span></div>
+<div class="h-12 bg-[#F57C00] rounded flex flex-col items-center justify-end p-1"><span class="text-[10px] text-white">warning</span></div>
+<div class="h-12 bg-[#0288D1] rounded flex flex-col items-center justify-end p-1"><span class="text-[10px] text-white">info</span></div>
+</div>
+</section>
+<!-- Section: Typography -->
+<section class="border-t border-outline-variant pt-4">
+<h2 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-4">2. Typography</h2>
+<div class="space-y-4">
+<div>
+<span class="text-[10px] text-on-surface-variant block mb-1">Title (28px Cinzel)</span>
+<div class="font-display-md text-display-md text-on-surface">Spartan Ethos</div>
+</div>
+<div>
+<span class="text-[10px] text-on-surface-variant block mb-1">Eyebrow (12px Inter Uppercase)</span>
+<div class="font-label-sm text-label-sm text-primary uppercase tracking-widest">Discipline</div>
+</div>
+<div>
+<span class="text-[10px] text-on-surface-variant block mb-1">Body (16/24 Inter)</span>
+<div class="font-body-md text-body-md text-on-surface">The quick brown fox jumps over the lazy dog, demonstrating structural integrity.</div>
+</div>
+<div>
+<span class="text-[10px] text-on-surface-variant block mb-1">Muted Body (14/20 Inter)</span>
+<div class="font-label-md text-label-md text-on-surface-variant font-normal">Secondary information provides context without demanding focus.</div>
+</div>
+<div>
+<span class="text-[10px] text-on-surface-variant block mb-1">Caption (12/18 Inter)</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant font-normal">Metadata and microcopy sit here.</div>
+</div>
+<div>
+<span class="text-[10px] text-on-surface-variant block mb-1">Tabular Timer (56px)</span>
+<div class="text-[56px] leading-none font-bold text-on-surface tabular-nums tracking-tight">12:04</div>
+</div>
+</div>
+</section>
+<!-- Section: Buttons -->
+<section class="border-t border-outline-variant pt-4">
+<h2 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-4">3. Buttons</h2>
+<div class="space-y-4">
+<button class="w-full h-[56px] bg-primary text-on-primary font-label-md text-label-md uppercase tracking-wider rounded-[12px] hover:opacity-80 transition-opacity">Primary Action</button>
+<button class="w-full h-[56px] bg-transparent border border-outline-variant text-on-surface font-label-md text-label-md uppercase tracking-wider rounded-[12px] hover:bg-surface-variant transition-colors">Secondary Action</button>
+<button class="w-full h-[56px] bg-transparent border border-error text-error font-label-md text-label-md uppercase tracking-wider rounded-[12px] hover:bg-error-container hover:text-on-error-container transition-colors">Danger Action</button>
+<button class="w-full h-[56px] bg-primary text-on-primary font-label-md text-label-md uppercase tracking-wider rounded-[12px] opacity-40 cursor-not-allowed">Disabled Action</button>
+</div>
+</section>
+<!-- Section: Inputs -->
+<section class="border-t border-outline-variant pt-4">
+<h2 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-4">4. Inputs</h2>
+<div class="space-y-6">
+<!-- Rest State -->
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-2">Rest Input</label>
+<input class="w-full h-[56px] bg-surface border border-outline-variant text-on-surface placeholder:text-on-surface-variant/50 rounded px-4 focus:outline-none focus:border-primary transition-colors" placeholder="Enter value" type="text"/>
+<span class="block mt-1 font-label-sm text-label-sm text-on-surface-variant font-normal">Helper text below input</span>
+</div>
+<!-- Focused State -->
+<div>
+<label class="block font-label-sm text-label-sm text-primary uppercase tracking-widest mb-2">Focused Input</label>
+<input class="w-full h-[56px] bg-surface border border-primary text-on-surface placeholder:text-on-surface-variant/50 rounded px-4 focus:outline-none focus:border-primary transition-colors" type="text" value="Active value"/>
+<span class="block mt-1 font-label-sm text-label-sm text-on-surface-variant font-normal">Helper text below input</span>
+</div>
+</div>
+</section>
+<!-- Section: Cards & Stats -->
+<section class="border-t border-outline-variant pt-4">
+<h2 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-4">5. Cards &amp; Stats</h2>
+<div class="bg-surface border border-outline-variant rounded p-6 flex flex-col items-center justify-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-1">Total Distance</span>
+<span class="font-display-md text-display-md text-primary">12.4 km</span>
+</div>
+</section>
+<!-- Section: Status Blocks -->
+<section class="border-t border-outline-variant pt-4">
+<h2 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-4">6. Status Blocks</h2>
+<div class="space-y-4">
+<!-- Info -->
+<div class="bg-[#0288D1]/10 border-l-[3px] border-[#0288D1] p-4 rounded-r">
+<h3 class="font-label-md text-label-md text-[#0288D1] mb-1">Information Note</h3>
+<p class="font-body-md text-[14px] leading-[20px] text-on-surface-variant">System update scheduled for 0300 hrs. Expect brief downtime.</p>
+</div>
+<!-- Warning -->
+<div class="bg-[#F57C00]/10 border-l-[3px] border-[#F57C00] p-4 rounded-r">
+<h3 class="font-label-md text-label-md text-[#F57C00] mb-1">Warning</h3>
+<p class="font-body-md text-[14px] leading-[20px] text-on-surface-variant">Rations running low in Sector 4. Resupply needed.</p>
+</div>
+<!-- Danger -->
+<div class="bg-error/10 border-l-[3px] border-error p-4 rounded-r">
+<h3 class="font-label-md text-label-md text-error mb-1">Critical Alert</h3>
+<p class="font-body-md text-[14px] leading-[20px] text-on-surface-variant">Breach detected in outer perimeter. Initiate lockdown.</p>
+</div>
+<!-- Accent -->
+<div class="bg-primary/10 border-l-[3px] border-primary p-4 rounded-r">
+<h3 class="font-label-md text-label-md text-primary mb-1">Milestone Achieved</h3>
+<p class="font-body-md text-[14px] leading-[20px] text-on-surface-variant">Forge trial completed successfully. New rank unlocked.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 bg-surface-container border-t border-outline-variant flex justify-around items-center h-20 pb-safe px-2">
+<a class="flex flex-col items-center justify-center text-primary border-t-2 border-primary pt-2 hover:text-primary-fixed active:scale-95 transition-transform w-16" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">fort</span>
+<span class="font-label-sm text-[10px] uppercase mt-1">CITADEL</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform w-16 border-t-2 border-transparent" href="#">
+<span class="material-symbols-outlined">task_alt</span>
+<span class="font-label-sm text-[10px] uppercase mt-1">RITES</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform w-16 border-t-2 border-transparent" href="#">
+<span class="material-symbols-outlined">fitness_center</span>
+<span class="font-label-sm text-[10px] uppercase mt-1">FORGE</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform w-16 border-t-2 border-transparent" href="#">
+<span class="material-symbols-outlined">restaurant</span>
+<span class="font-label-sm text-[10px] uppercase mt-1">FEAST</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform w-16 border-t-2 border-transparent" href="#">
+<span class="material-symbols-outlined">balance</span>
+<span class="font-label-sm text-[10px] uppercase mt-1">SCALES</span>
+</a>
+</nav>
+</body></html>

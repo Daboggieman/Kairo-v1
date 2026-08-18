@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>THE VOW</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&amp;family=Inter:wght@400..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary-fixed": "#001d37",
+                        "surface-container-highest": "#32353a",
+                        "primary-container": "#d79e2d",
+                        "inverse-surface": "#e1e2e9",
+                        "on-primary-container": "#523800",
+                        "on-tertiary-container": "#003f6e",
+                        "outline": "#9c8f7c",
+                        "secondary-container": "#44474a",
+                        "outline-variant": "#504535",
+                        "surface-container": "#1d2025",
+                        "error": "#ffb4ab",
+                        "primary-fixed-dim": "#f9bc4a",
+                        "secondary-fixed": "#e0e3e6",
+                        "surface-dim": "#101418",
+                        "on-secondary": "#2d3133",
+                        "tertiary": "#9fcaff",
+                        "on-secondary-fixed": "#191c1e",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed": "#d2e4ff",
+                        "on-tertiary": "#003259",
+                        "surface-tint": "#f9bc4a",
+                        "on-primary-fixed": "#271900",
+                        "inverse-primary": "#7d5700",
+                        "on-surface": "#e1e2e9",
+                        "surface-bright": "#36393f",
+                        "surface": "#101418",
+                        "on-surface-variant": "#d4c4af",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#5f4100",
+                        "tertiary-fixed-dim": "#9fcaff",
+                        "surface-container-low": "#191c21",
+                        "surface-container-lowest": "#0b0e13",
+                        "background": "#101418",
+                        "on-primary": "#422c00",
+                        "primary-fixed": "#ffdeaa",
+                        "secondary-fixed-dim": "#c4c7ca",
+                        "inverse-on-surface": "#2e3036",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "secondary": "#c4c7ca",
+                        "on-secondary-container": "#b3b5b8",
+                        "surface-container-high": "#272a2f",
+                        "tertiary-container": "#6dacf3",
+                        "on-tertiary-fixed-variant": "#00497e",
+                        "primary": "#f9bc4a",
+                        "surface-variant": "#32353a",
+                        "on-background": "#e1e2e9",
+                        "error-container": "#93000a"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "unit": "8px",
+                        "container-padding": "24px",
+                        "fluting-width": "1px",
+                        "gutter": "16px"
+                    },
+                    fontFamily: {
+                        "body-md": ["Inter"],
+                        "display-lg": ["Cinzel"],
+                        "headline-sm": ["Cinzel"],
+                        "display-md": ["Cinzel"],
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    fontSize: {
+                        "body-md": ["16px", { lineHeight: "24px", letterSpacing: "0.01em", fontWeight: "400" }],
+                        "display-lg": ["40px", { lineHeight: "48px", letterSpacing: "0.15em", fontWeight: "700" }],
+                        "headline-sm": ["20px", { lineHeight: "28px", letterSpacing: "0.1em", fontWeight: "600" }],
+                        "display-md": ["28px", { lineHeight: "34px", letterSpacing: "0.12em", fontWeight: "700" }],
+                        "label-md": ["14px", { lineHeight: "20px", letterSpacing: "0.05em", fontWeight: "600" }],
+                        "label-sm": ["12px", { lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "500" }],
+                        "body-lg": ["18px", { lineHeight: "28px", letterSpacing: "0.01em", fontWeight: "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .fluting-bg {
+            background-image: repeating-linear-gradient(to right, #2A2F38 0, #2A2F38 1px, transparent 1px, transparent 20px);
+        }
+        .meander-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='20' height='4' viewBox='0 0 20 4' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0H20V1H0V0ZM0 3H20V4H0V3ZM4 1H5V3H4V1ZM15 1H16V3H15V1Z' fill='%23504535'/%3E%3C/svg%3E");
+            background-repeat: repeat-x;
+        }
+        /* No standard number input spinners */
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col justify-end">
+<!-- Modal Overlay Backdrop (Optional, assuming it sits over another screen) -->
+<div aria-hidden="true" class="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm"></div>
+<!-- The Vow Modal Sheet -->
+<div class="relative z-50 bg-surface w-full max-w-md mx-auto rounded-t-xl border-t border-x border-outline-variant pb-container-padding flex flex-col shadow-2xl">
+<!-- Grab Handle Area -->
+<div class="w-full flex justify-center pt-4 pb-2">
+<div class="w-12 h-1 bg-outline-variant rounded-full"></div>
+</div>
+<!-- Header -->
+<div class="flex justify-between items-center px-container-padding pb-4 border-b border-outline-variant">
+<div class="w-16"></div> <!-- Spacer for centering -->
+<h1 class="font-headline-sm text-headline-sm text-on-surface uppercase tracking-widest">The Vow</h1>
+<button class="w-16 text-right font-label-md text-label-md text-primary hover:opacity-80 transition-opacity">Cancel</button>
+</div>
+<!-- Decorative Meander (Subtle) -->
+<div class="w-full h-1 meander-pattern opacity-50 mb-6"></div>
+<div class="px-container-padding flex flex-col gap-8">
+<!-- Description text -->
+<p class="font-body-md text-body-md text-on-surface-variant text-center">
+                A vow draws a line on the chart. It changes nothing else.
+            </p>
+<!-- Input Area -->
+<div class="flex justify-center items-center gap-4 py-4">
+<input class="bg-surface-container-low text-on-surface font-display-lg text-display-lg text-center w-48 h-24 border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors shadow-inner" step="0.1" style="font-variant-numeric: tabular-nums;" type="number" value="72.0"/>
+<!-- KG / LB Toggle -->
+<div class="flex flex-col border border-outline-variant bg-surface-container-low">
+<button class="px-4 py-3 font-label-md text-label-md text-on-primary bg-primary border-b border-outline-variant">KG</button>
+<button class="px-4 py-3 font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors">LB</button>
+</div>
+</div>
+<!-- Insight Block -->
+<div class="bg-surface-container-high border-l-4 border-primary p-4 flex flex-col gap-1">
+<p class="font-label-md text-label-md text-on-surface">2.8 kg from your current trend of 74.8 kg</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">At 0.4 kg a week, about seven weeks.</p>
+</div>
+<!-- Actions -->
+<div class="flex flex-col gap-4 mt-4">
+<button class="w-full h-14 bg-primary-container text-on-primary-container font-label-md text-label-md uppercase tracking-wider hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">swords</span>
+                    Swear the vow
+                </button>
+<button class="w-full h-14 bg-transparent border border-error text-error font-label-md text-label-md uppercase tracking-wider hover:bg-error/10 transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">broken_image</span>
+                    Break the vow
+                </button>
+<button class="w-full h-14 text-on-surface-variant font-label-md text-label-md hover:text-on-surface transition-colors mt-2">
+                    Cancel
+                </button>
+</div>
+</div>
+</div>
+</body></html>

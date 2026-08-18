@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Forge</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+        /* Meander (Greek Key) Pattern */
+        .meander-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='24' height='12' viewBox='0 0 24 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 11H8V3H4V7H6V5H7V9H2V1H10V11H18V3H14V7H16V5H17V9H12V1H20V11H24' stroke='%23d79e2d' stroke-width='1'/%3E%3C/svg%3E");
+            background-repeat: repeat-x;
+            height: 12px;
+            width: 100%;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#9c8f7c",
+                        "on-secondary": "#2d3133",
+                        "tertiary-fixed": "#d2e4ff",
+                        "inverse-on-surface": "#2e3036",
+                        "on-tertiary": "#003259",
+                        "tertiary-fixed-dim": "#9fcaff",
+                        "tertiary": "#9fcaff",
+                        "on-tertiary-fixed-variant": "#00497e",
+                        "surface-tint": "#f9bc4a",
+                        "inverse-primary": "#7d5700",
+                        "error": "#ffb4ab",
+                        "surface-bright": "#36393f",
+                        "surface-dim": "#101418",
+                        "inverse-surface": "#e1e2e9",
+                        "on-primary": "#422c00",
+                        "on-tertiary-fixed": "#001d37",
+                        "primary-container": "#d79e2d",
+                        "outline-variant": "#504535",
+                        "background": "#101418",
+                        "surface-container-lowest": "#0b0e13",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "surface": "#101418",
+                        "on-secondary-container": "#b3b5b8",
+                        "surface-container-low": "#191c21",
+                        "secondary-fixed": "#e0e3e6",
+                        "surface-container": "#1d2025",
+                        "primary-fixed-dim": "#f9bc4a",
+                        "surface-container-high": "#272a2f",
+                        "secondary-container": "#44474a",
+                        "on-primary-fixed-variant": "#5f4100",
+                        "tertiary-container": "#6dacf3",
+                        "on-surface": "#e1e2e9",
+                        "surface-variant": "#32353a",
+                        "on-primary-container": "#523800",
+                        "error-container": "#93000a",
+                        "on-background": "#e1e2e9",
+                        "secondary-fixed-dim": "#c4c7ca",
+                        "primary": "#f9bc4a",
+                        "on-primary-fixed": "#271900",
+                        "on-surface-variant": "#d4c4af",
+                        "on-secondary-fixed": "#191c1e",
+                        "primary-fixed": "#ffdeaa",
+                        "on-error": "#690005",
+                        "on-tertiary-container": "#003f6e",
+                        "surface-container-highest": "#32353a",
+                        "on-error-container": "#ffdad6",
+                        "secondary": "#c4c7ca"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "fluting-width": "1px",
+                        "gutter": "16px",
+                        "container-padding": "24px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Cinzel"],
+                        "display-lg": ["Cinzel"],
+                        "display-md": ["Cinzel"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "0.15em", "fontWeight": "700" }],
+                        "display-md": ["28px", { "lineHeight": "34px", "letterSpacing": "0.12em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col pb-24 selection:bg-primary selection:text-on-primary">
+<!-- Top App Bar equivalent -->
+<header class="fixed top-0 w-full z-50 bg-surface dark:bg-surface border-b border-outline-variant pt-safe">
+<div class="flex flex-col justify-end px-container-padding pb-4 h-24 relative">
+<h1 class="font-display-md text-display-md text-primary tracking-widest uppercase">THE FORGE</h1>
+<p class="font-label-md text-label-md text-on-surface-variant mt-1">16 sessions · 84,120 kg lifted</p>
+<div class="meander-pattern absolute bottom-0 left-0 w-full opacity-50"></div>
+</div>
+</header>
+<main class="flex-1 px-container-padding pt-32 space-y-8">
+<!-- Active Session Card -->
+<section class="bg-[#2B2110] border-l-4 border-primary rounded-r shadow-none p-4 relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent pointer-events-none"></div>
+<p class="font-label-sm text-label-sm text-primary uppercase mb-2 relative z-10">AT THE ANVIL</p>
+<div class="flex items-center gap-2 mb-1 relative z-10">
+<div class="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">In progress · 24m 10s</h2>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant mb-6 relative z-10">3 exercises · 11 strikes</p>
+<button class="w-full h-14 bg-primary-container text-on-primary-container font-label-md text-label-md uppercase tracking-wider hover:bg-primary transition-colors flex items-center justify-center gap-2 rounded relative z-10">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">whatshot</span>
+                Return to the anvil
+            </button>
+</section>
+<!-- Annals of the Forge -->
+<section>
+<h3 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-4 flex items-center gap-2">
+                THE ANNALS OF THE FORGE
+                <span class="h-fluting-width flex-1 bg-outline-variant"></span>
+</h3>
+<div class="space-y-4">
+<!-- Card 1 -->
+<article class="bg-surface border border-outline-variant rounded p-5 relative">
+<div class="flex justify-between items-center mb-4 pb-4 border-b border-outline-variant">
+<span class="font-label-md text-label-md text-on-surface">Sat 16 Aug</span>
+<span class="font-label-md text-label-md text-on-surface-variant">1h 04m</span>
+</div>
+<div class="grid grid-cols-3 gap-4 mb-4">
+<div>
+<p class="font-headline-sm text-headline-sm text-primary">18</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">STRIKES</p>
+</div>
+<div class="border-l border-outline-variant pl-4">
+<p class="font-headline-sm text-headline-sm text-on-surface tabular-nums">5,240 kg</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">TONNAGE</p>
+</div>
+<div class="border-l border-outline-variant pl-4">
+<p class="font-headline-sm text-headline-sm text-on-surface">6</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">LIFTS</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm text-on-surface-variant">Bench press</span>
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm text-on-surface-variant">Squat</span>
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm text-on-surface-variant">Row</span>
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm text-on-surface-variant">Overhead press</span>
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm text-primary-fixed">+2</span>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="bg-surface border border-outline-variant rounded p-5 relative">
+<div class="flex justify-between items-center mb-4 pb-4 border-b border-outline-variant">
+<span class="font-label-md text-label-md text-on-surface">Thu 14 Aug</span>
+<span class="font-label-md text-label-md text-on-surface-variant">58m</span>
+</div>
+<div class="grid grid-cols-3 gap-4 mb-4">
+<div>
+<p class="font-headline-sm text-headline-sm text-primary">15</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">STRIKES</p>
+</div>
+<div class="border-l border-outline-variant pl-4">
+<p class="font-headline-sm text-headline-sm text-on-surface tabular-nums">4,820 kg</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">TONNAGE</p>
+</div>
+<div class="border-l border-outline-variant pl-4">
+<p class="font-headline-sm text-headline-sm text-on-surface">5</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">LIFTS</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm text-on-surface-variant">Deadlift</span>
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm text-on-surface-variant">Pull-up</span>
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm text-on-surface-variant">Dips</span>
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm text-primary-fixed">+1</span>
+</div>
+</article>
+<!-- Card 3 -->
+<article class="bg-surface border border-outline-variant rounded p-5 relative">
+<div class="flex justify-between items-center mb-4 pb-4 border-b border-outline-variant">
+<span class="font-label-md text-label-md text-on-surface">Mon 11 Aug</span>
+<span class="font-label-md text-label-md text-on-surface-variant">1h 12m</span>
+</div>
+<div class="grid grid-cols-3 gap-4 mb-4">
+<div>
+<p class="font-headline-sm text-headline-sm text-primary">22</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">STRIKES</p>
+</div>
+<div class="border-l border-outline-variant pl-4">
+<p class="font-headline-sm text-headline-sm text-on-surface tabular-nums">6,100 kg</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">TONNAGE</p>
+</div>
+<div class="border-l border-outline-variant pl-4">
+<p class="font-headline-sm text-headline-sm text-on-surface">7</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">LIFTS</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm text-on-surface-variant">Squat</span>
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm text-on-surface-variant">Leg Press</span>
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm text-on-surface-variant">Calf Raise</span>
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm text-primary-fixed">+3</span>
+</div>
+</article>
+<!-- Card 4 -->
+<article class="bg-surface border border-outline-variant rounded p-5 relative">
+<div class="flex justify-between items-center mb-4 pb-4 border-b border-outline-variant">
+<span class="font-label-md text-label-md text-on-surface">Sat 09 Aug</span>
+<span class="font-label-md text-label-md text-on-surface-variant">45m</span>
+</div>
+<div class="grid grid-cols-3 gap-4 mb-4">
+<div>
+<p class="font-headline-sm text-headline-sm text-primary">12</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">STRIKES</p>
+</div>
+<div class="border-l border-outline-variant pl-4">
+<p class="font-headline-sm text-headline-sm text-on-surface tabular-nums">3,450 kg</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">TONNAGE</p>
+</div>
+<div class="border-l border-outline-variant pl-4">
+<p class="font-headline-sm text-headline-sm text-on-surface">4</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">LIFTS</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm text-on-surface-variant">Bench press</span>
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm text-on-surface-variant">Incline DB</span>
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm text-on-surface-variant">Flyes</span>
+</div>
+</article>
+</div>
+</section>
+</main>
+<!-- Bottom Nav Bar -->
+<nav class="fixed bottom-0 w-full z-50 bg-surface-container dark:bg-surface-container md:hidden">
+<div class="meander-pattern w-full opacity-50 absolute top-0 -mt-1"></div>
+<div class="flex justify-around items-center h-20 pb-safe px-2 relative z-10">
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="fort">fort</span>
+<span class="font-label-sm text-label-sm uppercase mt-1">CITADEL</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="task_alt">task_alt</span>
+<span class="font-label-sm text-label-sm uppercase mt-1">RITES</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary border-t-2 border-primary pt-2 active:scale-95 transition-transform relative -top-px" href="#">
+<span class="material-symbols-outlined" data-icon="fitness_center" style="font-variation-settings: 'FILL' 1;">fitness_center</span>
+<span class="font-label-sm text-label-sm uppercase mt-1">FORGE</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+<span class="font-label-sm text-label-sm uppercase mt-1">FEAST</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="balance">balance</span>
+<span class="font-label-sm text-label-sm uppercase mt-1">SCALES</span>
+</a>
+</div>
+</nav>
+</body></html>

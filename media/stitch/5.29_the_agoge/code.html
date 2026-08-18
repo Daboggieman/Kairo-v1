@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE AGOGE - KAIRO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-container": "#003f6e",
+                    "on-error-container": "#ffdad6",
+                    "inverse-surface": "#e1e2e9",
+                    "surface-container-high": "#272a2f",
+                    "outline-variant": "#504535",
+                    "on-tertiary": "#003259",
+                    "primary": "#f9bc4a",
+                    "inverse-primary": "#7d5700",
+                    "on-primary-fixed-variant": "#5f4100",
+                    "on-secondary-fixed-variant": "#44474a",
+                    "on-secondary-container": "#b3b5b8",
+                    "tertiary-fixed-dim": "#9fcaff",
+                    "primary-fixed-dim": "#f9bc4a",
+                    "on-background": "#e1e2e9",
+                    "surface-container-low": "#191c21",
+                    "on-error": "#690005",
+                    "primary-container": "#d79e2d",
+                    "tertiary": "#9fcaff",
+                    "surface-container-highest": "#32353a",
+                    "surface-dim": "#101418",
+                    "surface-variant": "#32353a",
+                    "surface-tint": "#f9bc4a",
+                    "background": "#101418",
+                    "surface": "#101418",
+                    "error-container": "#93000a",
+                    "primary-fixed": "#ffdeaa",
+                    "on-secondary": "#2d3133",
+                    "on-primary-container": "#523800",
+                    "on-secondary-fixed": "#191c1e",
+                    "on-tertiary-fixed-variant": "#00497e",
+                    "surface-container-lowest": "#0b0e13",
+                    "secondary": "#c4c7ca",
+                    "secondary-container": "#44474a",
+                    "tertiary-fixed": "#d2e4ff",
+                    "on-primary": "#422c00",
+                    "outline": "#9c8f7c",
+                    "inverse-on-surface": "#2e3036",
+                    "on-primary-fixed": "#271900",
+                    "surface-bright": "#36393f",
+                    "on-surface-variant": "#d4c4af",
+                    "on-surface": "#e1e2e9",
+                    "error": "#ffb4ab",
+                    "surface-container": "#1d2025",
+                    "secondary-fixed-dim": "#c4c7ca",
+                    "secondary-fixed": "#e0e3e6",
+                    "on-tertiary-fixed": "#001d37",
+                    "tertiary-container": "#6dacf3"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "fluting-width": "1px",
+                    "container-padding": "24px",
+                    "unit": "8px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Cinzel"],
+                    "label-sm": ["Inter"],
+                    "label-md": ["Inter"],
+                    "body-md": ["Inter"],
+                    "display-md": ["Cinzel"],
+                    "headline-sm": ["Cinzel"],
+                    "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "0.15em", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                    "display-md": ["28px", {"lineHeight": "34px", "letterSpacing": "0.12em", "fontWeight": "700"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "400"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        /* Greek Meander Pattern for decorative borders */
+        .meander-border-bottom {
+            background-image: url('data:image/svg+xml;utf8,<svg width="40" height="4" xmlns="http://www.w3.org/2000/svg"><path d="M0,4 h4 v-4 h4 v2 h-2 v2 h6 v-4 h4 v4 h22" fill="none" stroke="%23504535" stroke-width="1"/></svg>');
+            background-repeat: repeat-x;
+            background-position: bottom;
+            padding-bottom: 8px;
+        }
+        
+        .fluting-divider {
+            border-left: var(--fluting-width, 1px) solid var(--tw-colors-outline-variant, #504535);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased min-h-screen flex flex-col pt-16 pb-20 md:pb-0">
+<!-- TopAppBar from JSON -->
+<header class="bg-surface dark:bg-surface text-primary dark:text-primary fixed top-0 w-full z-50 border-b-4 border-primary flat no shadows flex justify-between items-center px-container-padding h-16 transition-opacity duration-200">
+<button aria-label="Leading Action" class="text-primary hover:opacity-80 p-2 -ml-2">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 0;">security</span>
+</button>
+<!-- Navigation embedded in TopAppBar for Desktop -->
+<nav class="hidden md:flex flex-1 justify-center items-center space-x-8">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed hover:opacity-80 transition-opacity duration-200 font-label-md text-label-md uppercase" href="#">CITADEL</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed hover:opacity-80 transition-opacity duration-200 font-label-md text-label-md uppercase" href="#">RITES</a>
+<a class="flex flex-col items-center justify-center text-primary border-b-2 border-primary pb-1 hover:opacity-80 transition-opacity duration-200 font-label-md text-label-md uppercase" href="#">FORGE</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed hover:opacity-80 transition-opacity duration-200 font-label-md text-label-md uppercase" href="#">FEAST</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed hover:opacity-80 transition-opacity duration-200 font-label-md text-label-md uppercase" href="#">SCALES</a>
+</nav>
+<h1 class="font-display-md text-display-md text-primary tracking-widest md:hidden">KAIRO</h1>
+<button aria-label="Trailing Action" class="text-primary hover:opacity-80 p-2 -mr-2">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 0;">settings</span>
+</button>
+</header>
+<main class="flex-1 w-full max-w-7xl mx-auto px-container-padding md:px-8 py-8 flex flex-col gap-12">
+<!-- Page Header -->
+<div class="text-center md:text-left meander-border-bottom pb-6">
+<h2 class="font-display-lg text-display-lg text-on-background">THE AGOGE</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2 max-w-2xl">Curated training programs and disciplines to forge strength, endurance, and unyielding will.</p>
+</div>
+<!-- Current Path Section -->
+<section class="flex flex-col gap-6">
+<h3 class="font-headline-sm text-headline-sm text-primary uppercase tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+                CURRENT PATH
+            </h3>
+<div class="bg-surface border border-outline-variant rounded p-6 relative overflow-hidden group">
+<!-- Decorative accent -->
+<div class="absolute bottom-0 left-0 w-full h-1 bg-primary-container"></div>
+<div class="flex flex-col md:flex-row gap-8 items-start md:items-center">
+<div class="flex-1">
+<div class="flex items-center gap-3 mb-2">
+<span class="bg-surface-container-high px-2 py-1 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider rounded">WEEK 4 OF 12</span>
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider">HARD</span>
+</div>
+<h4 class="font-display-md text-display-md text-on-background mb-2">The Spartan 300</h4>
+<p class="font-body-md text-body-md text-secondary mb-6">A relentless conditioning protocol designed to build functional mass and severe cardiovascular endurance.</p>
+<!-- Progress Bar -->
+<div class="flex flex-col gap-2 w-full max-w-md">
+<div class="flex justify-between font-label-sm text-label-sm text-secondary uppercase">
+<span>Progress</span>
+<span>33%</span>
+</div>
+<div class="h-2 w-full bg-surface-container-high relative">
+<div class="absolute top-0 left-0 h-full bg-primary" style="width: 33%;"></div>
+</div>
+</div>
+</div>
+<div class="w-full md:w-auto flex-shrink-0 border-t md:border-t-0 md:border-l border-outline-variant pt-6 md:pt-0 md:pl-8 flex flex-col gap-4">
+<div class="text-center">
+<span class="block font-display-md text-display-md text-primary">03</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">DAYS THIS WEEK</span>
+</div>
+<button class="bg-primary-container text-on-primary-fixed w-full h-14 px-8 font-label-md text-label-md uppercase tracking-wider hover:opacity-90 transition-opacity flex items-center justify-center gap-2 rounded">
+                            ENTER THE ARENA
+                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Disciplines Grid -->
+<section class="flex flex-col gap-6">
+<div class="flex justify-between items-end border-b border-outline-variant pb-2">
+<h3 class="font-headline-sm text-headline-sm text-on-background uppercase tracking-widest">DISCIPLINES</h3>
+<button class="font-label-sm text-label-sm text-primary uppercase tracking-wider hover:text-primary-fixed transition-colors">VIEW ALL</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Discipline Card 1 -->
+<div class="bg-surface border border-outline-variant flex flex-col p-6 rounded hover:border-primary transition-colors group cursor-pointer">
+<div class="w-12 h-12 rounded bg-surface-container-high flex items-center justify-center mb-6 text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 0;">fitness_center</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-background mb-2 group-hover:text-primary transition-colors">Bronze Age Strength</h4>
+<p class="font-body-md text-body-md text-secondary mb-6 flex-1">Heavy, compound movements emphasizing maximal force production and structural integrity.</p>
+<div class="flex items-center gap-4 border-t border-outline-variant pt-4 mt-auto">
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 0;">schedule</span>
+<span class="font-label-sm text-label-sm uppercase">8 WEEKS</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-outline-variant"></div>
+<div class="font-label-sm text-label-sm uppercase text-error">MASTER</div>
+</div>
+</div>
+<!-- Discipline Card 2 -->
+<div class="bg-surface border border-outline-variant flex flex-col p-6 rounded hover:border-primary transition-colors group cursor-pointer">
+<div class="w-12 h-12 rounded bg-surface-container-high flex items-center justify-center mb-6 text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 0;">hiking</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-background mb-2 group-hover:text-primary transition-colors">The Long March</h4>
+<p class="font-body-md text-body-md text-secondary mb-6 flex-1">Rucking, sustained cardio, and loaded carries to forge unbreakable endurance and mental fortitude.</p>
+<div class="flex items-center gap-4 border-t border-outline-variant pt-4 mt-auto">
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 0;">schedule</span>
+<span class="font-label-sm text-label-sm uppercase">16 WEEKS</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-outline-variant"></div>
+<div class="font-label-sm text-label-sm uppercase text-primary">INTERMEDIATE</div>
+</div>
+</div>
+<!-- Discipline Card 3 -->
+<div class="bg-surface border border-outline-variant flex flex-col p-6 rounded hover:border-primary transition-colors group cursor-pointer">
+<div class="w-12 h-12 rounded bg-surface-container-high flex items-center justify-center mb-6 text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 0;">shield_person</span>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-background mb-2 group-hover:text-primary transition-colors">Phalanx Guard</h4>
+<p class="font-body-md text-body-md text-secondary mb-6 flex-1">Core stability, mobility, and injury prevention routines to maintain the vessel for continued battle.</p>
+<div class="flex items-center gap-4 border-t border-outline-variant pt-4 mt-auto">
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 0;">schedule</span>
+<span class="font-label-sm text-label-sm uppercase">ONGOING</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-outline-variant"></div>
+<div class="font-label-sm text-label-sm uppercase text-secondary">ALL LEVELS</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Featured Decor Image -->
+<div class="w-full h-48 border border-outline-variant mt-8 relative overflow-hidden flex items-center justify-center rounded">
+<div class="absolute inset-0 opacity-20 pointer-events-none" data-alt="A dark, moody, cinematic shot of ancient Greek stone ruins illuminated by harsh, directional sunlight, emphasizing the rough texture of the stone and casting deep shadows, fitting a brutalist warrior aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBbERWir29J7la2j1X7fcIFAg-dvAjzmSBySJIFnBgEKWYsAVSQ7KAIIIldRtOBSc0gYi4NspdQOva2XCpU1ZwMYyM3AF3T6T_8YQqvuuA5NtdkoXImyyNK3_XCp1c17F7Rx0GaCGq2wYRrPaQYAAk6juf-hoadVcguWh57rhbok1E4BTSPQJNhoj9USWlolFSuX3PbCdpjGCe-ahnPGlxGe-C5_EfJssJr5Y1uYs2QzrUzazW9IAVYLA'); background-size: cover; background-position: center;"></div>
+<div class="relative z-10 text-center">
+<span class="font-display-md text-display-md text-on-background opacity-50 tracking-[0.2em] uppercase block">Embrace the Grind</span>
+<div class="w-16 h-1 bg-primary mx-auto mt-4"></div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar from JSON (Mobile Only) -->
+<nav class="md:hidden bg-surface-container dark:bg-surface-container fixed bottom-0 w-full z-50 border-t border-outline-variant flat no shadows flex justify-around items-center h-20 pb-safe px-2">
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined text-2xl mb-1" style="font-variation-settings: 'FILL' 0;">fort</span>
+<span class="font-label-sm text-label-sm uppercase">CITADEL</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined text-2xl mb-1" style="font-variation-settings: 'FILL' 0;">task_alt</span>
+<span class="font-label-sm text-label-sm uppercase">RITES</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary border-t-2 border-primary pt-2 hover:text-primary-fixed active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined text-2xl mb-1" style="font-variation-settings: 'FILL' 1;">fitness_center</span>
+<span class="font-label-sm text-label-sm uppercase text-primary">FORGE</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined text-2xl mb-1" style="font-variation-settings: 'FILL' 0;">restaurant</span>
+<span class="font-label-sm text-label-sm uppercase">FEAST</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined text-2xl mb-1" style="font-variation-settings: 'FILL' 0;">balance</span>
+<span class="font-label-sm text-label-sm uppercase">SCALES</span>
+</a>
+</nav>
+</body></html>

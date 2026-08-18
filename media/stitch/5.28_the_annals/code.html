@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE ANNALS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#f9bc4a",
+                        "surface-container-high": "#272a2f",
+                        "primary-fixed": "#ffdeaa",
+                        "surface-bright": "#36393f",
+                        "on-secondary-fixed": "#191c1e",
+                        "surface-container-lowest": "#0b0e13",
+                        "secondary-container": "#44474a",
+                        "secondary-fixed": "#e0e3e6",
+                        "on-secondary": "#2d3133",
+                        "surface-container-low": "#191c21",
+                        "secondary-fixed-dim": "#c4c7ca",
+                        "inverse-primary": "#7d5700",
+                        "inverse-surface": "#e1e2e9",
+                        "on-error-container": "#ffdad6",
+                        "on-background": "#e1e2e9",
+                        "tertiary-container": "#6dacf3",
+                        "surface-container": "#1d2025",
+                        "on-tertiary": "#003259",
+                        "error": "#ffb4ab",
+                        "surface-tint": "#f9bc4a",
+                        "primary": "#f9bc4a",
+                        "on-primary": "#422c00",
+                        "surface-dim": "#101418",
+                        "on-surface-variant": "#d4c4af",
+                        "on-tertiary-fixed": "#001d37",
+                        "error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "secondary": "#c4c7ca",
+                        "on-tertiary-container": "#003f6e",
+                        "inverse-on-surface": "#2e3036",
+                        "on-tertiary-fixed-variant": "#00497e",
+                        "tertiary-fixed": "#d2e4ff",
+                        "background": "#101418",
+                        "on-secondary-container": "#b3b5b8",
+                        "outline": "#9c8f7c",
+                        "on-primary-fixed-variant": "#5f4100",
+                        "surface-container-highest": "#32353a",
+                        "on-primary-fixed": "#271900",
+                        "tertiary-fixed-dim": "#9fcaff",
+                        "outline-variant": "#504535",
+                        "on-primary-container": "#523800",
+                        "on-error": "#690005",
+                        "surface": "#101418",
+                        "on-surface": "#e1e2e9",
+                        "tertiary": "#9fcaff",
+                        "surface-variant": "#32353a",
+                        "primary-container": "#d79e2d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "fluting-width": "1px",
+                        "gutter": "16px",
+                        "container-padding": "24px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "display-md": ["Cinzel"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Cinzel"],
+                        "display-lg": ["Cinzel"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-md": ["28px", { "lineHeight": "34px", "letterSpacing": "0.12em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "0.15em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #101418; color: #e1e2e9; }
+        .font-cinzel { font-family: 'Cinzel', serif; }
+        .greek-key {
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='4' viewBox='0 0 40 4' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 4H4V0H8V4H12V0H16V4H20V0H24V4H28V0H32V4H36V0H40' stroke='%23d79e2d' stroke-width='1'/%3E%3C/svg%3E");
+            background-repeat: repeat-x;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen pb-[104px]">
+<!-- TopAppBar -->
+<header class="bg-surface text-primary fixed top-0 w-full z-50 border-b-4 border-primary flex justify-between items-center px-container-padding h-16 shadow-none">
+<button class="text-primary hover:opacity-80 transition-opacity duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_back_ios</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm uppercase tracking-widest text-primary">THE ANNALS</h1>
+<div class="w-6"></div> <!-- Spacer for centering -->
+</header>
+<main class="pt-20 px-container-padding space-y-6 md:max-w-3xl md:mx-auto">
+<!-- Week Navigator -->
+<div class="flex items-center justify-between border-b border-outline-variant pb-4 relative">
+<button class="w-11 h-11 flex items-center justify-center border border-outline-variant hover:border-primary transition-colors text-on-surface">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<div class="text-center">
+<h2 class="font-headline-sm text-headline-sm text-on-surface uppercase">WEEK 34</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-1">11 – 17 August</p>
+</div>
+<button class="w-11 h-11 flex items-center justify-center border border-outline-variant text-on-surface-variant opacity-50 cursor-not-allowed">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+<div class="absolute bottom-0 left-0 w-full h-[4px] greek-key"></div>
+</div>
+<!-- Verdict Block -->
+<div class="bg-surface-container border-l-4 border-l-primary-container p-4">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">A held week.</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                Five rites kept every day, three marches, and the trend fell 0.6 kg. The Granary ran over on four days.
+            </p>
+</div>
+<!-- Summary Grid -->
+<div class="grid grid-cols-2 gap-4">
+<!-- THE RITES -->
+<div class="bg-surface border border-outline p-4 flex flex-col justify-between">
+<div>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">THE RITES</span>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-display-md text-display-md text-on-surface">34 / 42</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">kept</span>
+</div>
+<div class="mt-4 flex justify-between">
+<div class="w-3 h-3 rounded-none bg-primary-container"></div>
+<div class="w-3 h-3 rounded-none bg-primary-container"></div>
+<div class="w-3 h-3 rounded-none bg-primary-container"></div>
+<div class="w-3 h-3 rounded-none bg-primary-container"></div>
+<div class="w-3 h-3 rounded-none bg-error"></div>
+<div class="w-3 h-3 rounded-none bg-primary-container"></div>
+<div class="w-3 h-3 rounded-none bg-error"></div>
+</div>
+</div>
+<!-- THE FORGE -->
+<div class="bg-surface border border-outline p-4 flex flex-col justify-between">
+<div>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">THE FORGE</span>
+<div class="mt-2">
+<span class="font-display-md text-display-md text-on-surface">4</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">sessions · 21,400 kg</span>
+</div>
+<div class="mt-4 flex items-end justify-between h-8 gap-1">
+<div class="w-full bg-primary-container h-4"></div>
+<div class="w-full bg-primary-container h-6"></div>
+<div class="w-full bg-primary-container h-3"></div>
+<div class="w-full bg-primary-container h-8"></div>
+<div class="w-full bg-surface-container-highest h-1"></div>
+<div class="w-full bg-primary-container h-5"></div>
+<div class="w-full bg-surface-container-highest h-1"></div>
+</div>
+</div>
+<!-- THE FEAST -->
+<div class="bg-surface border border-outline p-4 flex flex-col justify-between">
+<div>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">THE FEAST</span>
+<div class="mt-2">
+<span class="font-display-md text-display-md text-on-surface">2,410</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">avg kcal · 88% of decree</span>
+</div>
+<div class="mt-4 space-y-1">
+<div class="w-full h-1 bg-surface-container-highest"><div class="h-full bg-tertiary w-[88%]"></div></div>
+<div class="w-full h-1 bg-surface-container-highest"><div class="h-full bg-tertiary-container w-[75%]"></div></div>
+<div class="w-full h-1 bg-surface-container-highest"><div class="h-full bg-secondary w-[92%]"></div></div>
+</div>
+</div>
+<!-- THE EXPEDITION -->
+<div class="bg-surface border border-outline p-4 flex flex-col justify-between">
+<div>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">THE EXPEDITION</span>
+<div class="mt-2">
+<span class="font-display-md text-display-md text-on-surface">24.6 km</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">3 marches · 2h 18m</span>
+</div>
+<div class="mt-4 flex items-end justify-between h-8 gap-1">
+<div class="w-full bg-surface-container-highest h-1"></div>
+<div class="w-full bg-primary-container h-4"></div>
+<div class="w-full bg-surface-container-highest h-1"></div>
+<div class="w-full bg-primary-container h-8"></div>
+<div class="w-full bg-surface-container-highest h-1"></div>
+<div class="w-full bg-surface-container-highest h-1"></div>
+<div class="w-full bg-primary-container h-6"></div>
+</div>
+</div>
+</div>
+<!-- THE SCALES Section -->
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-3 uppercase tracking-wider">THE SCALES</h3>
+<div class="bg-surface border border-outline p-4 h-[140px] relative overflow-hidden flex flex-col justify-end">
+<div class="absolute inset-0 p-4 pb-8 flex items-end">
+<!-- Faux chart -->
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 100 50">
+<path d="M0,40 Q25,35 50,45 T100,20" fill="none" stroke="#3F4552" stroke-dasharray="4" stroke-width="2"></path>
+<path d="M0,30 Q25,25 50,35 T100,10" fill="none" stroke="#d79e2d" stroke-width="2"></path>
+</svg>
+</div>
+<div class="flex gap-4 z-10 font-label-sm text-label-sm text-on-surface-variant">
+<div class="flex items-center gap-1"><div class="w-2 h-0.5 bg-primary-container"></div> Current Week</div>
+<div class="flex items-center gap-1"><div class="w-2 h-0.5 bg-[#3F4552] border-t border-dashed border-[#3F4552]"></div> Previous Week</div>
+</div>
+</div>
+</div>
+<!-- WHAT SLIPPED Section -->
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-3 uppercase tracking-wider">WHAT SLIPPED</h3>
+<div class="bg-surface border border-outline flex flex-col divide-y divide-outline-variant">
+<div class="p-4 flex items-center gap-4">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1; font-size: 22px;">accessibility_new</span>
+<div>
+<p class="font-body-md text-body-md text-on-surface">Stretch</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">missed 4 of 7</p>
+</div>
+</div>
+<div class="p-4 flex items-center gap-4">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1; font-size: 22px;">restaurant</span>
+<div>
+<p class="font-body-md text-body-md text-on-surface">The Granary</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">over on 4 days</p>
+</div>
+</div>
+<div class="p-4 flex items-center gap-4">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1; font-size: 22px;">directions_run</span>
+<div>
+<p class="font-body-md text-body-md text-on-surface">Sunday long run</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">not recorded</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Button -->
+<button class="w-full h-[56px] border border-secondary-fixed text-on-surface font-label-md text-label-md uppercase tracking-widest hover:bg-surface-container transition-colors mt-6">
+            The previous reckoning
+        </button>
+</main>
+<!-- BottomNavBar -->
+<nav class="bg-surface-container fixed bottom-0 w-full z-50 border-t border-outline-variant flex justify-around items-center h-20 pb-safe px-2">
+<button class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform w-full">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">fort</span>
+<span class="font-label-sm text-label-sm uppercase mt-1">CITADEL</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform w-full">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">task_alt</span>
+<span class="font-label-sm text-label-sm uppercase mt-1">RITES</span>
+</button>
+<button class="flex flex-col items-center justify-center text-primary border-t-2 border-primary pt-2 hover:text-primary-fixed active:scale-95 transition-transform w-full">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">fitness_center</span>
+<span class="font-label-sm text-label-sm uppercase mt-1 text-primary">FORGE</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform w-full">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">restaurant</span>
+<span class="font-label-sm text-label-sm uppercase mt-1">FEAST</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform w-full">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">balance</span>
+<span class="font-label-sm text-label-sm uppercase mt-1">SCALES</span>
+</button>
+</nav>
+</body></html>

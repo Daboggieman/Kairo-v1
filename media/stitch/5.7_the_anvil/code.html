@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE ANVIL - Live Workout Logger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#9c8f7c",
+                        "surface-variant": "#32353a",
+                        "error-container": "#93000a",
+                        "background": "#101418",
+                        "surface-container-highest": "#32353a",
+                        "on-primary-fixed": "#271900",
+                        "secondary": "#c4c7ca",
+                        "surface-tint": "#f9bc4a",
+                        "on-secondary": "#2d3133",
+                        "surface-container": "#1d2025",
+                        "inverse-primary": "#7d5700",
+                        "on-tertiary-fixed": "#001d37",
+                        "error": "#ffb4ab",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "inverse-surface": "#e1e2e9",
+                        "tertiary-fixed-dim": "#9fcaff",
+                        "outline-variant": "#504535",
+                        "surface-container-lowest": "#0b0e13",
+                        "on-primary-container": "#523800",
+                        "surface-container-low": "#191c21",
+                        "surface-container-high": "#272a2f",
+                        "on-background": "#e1e2e9",
+                        "on-surface": "#e1e2e9",
+                        "secondary-container": "#44474a",
+                        "secondary-fixed": "#e0e3e6",
+                        "on-tertiary": "#003259",
+                        "tertiary-fixed": "#d2e4ff",
+                        "tertiary-container": "#6dacf3",
+                        "primary": "#f9bc4a",
+                        "on-secondary-container": "#b3b5b8",
+                        "on-surface-variant": "#d4c4af",
+                        "primary-fixed": "#ffdeaa",
+                        "on-primary": "#422c00",
+                        "surface": "#101418",
+                        "on-tertiary-container": "#003f6e",
+                        "on-primary-fixed-variant": "#5f4100",
+                        "on-secondary-fixed": "#191c1e",
+                        "surface-bright": "#36393f",
+                        "inverse-on-surface": "#2e3036",
+                        "tertiary": "#9fcaff",
+                        "surface-dim": "#101418",
+                        "secondary-fixed-dim": "#c4c7ca",
+                        "on-error": "#690005",
+                        "primary-fixed-dim": "#f9bc4a",
+                        "on-tertiary-fixed-variant": "#00497e",
+                        "primary-container": "#d79e2d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "unit": "8px",
+                        "container-padding": "24px",
+                        "fluting-width": "1px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "display-md": ["Cinzel"],
+                        "headline-sm": ["Cinzel"],
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Cinzel"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "display-md": ["28px", { "lineHeight": "34px", "letterSpacing": "0.12em", "fontWeight": "700" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "0.15em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .meander-border {
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='4' viewBox='0 0 40 4' fill='none' xmlns='http://www.w3.org/200.svg'%3E%3Cpath d='M0 0H4V4H0V0ZM8 0H12V4H8V0ZM16 0H20V4H16V0ZM24 0H28V4H24V0ZM32 0H36V4H32V0Z' fill='%239c8f7c'/%3E%3C/svg%3E");
+            background-repeat: repeat-x;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col md:grid md:grid-cols-12 md:gap-gutter">
+<!-- TopAppBar -->
+<header class="bg-surface border-b-4 border-primary fixed top-0 w-full z-50 flex justify-between items-center px-container-padding h-16 md:col-span-12">
+<button class="text-primary hover:opacity-80 transition-opacity duration-200">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm text-primary tracking-widest uppercase">THE ANVIL</h1>
+<div class="font-headline-sm text-headline-sm text-primary font-mono" style="font-variant-numeric: tabular-nums;">
+            24:10
+        </div>
+</header>
+<!-- Rest Timer Band -->
+<div class="mt-16 bg-surface-container w-full h-24 relative flex flex-col items-center justify-center border-b border-outline-variant md:col-span-12">
+<div class="text-[56px] leading-none font-bold text-primary font-mono mb-1" style="font-variant-numeric: tabular-nums;">01:12</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">THE BREATH</div>
+<div class="absolute bottom-0 left-0 h-1 bg-primary w-2/3"></div> <!-- Progress Track -->
+</div>
+<!-- Main Content Canvas -->
+<main class="flex-1 px-container-padding py-6 flex flex-col gap-6 md:col-span-8 md:col-start-3 md:mt-24">
+<!-- Current Lift Card -->
+<section class="bg-surface border border-outline-variant rounded p-4 relative">
+<div class="flex justify-between items-start mb-4">
+<div>
+<div class="font-label-sm text-label-sm text-primary uppercase tracking-wider mb-1">CURRENT LIFT</div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Bench press</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-1">Last time: 4 × 8 @ 80 kg</p>
+</div>
+<button class="font-label-md text-label-md text-primary hover:text-primary-fixed transition-colors">Change</button>
+</div>
+<!-- Entry Row -->
+<div class="flex gap-4 items-end mb-6">
+<div class="flex-1">
+<label class="block font-label-md text-label-md text-on-surface-variant uppercase mb-2">REPS</label>
+<input class="w-full h-14 bg-surface-container border border-outline-variant rounded text-on-surface px-4 font-headline-sm text-headline-sm focus:border-primary focus:ring-1 focus:ring-primary transition-colors" type="number" value="8"/>
+</div>
+<div class="flex-1 flex gap-2">
+<div class="flex-1">
+<label class="block font-label-md text-label-md text-on-surface-variant uppercase mb-2">WEIGHT (KG)</label>
+<input class="w-full h-14 bg-surface-container border border-outline-variant rounded text-on-surface px-4 font-headline-sm text-headline-sm focus:border-primary focus:ring-1 focus:ring-primary transition-colors" type="number" value="82.5"/>
+</div>
+<div class="flex flex-col gap-1 justify-end h-14">
+<button class="w-11 h-[26px] bg-surface-container border border-outline-variant rounded flex items-center justify-center text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-[16px]">add</span></button>
+<button class="w-11 h-[26px] bg-surface-container border border-outline-variant rounded flex items-center justify-center text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-[16px]">remove</span></button>
+</div>
+</div>
+</div>
+<!-- Primary Action -->
+<button class="w-full h-14 bg-primary-container text-on-primary-container font-headline-sm text-headline-sm rounded hover:bg-primary-fixed transition-colors">
+                Strike — log set 5
+            </button>
+<div class="absolute right-0 top-0 bottom-0 w-fluting-width bg-outline-variant opacity-20"></div>
+</section>
+<div class="h-1 meander-border w-full opacity-50 my-2"></div>
+<!-- Session History -->
+<section>
+<h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-4 pl-2 border-l-2 border-primary">STRIKES THIS SESSION</h3>
+<div class="bg-surface border border-outline-variant rounded p-4 mb-4">
+<div class="font-label-sm text-label-sm text-primary uppercase tracking-wider mb-3 pb-2 border-b border-outline-variant">BENCH PRESS</div>
+<div class="flex flex-col gap-3">
+<!-- Set Row -->
+<div class="flex items-center justify-between group">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded-full border border-primary text-primary flex items-center justify-center font-label-sm text-label-sm">4</div>
+<div class="font-body-md text-body-md text-on-surface">8 reps · 82.5 kg</div>
+</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">1RM 103 kg</div>
+</div>
+<!-- Set Row -->
+<div class="flex items-center justify-between group">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded-full border border-primary text-primary flex items-center justify-center font-label-sm text-label-sm">3</div>
+<div class="font-body-md text-body-md text-on-surface">8 reps · 82.5 kg</div>
+</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">1RM 103 kg</div>
+</div>
+<!-- Set Row -->
+<div class="flex items-center justify-between group">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded-full border border-primary text-primary flex items-center justify-center font-label-sm text-label-sm">2</div>
+<div class="font-body-md text-body-md text-on-surface">8 reps · 80 kg</div>
+</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">1RM 100 kg</div>
+</div>
+<!-- Set Row -->
+<div class="flex items-center justify-between group">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded-full border border-primary text-primary flex items-center justify-center font-label-sm text-label-sm">1</div>
+<div class="font-body-md text-body-md text-on-surface">8 reps · 80 kg</div>
+</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">1RM 100 kg</div>
+</div>
+</div>
+</div>
+<div class="bg-surface border border-outline-variant rounded p-4">
+<div class="font-label-sm text-label-sm text-primary uppercase tracking-wider mb-3 pb-2 border-b border-outline-variant">SQUAT</div>
+<div class="flex flex-col gap-3">
+<!-- Set Row -->
+<div class="flex items-center justify-between group">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded-full border border-primary text-primary flex items-center justify-center font-label-sm text-label-sm">3</div>
+<div class="font-body-md text-body-md text-on-surface">5 reps · 120 kg</div>
+</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">1RM 135 kg</div>
+</div>
+<!-- Set Row -->
+<div class="flex items-center justify-between group">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded-full border border-primary text-primary flex items-center justify-center font-label-sm text-label-sm">2</div>
+<div class="font-body-md text-body-md text-on-surface">5 reps · 120 kg</div>
+</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">1RM 135 kg</div>
+</div>
+<!-- Set Row -->
+<div class="flex items-center justify-between group">
+<div class="flex items-center gap-3">
+<div class="w-7 h-7 rounded-full border border-primary text-primary flex items-center justify-center font-label-sm text-label-sm">1</div>
+<div class="font-body-md text-body-md text-on-surface">5 reps · 120 kg</div>
+</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">1RM 135 kg</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom Actions -->
+<div class="mt-8 mb-24 flex flex-col gap-4">
+<button class="w-full h-14 bg-transparent border border-outline-variant text-on-surface font-headline-sm text-headline-sm rounded hover:bg-surface-container transition-colors">
+                Add another lift
+            </button>
+<button class="w-full h-14 bg-transparent border border-error text-error font-headline-sm text-headline-sm rounded hover:bg-error-container hover:text-on-error-container transition-colors">
+                Finish session
+            </button>
+</div>
+</main>
+<!-- BottomNavBar suppressed for transactional/task-focused screen -->
+</body></html>

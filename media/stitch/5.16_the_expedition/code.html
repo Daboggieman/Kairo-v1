@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KAIRO - The Expedition</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary-fixed": "#271900",
+                      "background": "#101418",
+                      "on-error-container": "#ffdad6",
+                      "on-primary-fixed-variant": "#5f4100",
+                      "surface-container-highest": "#32353a",
+                      "on-tertiary-fixed": "#001d37",
+                      "surface-container-low": "#191c21",
+                      "tertiary-fixed-dim": "#9fcaff",
+                      "surface-bright": "#36393f",
+                      "surface-dim": "#101418",
+                      "surface-container": "#1d2025",
+                      "outline": "#9c8f7c",
+                      "error": "#ffb4ab",
+                      "on-background": "#e1e2e9",
+                      "on-tertiary": "#003259",
+                      "on-secondary-container": "#b3b5b8",
+                      "on-tertiary-container": "#003f6e",
+                      "surface-container-high": "#272a2f",
+                      "secondary-fixed": "#e0e3e6",
+                      "on-primary-container": "#523800",
+                      "tertiary-fixed": "#d2e4ff",
+                      "primary-fixed": "#ffdeaa",
+                      "primary-container": "#d79e2d",
+                      "on-secondary-fixed": "#191c1e",
+                      "on-surface": "#e1e2e9",
+                      "outline-variant": "#504535",
+                      "primary-fixed-dim": "#f9bc4a",
+                      "secondary-fixed-dim": "#c4c7ca",
+                      "primary": "#f9bc4a",
+                      "inverse-surface": "#e1e2e9",
+                      "on-secondary": "#2d3133",
+                      "inverse-on-surface": "#2e3036",
+                      "inverse-primary": "#7d5700",
+                      "surface-tint": "#f9bc4a",
+                      "surface-container-lowest": "#0b0e13",
+                      "on-primary": "#422c00",
+                      "secondary": "#c4c7ca",
+                      "on-surface-variant": "#d4c4af",
+                      "on-secondary-fixed-variant": "#44474a",
+                      "error-container": "#93000a",
+                      "surface": "#101418",
+                      "tertiary-container": "#6dacf3",
+                      "on-error": "#690005",
+                      "surface-variant": "#32353a",
+                      "on-tertiary-fixed-variant": "#00497e",
+                      "tertiary": "#9fcaff",
+                      "secondary-container": "#44474a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "16px",
+                      "unit": "8px",
+                      "fluting-width": "1px",
+                      "container-padding": "24px"
+              },
+              "fontFamily": {
+                      "display-md": [
+                              "Cinzel"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "headline-sm": [
+                              "Cinzel"
+                      ],
+                      "display-lg": [
+                              "Cinzel"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "display-md": [
+                              "28px",
+                              {
+                                      "lineHeight": "34px",
+                                      "letterSpacing": "0.12em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-sm": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "letterSpacing": "0.1em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "40px",
+                              {
+                                      "lineHeight": "48px",
+                                      "letterSpacing": "0.15em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+            },
+          },
+        }
+      </script>
+<style>
+          .greek-key-border {
+              background-image: url('data:image/svg+xml;utf8,<svg width="40" height="4" viewBox="0 0 40 4" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 0H4V4H0V0ZM4 2H8V4H4V2ZM8 0H12V2H8V0ZM12 0H16V4H12V0ZM16 2H20V4H16V2ZM20 0H24V2H20V0ZM24 0H28V4H24V0ZM28 2H32V4H28V2ZM32 0H36V2H32V0ZM36 0H40V4H36V0Z" fill="%23d79e2d"/></svg>');
+              background-repeat: repeat-x;
+              height: 4px;
+          }
+          .pulse-dot {
+              animation: pulse 2s infinite;
+          }
+          @keyframes pulse {
+              0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+              70% { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
+              100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+          }
+      </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen font-body-md antialiased pb-32">
+<!-- Header -->
+<header class="pt-12 pb-4 px-container-padding sticky top-0 bg-background/95 backdrop-blur-sm z-40 border-b border-outline-variant">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h1 class="font-display-md text-display-md text-on-surface uppercase tracking-[0.12em] mb-1">THE EXPEDITION</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">42 marches · 318 km</p>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-size: 22px;">settings</span>
+</button>
+</div>
+<div class="greek-key-border mt-4 w-full"></div>
+</header>
+<main class="px-container-padding py-6 space-y-8 max-w-lg mx-auto">
+<!-- Live Recording Card -->
+<section>
+<div class="bg-[#2B2110] border-l-[3px] border-l-primary-container border-y border-r border-outline-variant rounded-r-DEFAULT p-4">
+<div class="flex items-center gap-2 mb-2">
+<span class="font-label-sm text-label-sm text-primary tracking-widest uppercase">ON THE MARCH</span>
+<div class="w-2 h-2 rounded-full bg-green-400 pulse-dot"></div>
+</div>
+<div class="flex justify-between items-baseline mb-4">
+<div class="font-headline-sm text-headline-sm text-on-surface">Recording · 4.812 km</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">28:04 moving</div>
+</div>
+<button class="w-full h-14 bg-primary-container text-black font-label-md text-label-md uppercase tracking-wider rounded-DEFAULT hover:bg-primary transition-colors">
+                    Rejoin the march
+                </button>
+</div>
+</section>
+<!-- Weekly Summary -->
+<section>
+<h2 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-4">THIS WEEK</h2>
+<div class="bg-surface border border-outline-variant rounded-DEFAULT p-5">
+<div class="grid grid-cols-3 gap-4 mb-6">
+<div class="text-center border-r border-outline-variant border-opacity-50">
+<div class="font-headline-sm text-headline-sm text-on-surface mb-1">3</div>
+<div class="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">MARCHES</div>
+</div>
+<div class="text-center border-r border-outline-variant border-opacity-50">
+<div class="font-headline-sm text-headline-sm text-on-surface mb-1">24.6 <span class="text-sm font-normal text-on-surface-variant">km</span></div>
+<div class="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">DISTANCE</div>
+</div>
+<div class="text-center">
+<div class="font-headline-sm text-headline-sm text-on-surface mb-1">2<span class="text-sm font-normal text-on-surface-variant">h</span> 18<span class="text-sm font-normal text-on-surface-variant">m</span></div>
+<div class="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">MOVING</div>
+</div>
+</div>
+<!-- Mini Bar Chart -->
+<div class="flex justify-between items-end h-24 gap-2 pt-4 border-t border-outline-variant border-opacity-30">
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-[#1D2128] rounded-t-sm h-[30%]"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant">M</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-[#1D2128] rounded-t-sm h-[60%]"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant">T</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-primary-container rounded-t-sm h-[100%]"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant">W</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-[#1D2128] rounded-t-sm h-[20%]"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant">T</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-[#1D2128] rounded-t-sm h-[40%]"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant">F</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-primary-container rounded-t-sm h-[80%]"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant">S</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-[#1D2128] rounded-t-sm h-[10%]"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant">S</span>
+</div>
+</div>
+</div>
+</section>
+<!-- The Chronicles -->
+<section>
+<h2 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-4">THE CHRONICLES</h2>
+<div class="space-y-3">
+<!-- Activity Card 1 -->
+<div class="bg-surface border border-outline-variant rounded-DEFAULT p-3 flex gap-4 relative">
+<div class="w-16 h-16 bg-[#1D2128] rounded-lg border border-outline-variant flex items-center justify-center shrink-0">
+<svg fill="none" height="40" viewbox="0 0 40 40" width="40" xmlns="http://www.w3.org/2000/svg">
+<path d="M10 30 L15 20 L25 25 L30 10" stroke="#d79e2d" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<div class="flex-1 py-1">
+<h3 class="font-body-md text-body-md font-semibold text-on-surface mb-0.5">Evening dromos</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-1">Sat 16 Aug · 18:12</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">8.42 km · 42:10 · 5:00 /km</p>
+</div>
+<div class="absolute top-3 right-3 bg-[#1D2128] border border-outline-variant rounded-full px-2 py-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary">directions_run</span>
+<span class="font-label-sm text-[10px] text-primary uppercase tracking-wider">DROMOS</span>
+</div>
+</div>
+<!-- Activity Card 2 -->
+<div class="bg-surface border border-outline-variant rounded-DEFAULT p-3 flex gap-4 relative">
+<div class="w-16 h-16 bg-[#1D2128] rounded-lg border border-outline-variant flex items-center justify-center shrink-0">
+<svg fill="none" height="40" viewbox="0 0 40 40" width="40" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 25 L18 15 L22 28 L32 18" stroke="#d79e2d" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<div class="flex-1 py-1">
+<h3 class="font-body-md text-body-md font-semibold text-on-surface mb-0.5">Morning march</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-1">Fri 15 Aug · 06:30</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">5.2 km · 58:20 · 11:12 /km</p>
+</div>
+<div class="absolute top-3 right-3 bg-[#1D2128] border border-outline-variant rounded-full px-2 py-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary">directions_walk</span>
+<span class="font-label-sm text-[10px] text-primary uppercase tracking-wider">MARCH</span>
+</div>
+</div>
+<!-- Activity Card 3 -->
+<div class="bg-surface border border-outline-variant rounded-DEFAULT p-3 flex gap-4 relative">
+<div class="w-16 h-16 bg-[#1D2128] rounded-lg border border-outline-variant flex items-center justify-center shrink-0">
+<svg fill="none" height="40" viewbox="0 0 40 40" width="40" xmlns="http://www.w3.org/2000/svg">
+<path d="M5 20 C15 10 25 30 35 20" stroke="#d79e2d" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<div class="flex-1 py-1">
+<h3 class="font-body-md text-body-md font-semibold text-on-surface mb-0.5">Coastal chariot</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-1">Wed 13 Aug · 17:45</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">24.1 km · 1h 02m · 23.2 km/h</p>
+</div>
+<div class="absolute top-3 right-3 bg-[#1D2128] border border-outline-variant rounded-full px-2 py-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary">directions_bike</span>
+<span class="font-label-sm text-[10px] text-primary uppercase tracking-wider">RIDE</span>
+</div>
+</div>
+<!-- Activity Card 4 -->
+<div class="bg-surface border border-outline-variant rounded-DEFAULT p-3 flex gap-4 relative">
+<div class="w-16 h-16 bg-[#1D2128] rounded-lg border border-outline-variant flex items-center justify-center shrink-0">
+<svg fill="none" height="40" viewbox="0 0 40 40" width="40" xmlns="http://www.w3.org/2000/svg">
+<path d="M10 20 L20 10 L30 30 M15 25 L25 15" stroke="#d79e2d" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<div class="flex-1 py-1">
+<h3 class="font-body-md text-body-md font-semibold text-on-surface mb-0.5">Evening dromos</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-1">Mon 11 Aug · 18:30</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">7.8 km · 39:45 · 5:05 /km</p>
+</div>
+<div class="absolute top-3 right-3 bg-[#1D2128] border border-outline-variant rounded-full px-2 py-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary">directions_run</span>
+<span class="font-label-sm text-[10px] text-primary uppercase tracking-wider">DROMOS</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Pinned Action Button -->
+<div class="fixed bottom-[80px] w-full px-container-padding py-4 bg-gradient-to-t from-background via-background/90 to-transparent z-40 max-w-lg mx-auto left-0 right-0">
+<button class="w-full h-[56px] bg-primary-container text-black font-label-md text-label-md uppercase tracking-wider rounded-DEFAULT hover:bg-primary transition-colors border border-outline-variant shadow-[0_4px_20px_rgba(215,158,45,0.15)]">
+            Cross the threshold
+        </button>
+</div>
+<!-- Bottom Navigation -->
+<nav class="bg-surface-container dark:bg-surface-container fixed bottom-0 w-full z-50 flex justify-around items-center h-20 pb-safe px-2 border-t-0 md:hidden max-w-lg mx-auto left-0 right-0" style="box-shadow: 0 -4px 20px rgba(0,0,0,0.5);">
+<div class="flex flex-col items-center justify-center text-secondary pt-2 w-1/5 group">
+<span class="material-symbols-outlined mb-1 group-hover:text-primary-fixed transition-colors">fort</span>
+<span class="font-label-sm text-[10px] text-center uppercase tracking-wider group-hover:text-primary-fixed transition-colors">CITADEL</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary pt-2 w-1/5 group">
+<span class="material-symbols-outlined mb-1 group-hover:text-primary-fixed transition-colors">task_alt</span>
+<span class="font-label-sm text-[10px] text-center uppercase tracking-wider group-hover:text-primary-fixed transition-colors">RITES</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary pt-2 w-1/5 group">
+<span class="material-symbols-outlined mb-1 group-hover:text-primary-fixed transition-colors">fitness_center</span>
+<span class="font-label-sm text-[10px] text-center uppercase tracking-wider group-hover:text-primary-fixed transition-colors">FORGE</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary pt-2 w-1/5 group">
+<span class="material-symbols-outlined mb-1 group-hover:text-primary-fixed transition-colors">restaurant</span>
+<span class="font-label-sm text-[10px] text-center uppercase tracking-wider group-hover:text-primary-fixed transition-colors">FEAST</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary border-t-[2px] border-primary pt-[6px] mt-[-2px] w-1/5 relative">
+<div class="absolute inset-0 bg-primary/5 opacity-0 pointer-events-none rounded-t-lg transition-opacity active:opacity-100"></div>
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">balance</span>
+<span class="font-label-sm text-[10px] text-center uppercase tracking-wider">SCALES</span>
+</div>
+</nav>
+</body></html>

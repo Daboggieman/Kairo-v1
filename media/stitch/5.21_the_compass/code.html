@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Compass</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#001d37",
+                        "surface-container-highest": "#32353a",
+                        "primary-container": "#d79e2d",
+                        "inverse-surface": "#e1e2e9",
+                        "on-primary-container": "#523800",
+                        "on-tertiary-container": "#003f6e",
+                        "outline": "#9c8f7c",
+                        "secondary-container": "#44474a",
+                        "outline-variant": "#504535",
+                        "surface-container": "#1d2025",
+                        "error": "#ffb4ab",
+                        "primary-fixed-dim": "#f9bc4a",
+                        "secondary-fixed": "#e0e3e6",
+                        "surface-dim": "#101418",
+                        "on-secondary": "#2d3133",
+                        "tertiary": "#9fcaff",
+                        "on-secondary-fixed": "#191c1e",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed": "#d2e4ff",
+                        "on-tertiary": "#003259",
+                        "surface-tint": "#f9bc4a",
+                        "on-primary-fixed": "#271900",
+                        "inverse-primary": "#7d5700",
+                        "on-surface": "#e1e2e9",
+                        "surface-bright": "#36393f",
+                        "surface": "#101418",
+                        "on-surface-variant": "#d4c4af",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#5f4100",
+                        "tertiary-fixed-dim": "#9fcaff",
+                        "surface-container-low": "#191c21",
+                        "surface-container-lowest": "#0b0e13",
+                        "background": "#101418",
+                        "on-primary": "#422c00",
+                        "primary-fixed": "#ffdeaa",
+                        "secondary-fixed-dim": "#c4c7ca",
+                        "inverse-on-surface": "#2e3036",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "secondary": "#c4c7ca",
+                        "on-secondary-container": "#b3b5b8",
+                        "surface-container-high": "#272a2f",
+                        "tertiary-container": "#6dacf3",
+                        "on-tertiary-fixed-variant": "#00497e",
+                        "primary": "#f9bc4a",
+                        "surface-variant": "#32353a",
+                        "on-background": "#e1e2e9",
+                        "error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "container-padding": "24px",
+                        "fluting-width": "1px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "display-lg": ["Cinzel"],
+                        "headline-sm": ["Cinzel"],
+                        "display-md": ["Cinzel"],
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "0.15em", "fontWeight": "700" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "display-md": ["28px", { "lineHeight": "34px", "letterSpacing": "0.12em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom Toggle Switch for Brutalist Theme */
+        .spartan-toggle {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background-color: theme('colors.surface-container-highest');
+            border: 1px solid theme('colors.outline-variant');
+            transition: background-color 0.3s;
+            cursor: pointer;
+        }
+        .spartan-toggle[aria-checked="true"] {
+            background-color: theme('colors.primary');
+            border-color: theme('colors.primary');
+        }
+        .spartan-toggle-knob {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background-color: theme('colors.on-surface');
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .spartan-toggle[aria-checked="true"] .spartan-toggle-knob {
+            transform: translateX(24px);
+            background-color: theme('colors.on-primary');
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased min-h-screen flex flex-col pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface dark:bg-surface border-b-4 border-primary flex justify-between items-center px-container-padding h-16 shadow-none">
+<button aria-label="Go back" class="text-primary hover:opacity-80 transition-opacity duration-200 flex items-center justify-center p-2 -ml-2">
+<span class="material-symbols-outlined text-[24px]">chevron_left</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm text-primary uppercase tracking-widest absolute left-1/2 transform -translate-x-1/2 pointer-events-none">THE COMPASS</h1>
+<div class="w-[40px]"></div> <!-- Spacer to balance flex layout -->
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 mt-16 px-container-padding py-8 space-y-10 max-w-2xl mx-auto w-full">
+<!-- SECTION: MEASURE -->
+<section class="space-y-3">
+<h2 class="font-label-sm text-label-sm text-primary uppercase tracking-wider">MEASURE</h2>
+<div class="bg-surface-container border border-outline-variant rounded p-4 flex items-center justify-between">
+<div>
+<div class="font-body-md text-body-md text-on-surface">Units</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-1">Distance, pace and cues</div>
+</div>
+<!-- Segmented Toggle -->
+<div class="flex border border-outline-variant rounded overflow-hidden">
+<button class="px-4 py-2 bg-primary text-on-primary font-label-md text-label-md uppercase focus:outline-none transition-colors">KM</button>
+<button class="px-4 py-2 bg-transparent text-on-surface font-label-md text-label-md uppercase hover:bg-surface-container-highest focus:outline-none transition-colors border-l border-outline-variant">MI</button>
+</div>
+</div>
+</section>
+<!-- SECTION: THE HERALD'S VOICE -->
+<section class="space-y-3">
+<h2 class="font-label-sm text-label-sm text-primary uppercase tracking-wider">THE HERALD'S VOICE</h2>
+<div class="bg-surface-container border border-outline-variant rounded overflow-hidden">
+<!-- Row 1 -->
+<div class="p-4 border-b border-outline-variant flex items-center justify-between">
+<div class="font-body-md text-body-md text-on-surface">Voice cues</div>
+<button aria-checked="true" class="spartan-toggle" role="switch">
+<div class="spartan-toggle-knob"></div>
+</button>
+</div>
+<!-- Row 2 -->
+<div class="p-4 border-b border-outline-variant flex items-center justify-between">
+<div>
+<div class="font-body-md text-body-md text-on-surface">Distance cues</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-1">Every 1 km</div>
+</div>
+<button aria-checked="true" class="spartan-toggle" role="switch">
+<div class="spartan-toggle-knob"></div>
+</button>
+</div>
+<!-- Row 3 -->
+<div class="p-4 border-b border-outline-variant flex items-center justify-between">
+<div>
+<div class="font-body-md text-body-md text-on-surface">Time cues</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-1">Every 10 minutes</div>
+</div>
+<button aria-checked="false" class="spartan-toggle" role="switch">
+<div class="spartan-toggle-knob"></div>
+</button>
+</div>
+<!-- Row 4 -->
+<div class="p-4 flex items-center justify-between">
+<div class="font-body-md text-body-md text-on-surface">Announce splits</div>
+<button aria-checked="true" class="spartan-toggle" role="switch">
+<div class="spartan-toggle-knob"></div>
+</button>
+</div>
+</div>
+</section>
+<!-- SECTION: THE HOLD -->
+<section class="space-y-3">
+<h2 class="font-label-sm text-label-sm text-primary uppercase tracking-wider">THE HOLD</h2>
+<div class="bg-surface-container border border-outline-variant rounded overflow-hidden">
+<!-- Row 1 -->
+<div class="p-4 border-b border-outline-variant flex items-center justify-between">
+<div class="font-body-md text-body-md text-on-surface">Autopause</div>
+<button aria-checked="false" class="spartan-toggle" role="switch">
+<div class="spartan-toggle-knob"></div>
+</button>
+</div>
+<!-- Row 2 (Read-only representation) -->
+<div class="p-4 flex items-center justify-between opacity-70">
+<div class="font-body-md text-body-md text-on-surface">Threshold</div>
+<div class="font-label-md text-label-md text-on-surface-variant">Default</div>
+</div>
+</div>
+</section>
+<!-- SECTION: THE RECORD -->
+<section class="space-y-3">
+<h2 class="font-label-sm text-label-sm text-primary uppercase tracking-wider">THE RECORD</h2>
+<div class="bg-surface-container border border-outline-variant rounded p-4 flex items-center justify-between">
+<div class="font-body-md text-body-md text-on-surface flex items-center gap-2">
+                    Keep raw points
+                </div>
+<span class="material-symbols-outlined text-[22px] text-on-surface-variant">lock</span>
+</div>
+</section>
+</main>
+<!-- Amber Status Block -->
+<div class="fixed bottom-0 left-0 w-full bg-[#f9bc4a] bg-opacity-20 border-t border-primary px-container-padding py-3 backdrop-blur-sm z-40 text-center">
+<span class="font-label-md text-label-md text-primary uppercase tracking-widest">Expo Go test mode</span>
+</div>
+<!-- Simple interaction script for toggles -->
+<script>
+        document.querySelectorAll('.spartan-toggle').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const isChecked = toggle.getAttribute('aria-checked') === 'true';
+                toggle.setAttribute('aria-checked', !isChecked);
+            });
+        });
+    </script>
+</body></html>

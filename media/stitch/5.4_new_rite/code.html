@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NEW RITE Modal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&amp;family=Inter:wght@400..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline": "#9c8f7c",
+                    "on-secondary": "#2d3133",
+                    "tertiary-fixed": "#d2e4ff",
+                    "inverse-on-surface": "#2e3036",
+                    "on-tertiary": "#003259",
+                    "tertiary-fixed-dim": "#9fcaff",
+                    "tertiary": "#9fcaff",
+                    "on-tertiary-fixed-variant": "#00497e",
+                    "surface-tint": "#f9bc4a",
+                    "inverse-primary": "#7d5700",
+                    "error": "#ffb4ab",
+                    "surface-bright": "#36393f",
+                    "surface-dim": "#101418",
+                    "inverse-surface": "#e1e2e9",
+                    "on-primary": "#422c00",
+                    "on-tertiary-fixed": "#001d37",
+                    "primary-container": "#d79e2d",
+                    "outline-variant": "#504535",
+                    "background": "#101418",
+                    "surface-container-lowest": "#0b0e13",
+                    "on-secondary-fixed-variant": "#44474a",
+                    "surface": "#101418",
+                    "on-secondary-container": "#b3b5b8",
+                    "surface-container-low": "#191c21",
+                    "secondary-fixed": "#e0e3e6",
+                    "surface-container": "#1d2025",
+                    "primary-fixed-dim": "#f9bc4a",
+                    "surface-container-high": "#272a2f",
+                    "secondary-container": "#44474a",
+                    "on-primary-fixed-variant": "#5f4100",
+                    "tertiary-container": "#6dacf3",
+                    "on-surface": "#e1e2e9",
+                    "surface-variant": "#32353a",
+                    "on-primary-container": "#523800",
+                    "error-container": "#93000a",
+                    "on-background": "#e1e2e9",
+                    "secondary-fixed-dim": "#c4c7ca",
+                    "primary": "#f9bc4a",
+                    "on-primary-fixed": "#271900",
+                    "on-surface-variant": "#d4c4af",
+                    "on-secondary-fixed": "#191c1e",
+                    "primary-fixed": "#ffdeaa",
+                    "on-error": "#690005",
+                    "on-tertiary-container": "#003f6e",
+                    "surface-container-highest": "#32353a",
+                    "on-error-container": "#ffdad6",
+                    "secondary": "#c4c7ca"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "fluting-width": "1px",
+                    "gutter": "16px",
+                    "container-padding": "24px",
+                    "unit": "8px"
+            },
+            "fontFamily": {
+                    "label-md": [
+                            "Inter"
+                    ],
+                    "label-sm": [
+                            "Inter"
+                    ],
+                    "body-lg": [
+                            "Inter"
+                    ],
+                    "body-md": [
+                            "Inter"
+                    ],
+                    "headline-sm": [
+                            "Cinzel"
+                    ],
+                    "display-lg": [
+                            "Cinzel"
+                    ],
+                    "display-md": [
+                            "Cinzel"
+                    ]
+            },
+            "fontSize": {
+                    "label-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "label-sm": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "body-lg": [
+                            "18px",
+                            {
+                                    "lineHeight": "28px",
+                                    "letterSpacing": "0.01em",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-md": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "letterSpacing": "0.01em",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-sm": [
+                            "20px",
+                            {
+                                    "lineHeight": "28px",
+                                    "letterSpacing": "0.1em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "display-lg": [
+                            "40px",
+                            {
+                                    "lineHeight": "48px",
+                                    "letterSpacing": "0.15em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "display-md": [
+                            "28px",
+                            {
+                                    "lineHeight": "34px",
+                                    "letterSpacing": "0.12em",
+                                    "fontWeight": "700"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex items-end justify-center sm:items-center p-0 sm:p-container-padding relative overflow-hidden">
+<!-- Dimmed Background Overlay -->
+<div class="fixed inset-0 bg-black/60 z-40 transition-opacity"></div>
+<!-- Modal Sheet -->
+<div class="w-full sm:max-w-md bg-surface rounded-t-xl sm:rounded-xl z-50 flex flex-col relative pb-safe border-t sm:border border-outline-variant shadow-2xl transform transition-transform translate-y-0">
+<!-- Grab Handle (Mobile) -->
+<div class="w-full flex justify-center pt-3 pb-1 sm:hidden">
+<div class="w-10 h-1 bg-surface-container-high rounded-full"></div>
+</div>
+<!-- Content Container -->
+<div class="p-[20px] flex flex-col gap-[18px]">
+<!-- Header -->
+<div class="flex justify-between items-center w-full mt-2 sm:mt-0">
+<h2 class="font-headline-sm text-headline-sm text-on-surface tracking-widest uppercase">NEW RITE</h2>
+<button class="font-label-md text-label-md text-primary hover:text-primary-fixed transition-colors bg-transparent border-none p-0 cursor-pointer uppercase">Cancel</button>
+</div>
+<!-- Fluting Divider -->
+<div class="h-fluting-width bg-outline-variant w-full my-2"></div>
+<!-- Title Field -->
+<div class="flex flex-col gap-2">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider" for="rite-title">TITLE</label>
+<input class="h-14 w-full bg-surface-container rounded-lg border border-outline-variant text-on-surface placeholder:text-secondary px-4 focus:outline-none focus:border-primary transition-colors font-body-md" id="rite-title" placeholder="Stretch for ten minutes" type="text"/>
+</div>
+<!-- Cadence Field -->
+<div class="flex flex-col gap-4">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">CADENCE</label>
+<!-- Segmented Control -->
+<div class="grid grid-cols-2 gap-2 w-full">
+<button class="h-14 rounded-lg bg-surface-container border border-outline-variant text-on-surface font-label-md text-label-md hover:bg-surface-container-highest transition-colors flex items-center justify-center">Every day</button>
+<button class="h-14 rounded-lg bg-surface-container border border-outline-variant text-on-surface font-label-md text-label-md hover:bg-surface-container-highest transition-colors flex items-center justify-center">Weekdays</button>
+<button class="h-14 rounded-lg bg-surface-container border border-outline-variant text-on-surface font-label-md text-label-md hover:bg-surface-container-highest transition-colors flex items-center justify-center">Weekends</button>
+<button class="h-14 rounded-lg bg-primary text-on-primary font-label-md text-label-md border-b-2 border-inverse-primary shadow-[inset_0px_1px_0px_0px_rgba(255,255,255,0.2)] flex items-center justify-center">Custom</button>
+</div>
+<!-- Custom Reveal: Days -->
+<div class="flex flex-col gap-3 mt-2">
+<div class="flex justify-between items-center w-full gap-1">
+<button class="w-[44px] h-[44px] rounded-full bg-surface-container border border-outline-variant text-on-surface-variant font-label-md flex items-center justify-center hover:bg-surface-container-highest transition-colors">S</button>
+<button class="w-[44px] h-[44px] rounded-full bg-primary text-on-primary font-label-md flex items-center justify-center shadow-[inset_0px_1px_0px_0px_rgba(255,255,255,0.2)]">M</button>
+<button class="w-[44px] h-[44px] rounded-full bg-surface-container border border-outline-variant text-on-surface-variant font-label-md flex items-center justify-center hover:bg-surface-container-highest transition-colors">T</button>
+<button class="w-[44px] h-[44px] rounded-full bg-primary text-on-primary font-label-md flex items-center justify-center shadow-[inset_0px_1px_0px_0px_rgba(255,255,255,0.2)]">W</button>
+<button class="w-[44px] h-[44px] rounded-full bg-surface-container border border-outline-variant text-on-surface-variant font-label-md flex items-center justify-center hover:bg-surface-container-highest transition-colors">T</button>
+<button class="w-[44px] h-[44px] rounded-full bg-primary text-on-primary font-label-md flex items-center justify-center shadow-[inset_0px_1px_0px_0px_rgba(255,255,255,0.2)]">F</button>
+<button class="w-[44px] h-[44px] rounded-full bg-surface-container border border-outline-variant text-on-surface-variant font-label-md flex items-center justify-center hover:bg-surface-container-highest transition-colors">S</button>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-80">Selecting no day repeats every day.</p>
+</div>
+<!-- Alternative Custom Mode Divider -->
+<div class="flex items-center gap-4 my-2">
+<div class="h-fluting-width bg-outline-variant flex-grow"></div>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">OR</span>
+<div class="h-fluting-width bg-outline-variant flex-grow"></div>
+</div>
+<!-- Custom Reveal: Numeric -->
+<div class="flex items-center justify-center gap-4 w-full">
+<span class="font-label-md text-label-md text-on-surface uppercase">Every</span>
+<input class="w-[72px] h-14 bg-surface-container rounded-lg border border-outline-variant text-on-surface text-center focus:outline-none focus:border-primary transition-colors font-headline-sm text-headline-sm m-0 p-0" type="number" value="3"/>
+<span class="font-label-md text-label-md text-on-surface uppercase">days</span>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex flex-col gap-4 mt-6">
+<button class="w-full h-14 bg-primary text-on-primary font-label-md text-label-md uppercase tracking-widest rounded-lg border-b-2 border-inverse-primary hover:bg-primary-fixed transition-colors flex items-center justify-center gap-2 shadow-[inset_0px_1px_0px_0px_rgba(255,255,255,0.2)]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">swords</span>
+                    Swear the rite
+                </button>
+<button class="w-full font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors bg-transparent border-none p-2 cursor-pointer uppercase text-center">Cancel</button>
+</div>
+</div>
+</div>
+</body></html>

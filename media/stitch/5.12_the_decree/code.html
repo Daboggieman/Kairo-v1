@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE DECREE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#001d37",
+                        "surface-container-highest": "#32353a",
+                        "primary-container": "#d79e2d",
+                        "inverse-surface": "#e1e2e9",
+                        "on-primary-container": "#523800",
+                        "on-tertiary-container": "#003f6e",
+                        "outline": "#9c8f7c",
+                        "secondary-container": "#44474a",
+                        "outline-variant": "#504535",
+                        "surface-container": "#1d2025",
+                        "error": "#ffb4ab",
+                        "primary-fixed-dim": "#f9bc4a",
+                        "secondary-fixed": "#e0e3e6",
+                        "surface-dim": "#101418",
+                        "on-secondary": "#2d3133",
+                        "tertiary": "#9fcaff",
+                        "on-secondary-fixed": "#191c1e",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed": "#d2e4ff",
+                        "on-tertiary": "#003259",
+                        "surface-tint": "#f9bc4a",
+                        "on-primary-fixed": "#271900",
+                        "inverse-primary": "#7d5700",
+                        "on-surface": "#e1e2e9",
+                        "surface-bright": "#36393f",
+                        "surface": "#101418",
+                        "on-surface-variant": "#d4c4af",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#5f4100",
+                        "tertiary-fixed-dim": "#9fcaff",
+                        "surface-container-low": "#191c21",
+                        "surface-container-lowest": "#0b0e13",
+                        "background": "#101418",
+                        "on-primary": "#422c00",
+                        "primary-fixed": "#ffdeaa",
+                        "secondary-fixed-dim": "#c4c7ca",
+                        "inverse-on-surface": "#2e3036",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "secondary": "#c4c7ca",
+                        "on-secondary-container": "#b3b5b8",
+                        "surface-container-high": "#272a2f",
+                        "tertiary-container": "#6dacf3",
+                        "on-tertiary-fixed-variant": "#00497e",
+                        "primary": "#f9bc4a",
+                        "surface-variant": "#32353a",
+                        "on-background": "#e1e2e9",
+                        "error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "container-padding": "24px",
+                        "fluting-width": "1px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "display-lg": ["Cinzel"],
+                        "headline-sm": ["Cinzel"],
+                        "display-md": ["Cinzel"],
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "0.15em", "fontWeight": "700" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "display-md": ["28px", { "lineHeight": "34px", "letterSpacing": "0.12em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Custom Meander Pattern Decor */
+        .meander-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20v20H0V0zm2 2v16h16V2H2zm2 2h12v12H4V4zm2 2v8h8V6H6zm2 2h4v4H8V8z' fill='%239c8f7c' fill-opacity='0.2' fill-rule='evenodd'/%3E%3C/svg%3E");
+            background-repeat: repeat-x;
+            background-size: 20px 20px;
+        }
+        /* Hide scrollbar for cleaner UI */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex items-end justify-center relative overflow-hidden">
+<!-- Dim Background Overlay -->
+<div class="absolute inset-0 bg-black/60 backdrop-blur-sm z-0"></div>
+<!-- Modal Sheet -->
+<main class="w-full max-w-md bg-surface border-t border-outline-variant rounded-t-xl z-10 flex flex-col max-h-[90vh] overflow-y-auto no-scrollbar shadow-2xl relative">
+<!-- Grab Handle -->
+<div class="w-full flex justify-center pt-unit pb-2">
+<div class="w-12 h-1 bg-outline-variant rounded-full opacity-50"></div>
+</div>
+<!-- Header -->
+<header class="px-container-padding pb-unit flex justify-between items-center border-b border-outline-variant relative">
+<h1 class="font-headline-sm text-headline-sm text-on-surface uppercase tracking-widest">THE DECREE</h1>
+<button class="font-label-md text-label-md text-primary uppercase hover:opacity-80 transition-opacity">Cancel</button>
+<div class="absolute bottom-0 left-0 w-full h-1 meander-pattern opacity-50 translate-y-full"></div>
+</header>
+<!-- Content Area -->
+<div class="p-container-padding flex flex-col gap-gutter">
+<!-- Description paragraph -->
+<p class="font-body-md text-body-md text-on-surface-variant mb-unit">
+                A decree applies from today forward. Past days keep the decree they were measured against.
+            </p>
+<!-- Inputs -->
+<div class="flex flex-col gap-unit">
+<!-- Caloric Forge -->
+<div class="relative bg-surface-container border border-outline-variant h-[56px] flex items-center px-gutter group focus-within:border-primary focus-within:shadow-[0_1px_0_0_#d79e2d] transition-colors duration-200">
+<label class="absolute -top-3 left-3 bg-surface-container px-1 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest z-10 group-focus-within:text-primary" for="caloric_forge">CALORIC FORGE</label>
+<input class="w-full bg-transparent border-none text-on-surface font-body-lg text-body-lg focus:ring-0 p-0" id="caloric_forge" type="number" value="2600"/>
+<span class="font-label-md text-label-md text-on-surface-variant ml-2 whitespace-nowrap">kcal</span>
+</div>
+<!-- Protein Den -->
+<div class="relative bg-surface-container border border-outline-variant h-[56px] flex items-center px-gutter group focus-within:border-primary focus-within:shadow-[0_1px_0_0_#d79e2d] transition-colors duration-200">
+<label class="absolute -top-3 left-3 bg-surface-container px-1 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest z-10 group-focus-within:text-primary" for="protein_den">PROTEIN DEN</label>
+<input class="w-full bg-transparent border-none text-on-surface font-body-lg text-body-lg focus:ring-0 p-0" id="protein_den" type="number" value="180"/>
+<span class="font-label-md text-label-md text-on-surface-variant ml-2 whitespace-nowrap">g</span>
+</div>
+<!-- The Granary -->
+<div class="relative bg-surface-container border border-outline-variant h-[56px] flex items-center px-gutter group focus-within:border-primary focus-within:shadow-[0_1px_0_0_#d79e2d] transition-colors duration-200">
+<label class="absolute -top-3 left-3 bg-surface-container px-1 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest z-10 group-focus-within:text-primary" for="the_granary">THE GRANARY</label>
+<input class="w-full bg-transparent border-none text-on-surface font-body-lg text-body-lg focus:ring-0 p-0" id="the_granary" type="number" value="260"/>
+<span class="font-label-md text-label-md text-on-surface-variant ml-2 whitespace-nowrap">g</span>
+</div>
+<!-- The Fat Pool -->
+<div class="relative bg-surface-container border border-outline-variant h-[56px] flex items-center px-gutter group focus-within:border-primary focus-within:shadow-[0_1px_0_0_#d79e2d] transition-colors duration-200">
+<label class="absolute -top-3 left-3 bg-surface-container px-1 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest z-10 group-focus-within:text-primary" for="the_fat_pool">THE FAT POOL</label>
+<input class="w-full bg-transparent border-none text-on-surface font-body-lg text-body-lg focus:ring-0 p-0" id="the_fat_pool" type="number" value="80"/>
+<span class="font-label-md text-label-md text-on-surface-variant ml-2 whitespace-nowrap">g</span>
+</div>
+</div>
+<!-- Derived Read-out Card -->
+<div class="bg-[#2a2210] border border-[#523800] p-gutter flex flex-col gap-1 items-center justify-center mt-2 relative overflow-hidden">
+<div class="absolute inset-0 bg-primary-container opacity-5 mix-blend-overlay"></div>
+<p class="font-body-md text-body-md text-primary-fixed z-10 text-center">2,600 kcal from these macros</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant z-10 text-center tracking-widest">720 P · 1,040 C · 720 F</p>
+</div>
+<!-- Effective From Row -->
+<div class="flex justify-between items-center py-unit border-b border-outline-variant mt-2">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-1">EFFECTIVE FROM</span>
+<span class="font-body-md text-body-md text-on-surface">Today, 18 August</span>
+</div>
+<button class="font-label-md text-label-md text-primary uppercase tracking-widest hover:opacity-80 transition-opacity">Change</button>
+</div>
+<!-- Actions -->
+<div class="mt-gutter flex flex-col gap-unit pb-safe pb-4">
+<button class="w-full h-[56px] bg-[#d79e2d] hover:bg-primary-fixed text-black font-label-md text-label-md uppercase tracking-widest transition-colors duration-200 flex items-center justify-center border-none">
+                    Issue the decree
+                </button>
+<button class="w-full h-[48px] text-on-surface-variant hover:text-on-surface font-label-md text-label-md uppercase tracking-widest transition-colors duration-200 flex items-center justify-center mt-1">
+                    Cancel
+                </button>
+</div>
+</div>
+</main>
+</body></html>

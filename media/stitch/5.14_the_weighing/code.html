@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE WEIGHING</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Cinzel:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#001d37",
+                        "surface-container-highest": "#32353a",
+                        "primary-container": "#d79e2d",
+                        "inverse-surface": "#e1e2e9",
+                        "on-primary-container": "#523800",
+                        "on-tertiary-container": "#003f6e",
+                        "outline": "#9c8f7c",
+                        "secondary-container": "#44474a",
+                        "outline-variant": "#504535",
+                        "surface-container": "#1d2025",
+                        "error": "#ffb4ab",
+                        "primary-fixed-dim": "#f9bc4a",
+                        "secondary-fixed": "#e0e3e6",
+                        "surface-dim": "#101418",
+                        "on-secondary": "#2d3133",
+                        "tertiary": "#9fcaff",
+                        "on-secondary-fixed": "#191c1e",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed": "#d2e4ff",
+                        "on-tertiary": "#003259",
+                        "surface-tint": "#f9bc4a",
+                        "on-primary-fixed": "#271900",
+                        "inverse-primary": "#7d5700",
+                        "on-surface": "#e1e2e9",
+                        "surface-bright": "#36393f",
+                        "surface": "#101418",
+                        "on-surface-variant": "#d4c4af",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#5f4100",
+                        "tertiary-fixed-dim": "#9fcaff",
+                        "surface-container-low": "#191c21",
+                        "surface-container-lowest": "#0b0e13",
+                        "background": "#101418",
+                        "on-primary": "#422c00",
+                        "primary-fixed": "#ffdeaa",
+                        "secondary-fixed-dim": "#c4c7ca",
+                        "inverse-on-surface": "#2e3036",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "secondary": "#c4c7ca",
+                        "on-secondary-container": "#b3b5b8",
+                        "surface-container-high": "#272a2f",
+                        "tertiary-container": "#6dacf3",
+                        "on-tertiary-fixed-variant": "#00497e",
+                        "primary": "#f9bc4a",
+                        "surface-variant": "#32353a",
+                        "on-background": "#e1e2e9",
+                        "error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "container-padding": "24px",
+                        "fluting-width": "1px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "display-lg": ["Cinzel"],
+                        "headline-sm": ["Cinzel"],
+                        "display-md": ["Cinzel"],
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                        "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "0.15em", "fontWeight": "700"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                        "display-md": ["28px", {"lineHeight": "34px", "letterSpacing": "0.12em", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Custom styles for brutalist/stone aesthetic */
+        .fluting-divider {
+            width: 1px;
+            background-color: theme('colors.outline-variant');
+        }
+        .input-brutalist {
+            background-color: theme('colors.surface-container-low');
+            border: 1px solid theme('colors.outline-variant');
+            transition: border-color 0.2s ease-in-out;
+        }
+        .input-brutalist:focus {
+            border-color: theme('colors.primary');
+            outline: none;
+        }
+        .btn-primary {
+            background-color: theme('colors.primary-container');
+            color: theme('colors.on-primary-container');
+            border: 1px solid theme('colors.primary-container');
+            text-transform: uppercase;
+        }
+        /* Hide number input spinners */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex items-end sm:items-center justify-center p-0 sm:p-4 selection:bg-primary-container selection:text-on-primary-container">
+<!-- Modal Sheet Wrapper -->
+<div class="w-full max-w-md bg-surface border-t sm:border border-outline-variant rounded-t-xl sm:rounded-xl shadow-2xl overflow-hidden animate-[slideUp_0.3s_ease-out]">
+<!-- Grab Handle Area (Mobile only visually useful, but structurally present) -->
+<div class="w-full flex justify-center pt-3 pb-1 sm:hidden">
+<div class="w-12 h-1.5 bg-surface-variant rounded-full"></div>
+</div>
+<!-- Header -->
+<header class="flex justify-between items-center px-container-padding py-4 border-b border-outline-variant bg-surface relative">
+<div class="w-16"></div> <!-- Spacer for center alignment -->
+<h1 class="font-headline-sm text-headline-sm text-on-surface uppercase tracking-widest text-center flex-1">THE WEIGHING</h1>
+<button class="w-16 text-right font-label-md text-label-md text-primary hover:text-primary-fixed transition-colors uppercase">Cancel</button>
+<!-- Meander subtle decorative border -->
+<div class="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-primary-container to-transparent opacity-20"></div>
+</header>
+<!-- Form Content -->
+<main class="px-container-padding py-8 space-y-8 bg-surface-container-lowest">
+<!-- Main Weight Input Section -->
+<section class="space-y-4">
+<div class="flex items-center justify-center relative">
+<!-- Giant Input -->
+<input aria-label="Weight value" class="w-full h-24 bg-transparent border-none text-center font-display-lg text-display-lg text-inverse-surface placeholder-on-surface-variant focus:ring-0 focus:outline-none tracking-widest" step="0.1" style="font-variant-numeric: tabular-nums;" type="number" value="74.6"/>
+<!-- Unit Toggle -->
+<div class="absolute right-0 top-1/2 -translate-y-1/2 flex bg-surface-container rounded-full p-1 border border-outline-variant h-11 items-center">
+<button class="px-4 py-1.5 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md uppercase transition-colors" type="button">KG</button>
+<button class="px-4 py-1.5 rounded-full text-on-surface-variant hover:text-on-surface font-label-md text-label-md uppercase transition-colors" type="button">LB</button>
+</div>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant text-center px-4">
+                    Pre-filled from your last weighing so the unit cannot silently change.
+                </p>
+</section>
+<!-- Decorative Fluting -->
+<div class="w-full flex justify-center space-x-2 py-2">
+<div class="h-4 fluting-divider"></div>
+<div class="h-4 fluting-divider"></div>
+<div class="h-4 fluting-divider"></div>
+</div>
+<!-- Note Input -->
+<section>
+<div class="relative">
+<label class="sr-only" for="note-input">Note</label>
+<input class="w-full h-14 px-4 input-brutalist font-body-md text-body-md text-on-surface placeholder-on-surface-variant" id="note-input" placeholder="Fasted, post-workout, …" type="text"/>
+<span class="absolute top-0 right-4 h-full flex items-center pointer-events-none text-on-surface-variant font-label-sm text-label-sm uppercase">Note</span>
+</div>
+</section>
+<!-- Time Selector -->
+<section class="flex justify-between items-center py-4 border-y border-outline-variant">
+<div class="flex items-center space-x-2">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">When</span>
+<div class="fluting-divider h-4 mx-2"></div>
+<span class="font-body-md text-body-md text-on-surface">Today, 07:12</span>
+</div>
+<button class="font-label-md text-label-md text-primary uppercase hover:opacity-80 transition-opacity" type="button">Change</button>
+</section>
+<!-- Actions -->
+<section class="space-y-4 pt-4">
+<button class="w-full h-14 btn-primary font-headline-sm text-headline-sm shadow-[0_4px_0_0_theme(colors.on-primary-container)] active:shadow-none active:translate-y-[4px] transition-all flex justify-center items-center" type="button">
+                    Record it
+                </button>
+<button class="w-full py-4 text-center font-label-md text-label-md text-on-surface-variant uppercase hover:text-on-surface transition-colors" type="button">
+                    Cancel
+                </button>
+</section>
+</main>
+</div>
+</body></html>

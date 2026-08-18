@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE FEAST</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#9c8f7c",
+                        "surface-variant": "#32353a",
+                        "error-container": "#93000a",
+                        "background": "#101418",
+                        "surface-container-highest": "#32353a",
+                        "on-primary-fixed": "#271900",
+                        "secondary": "#c4c7ca",
+                        "surface-tint": "#f9bc4a",
+                        "on-secondary": "#2d3133",
+                        "surface-container": "#1d2025",
+                        "inverse-primary": "#7d5700",
+                        "on-tertiary-fixed": "#001d37",
+                        "error": "#ffb4ab",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "inverse-surface": "#e1e2e9",
+                        "tertiary-fixed-dim": "#9fcaff",
+                        "outline-variant": "#504535",
+                        "surface-container-lowest": "#0b0e13",
+                        "on-primary-container": "#523800",
+                        "surface-container-low": "#191c21",
+                        "surface-container-high": "#272a2f",
+                        "on-background": "#e1e2e9",
+                        "on-surface": "#e1e2e9",
+                        "secondary-container": "#44474a",
+                        "secondary-fixed": "#e0e3e6",
+                        "on-tertiary": "#003259",
+                        "tertiary-fixed": "#d2e4ff",
+                        "tertiary-container": "#6dacf3",
+                        "primary": "#f9bc4a",
+                        "on-secondary-container": "#b3b5b8",
+                        "on-surface-variant": "#d4c4af",
+                        "primary-fixed": "#ffdeaa",
+                        "on-primary": "#422c00",
+                        "surface": "#101418",
+                        "on-tertiary-container": "#003f6e",
+                        "on-primary-fixed-variant": "#5f4100",
+                        "on-secondary-fixed": "#191c1e",
+                        "surface-bright": "#36393f",
+                        "inverse-on-surface": "#2e3036",
+                        "tertiary": "#9fcaff",
+                        "surface-dim": "#101418",
+                        "secondary-fixed-dim": "#c4c7ca",
+                        "on-error": "#690005",
+                        "primary-fixed-dim": "#f9bc4a",
+                        "on-tertiary-fixed-variant": "#00497e",
+                        "primary-container": "#d79e2d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "unit": "8px",
+                        "container-padding": "24px",
+                        "fluting-width": "1px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "display-md": ["Cinzel"],
+                        "headline-sm": ["Cinzel"],
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Cinzel"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "display-md": ["28px", { "lineHeight": "34px", "letterSpacing": "0.12em", "fontWeight": "700" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "0.15em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .meander-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2,2 L22,2 L22,22 L18,22 L18,6 L6,6 L6,18 L14,18 L14,10 L10,10 L10,14 L12,14 L12,12 L12,12 L12,12' fill='none' stroke='%23f9bc4a' stroke-width='1'/%3E%3C/svg%3E");
+            background-repeat: repeat-x;
+            height: 4px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased pb-24">
+<!-- Top Navigation -->
+<header class="fixed top-0 w-full z-50 bg-surface border-b-4 border-primary">
+<div class="flex justify-between items-center px-container-padding h-16">
+<button aria-label="Previous Day" class="w-11 h-11 flex items-center justify-center text-primary hover:opacity-80 transition-opacity duration-200">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<div class="flex flex-col items-center">
+<h1 class="font-headline-sm text-headline-sm text-primary uppercase">THE FEAST</h1>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Today · Monday 18 August</span>
+</div>
+<button aria-label="Next Day" class="w-11 h-11 flex items-center justify-center text-primary hover:opacity-80 transition-opacity duration-200">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+<div class="meander-pattern w-full opacity-50"></div>
+</header>
+<main class="pt-24 px-container-padding space-y-6 max-w-2xl mx-auto">
+<!-- The Four Stores Card -->
+<section class="bg-surface border border-outline-variant p-4 rounded-DEFAULT">
+<h2 class="font-label-md text-label-md text-on-surface-variant uppercase mb-4 tracking-widest border-b border-outline-variant pb-2">THE FOUR STORES</h2>
+<div class="space-y-6">
+<!-- Hero: Caloric Forge -->
+<div>
+<div class="flex justify-between items-end mb-2">
+<div>
+<span class="font-label-md text-label-md text-on-background uppercase block">CALORIC FORGE</span>
+<div class="flex items-baseline gap-2">
+<span class="font-display-md text-display-md text-primary tabular-nums">1,540</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant tabular-nums">/ 2,600 kcal</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant tabular-nums">1,060 left</span>
+</div>
+<div class="h-[10px] bg-surface-container-highest rounded-none overflow-hidden relative">
+<div class="absolute top-0 left-0 h-full bg-primary" style="width: 59%;"></div>
+</div>
+</div>
+<!-- Compact Rows -->
+<div class="space-y-3">
+<!-- Protein -->
+<div>
+<div class="flex justify-between text-label-sm font-label-sm text-on-surface-variant uppercase mb-1">
+<span>PROTEIN DEN</span>
+<span>124 / 200g</span>
+</div>
+<div class="h-[6px] bg-surface-container-highest rounded-none overflow-hidden relative">
+<div class="absolute top-0 left-0 h-full bg-[#4ade80]" style="width: 62%;"></div>
+</div>
+</div>
+<!-- Granary -->
+<div>
+<div class="flex justify-between text-label-sm font-label-sm text-on-surface-variant uppercase mb-1">
+<span>THE GRANARY</span>
+<span>144 / 300g</span>
+</div>
+<div class="h-[6px] bg-surface-container-highest rounded-none overflow-hidden relative">
+<div class="absolute top-0 left-0 h-full bg-[#60a5fa]" style="width: 48%;"></div>
+</div>
+</div>
+<!-- Fat Pool -->
+<div>
+<div class="flex justify-between text-label-sm font-label-sm text-on-surface-variant uppercase mb-1">
+<span>THE FAT POOL</span>
+<span>53 / 75g</span>
+</div>
+<div class="h-[6px] bg-surface-container-highest rounded-none overflow-hidden relative">
+<div class="absolute top-0 left-0 h-full bg-[#a78bfa]" style="width: 71%;"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Meals -->
+<div class="space-y-6">
+<!-- Dawn -->
+<section>
+<h3 class="font-label-md text-label-md text-primary uppercase mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="wb_twilight">wb_twilight</span>
+                    DAWN (BREAKFAST) — 420 kcal
+                </h3>
+<div class="bg-surface border border-outline-variant rounded-DEFAULT divide-y divide-outline-variant">
+<div class="p-4 flex justify-between items-center h-[56px]">
+<div>
+<div class="font-body-md text-body-md text-on-background">Greek Yogurt &amp; Honey</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">1.5 × 100 g · 31 g P · 0 g C · 4 g F</div>
+</div>
+<div class="font-body-md text-body-md text-on-background tabular-nums">248 kcal</div>
+</div>
+<div class="p-4 flex justify-between items-center h-[56px]">
+<div>
+<div class="font-body-md text-body-md text-on-background">Almonds</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">0.5 × 100 g · 10 g P · 10 g C · 25 g F</div>
+</div>
+<div class="font-body-md text-body-md text-on-background tabular-nums">172 kcal</div>
+</div>
+</div>
+</section>
+<!-- Zenith -->
+<section>
+<h3 class="font-label-md text-label-md text-primary uppercase mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="light_mode">light_mode</span>
+                    ZENITH (LUNCH) — 610 kcal
+                </h3>
+<div class="bg-surface border border-outline-variant rounded-DEFAULT divide-y divide-outline-variant">
+<div class="p-4 flex justify-between items-center h-[56px]">
+<div>
+<div class="font-body-md text-body-md text-on-background">Grilled Chicken Breast</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">2.0 × 100 g · 62 g P · 0 g C · 7 g F</div>
+</div>
+<div class="font-body-md text-body-md text-on-background tabular-nums">330 kcal</div>
+</div>
+<div class="p-4 flex justify-between items-center h-[56px]">
+<div>
+<div class="font-body-md text-body-md text-on-background">Brown Rice</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">1.5 × 100 g · 4 g P · 34 g C · 1 g F</div>
+</div>
+<div class="font-body-md text-body-md text-on-background tabular-nums">168 kcal</div>
+</div>
+<div class="p-4 flex justify-between items-center h-[56px]">
+<div>
+<div class="font-body-md text-body-md text-on-background">Olive Oil Dressing</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">1.0 × 15 ml · 0 g P · 0 g C · 14 g F</div>
+</div>
+<div class="font-body-md text-body-md text-on-background tabular-nums">112 kcal</div>
+</div>
+</div>
+</section>
+<!-- Dusk -->
+<section>
+<h3 class="font-label-md text-label-md text-primary uppercase mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="dark_mode">dark_mode</span>
+                    DUSK (DINNER) — 380 kcal
+                </h3>
+<div class="bg-surface border border-outline-variant rounded-DEFAULT divide-y divide-outline-variant">
+<div class="p-4 flex justify-between items-center h-[56px]">
+<div>
+<div class="font-body-md text-body-md text-on-background">Salmon Fillet</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">1.2 × 100 g · 25 g P · 0 g C · 16 g F</div>
+</div>
+<div class="font-body-md text-body-md text-on-background tabular-nums">240 kcal</div>
+</div>
+<div class="p-4 flex justify-between items-center h-[56px]">
+<div>
+<div class="font-body-md text-body-md text-on-background">Steamed Broccoli</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">2.0 × 100 g · 6 g P · 12 g C · 0 g F</div>
+</div>
+<div class="font-body-md text-body-md text-on-background tabular-nums">70 kcal</div>
+</div>
+<div class="p-4 flex justify-between items-center h-[56px]">
+<div>
+<div class="font-body-md text-body-md text-on-background">Quinoa</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">0.5 × 100 g · 4 g P · 10 g C · 1 g F</div>
+</div>
+<div class="font-body-md text-body-md text-on-background tabular-nums">70 kcal</div>
+</div>
+</div>
+</section>
+<!-- Embers -->
+<section>
+<h3 class="font-label-md text-label-md text-primary uppercase mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="local_fire_department">local_fire_department</span>
+                    EMBERS (SNACKS) — 130 kcal
+                </h3>
+<div class="bg-surface border border-outline-variant rounded-DEFAULT divide-y divide-outline-variant">
+<div class="p-4 flex justify-between items-center h-[56px]">
+<div>
+<div class="font-body-md text-body-md text-on-background">Protein Shake</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">1.0 × 30 g · 24 g P · 2 g C · 1 g F</div>
+</div>
+<div class="font-body-md text-body-md text-on-background tabular-nums">110 kcal</div>
+</div>
+<div class="p-4 flex justify-between items-center h-[56px]">
+<div>
+<div class="font-body-md text-body-md text-on-background">Black Coffee</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">2.0 × 250 ml · 0 g P · 0 g C · 0 g F</div>
+</div>
+<div class="font-body-md text-body-md text-on-background tabular-nums">20 kcal</div>
+</div>
+</div>
+</section>
+</div>
+<p class="text-center font-label-sm text-label-sm text-on-surface-variant pb-8">Long-press an entry to remove it.</p>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 bg-surface-container border-t border-outline-variant flex justify-around items-center h-20 pb-safe px-2">
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform w-full" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="fort">fort</span>
+<span class="font-label-sm text-label-sm uppercase">CITADEL</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform w-full" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="task_alt">task_alt</span>
+<span class="font-label-sm text-label-sm uppercase">RITES</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform w-full" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="fitness_center">fitness_center</span>
+<span class="font-label-sm text-label-sm uppercase">FORGE</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary border-t-2 border-primary pt-2 hover:text-primary-fixed active:scale-95 transition-transform w-full relative -top-[1px]" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="restaurant" data-weight="fill" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+<span class="font-label-sm text-label-sm uppercase">FEAST</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform w-full" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="balance">balance</span>
+<span class="font-label-sm text-label-sm uppercase">SCALES</span>
+</a>
+</nav>
+</body></html>

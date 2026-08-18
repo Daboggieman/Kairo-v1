@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE ARMORY</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#9c8f7c",
+                        "surface-variant": "#32353a",
+                        "error-container": "#93000a",
+                        "background": "#101418",
+                        "surface-container-highest": "#32353a",
+                        "on-primary-fixed": "#271900",
+                        "secondary": "#c4c7ca",
+                        "surface-tint": "#f9bc4a",
+                        "on-secondary": "#2d3133",
+                        "surface-container": "#1d2025",
+                        "inverse-primary": "#7d5700",
+                        "on-tertiary-fixed": "#001d37",
+                        "error": "#ffb4ab",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "inverse-surface": "#e1e2e9",
+                        "tertiary-fixed-dim": "#9fcaff",
+                        "outline-variant": "#504535",
+                        "surface-container-lowest": "#0b0e13",
+                        "on-primary-container": "#523800",
+                        "surface-container-low": "#191c21",
+                        "surface-container-high": "#272a2f",
+                        "on-background": "#e1e2e9",
+                        "on-surface": "#e1e2e9",
+                        "secondary-container": "#44474a",
+                        "secondary-fixed": "#e0e3e6",
+                        "on-tertiary": "#003259",
+                        "tertiary-fixed": "#d2e4ff",
+                        "tertiary-container": "#6dacf3",
+                        "primary": "#f9bc4a",
+                        "on-secondary-container": "#b3b5b8",
+                        "on-surface-variant": "#d4c4af",
+                        "primary-fixed": "#ffdeaa",
+                        "on-primary": "#422c00",
+                        "surface": "#101418",
+                        "on-tertiary-container": "#003f6e",
+                        "on-primary-fixed-variant": "#5f4100",
+                        "on-secondary-fixed": "#191c1e",
+                        "surface-bright": "#36393f",
+                        "inverse-on-surface": "#2e3036",
+                        "tertiary": "#9fcaff",
+                        "surface-dim": "#101418",
+                        "secondary-fixed-dim": "#c4c7ca",
+                        "on-error": "#690005",
+                        "primary-fixed-dim": "#f9bc4a",
+                        "on-tertiary-fixed-variant": "#00497e",
+                        "primary-container": "#d79e2d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "unit": "8px",
+                        "container-padding": "24px",
+                        "fluting-width": "1px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "display-md": ["Cinzel"],
+                        "headline-sm": ["Cinzel"],
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Cinzel"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "display-md": ["28px", { "lineHeight": "34px", "letterSpacing": "0.12em", "fontWeight": "700" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "0.15em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex items-end justify-center sm:items-center sm:p-container-padding bg-background/80 backdrop-blur-sm">
+<!-- Modal Sheet Container -->
+<div class="w-full sm:max-w-md bg-surface h-[90vh] sm:h-[80vh] rounded-t-[32px] sm:rounded-[32px] border-t border-l border-r sm:border border-outline-variant flex flex-col relative overflow-hidden shadow-2xl shadow-black">
+<!-- Grab Handle (Mobile Only) -->
+<div class="w-full flex justify-center pt-3 pb-1 sm:hidden cursor-pointer active:opacity-70 transition-opacity">
+<div class="w-12 h-1.5 bg-surface-variant rounded-full"></div>
+</div>
+<!-- Header -->
+<div class="flex items-center justify-between px-container-padding pt-4 pb-4 border-b border-outline-variant/30">
+<div class="w-16"></div> <!-- Spacer for centering -->
+<h1 class="font-headline-sm text-headline-sm text-on-surface text-center flex-1">THE ARMORY</h1>
+<button class="font-label-md text-label-md text-primary hover:text-primary-fixed transition-colors w-16 text-right">Cancel</button>
+</div>
+<!-- Search Input -->
+<div class="px-container-padding py-4">
+<div class="relative flex items-center w-full h-[56px]">
+<span class="material-symbols-outlined absolute left-4 text-secondary/60 text-[22px] pointer-events-none">search</span>
+<input class="w-full h-full bg-surface-container border border-outline-variant rounded-DEFAULT pl-12 pr-4 font-body-md text-body-md text-on-surface placeholder:text-secondary/50 focus:outline-none focus:border-primary transition-colors focus:ring-1 focus:ring-primary shadow-inner" placeholder="Search the armory" type="text"/>
+</div>
+</div>
+<!-- Filter Chips -->
+<div class="px-container-padding pb-4 overflow-x-auto hide-scrollbar flex space-x-2 border-b border-outline-variant/30">
+<button class="h-[44px] px-6 rounded-full bg-primary text-on-primary font-label-md text-label-md shrink-0 border border-primary">All</button>
+<button class="h-[44px] px-6 rounded-full bg-surface-container text-secondary border border-outline-variant hover:border-primary/50 transition-colors font-label-md text-label-md shrink-0">Chest</button>
+<button class="h-[44px] px-6 rounded-full bg-surface-container text-secondary border border-outline-variant hover:border-primary/50 transition-colors font-label-md text-label-md shrink-0">Back</button>
+<button class="h-[44px] px-6 rounded-full bg-surface-container text-secondary border border-outline-variant hover:border-primary/50 transition-colors font-label-md text-label-md shrink-0">Legs</button>
+<button class="h-[44px] px-6 rounded-full bg-surface-container text-secondary border border-outline-variant hover:border-primary/50 transition-colors font-label-md text-label-md shrink-0">Shoulders</button>
+<button class="h-[44px] px-6 rounded-full bg-surface-container text-secondary border border-outline-variant hover:border-primary/50 transition-colors font-label-md text-label-md shrink-0">Arms</button>
+<button class="h-[44px] px-6 rounded-full bg-surface-container text-secondary border border-outline-variant hover:border-primary/50 transition-colors font-label-md text-label-md shrink-0">Core</button>
+<button class="h-[44px] px-6 rounded-full bg-surface-container text-secondary border border-outline-variant hover:border-primary/50 transition-colors font-label-md text-label-md shrink-0">Custom</button>
+</div>
+<!-- Exercise List -->
+<div class="flex-1 overflow-y-auto px-container-padding">
+<!-- Row 1 -->
+<button class="w-full flex items-center justify-between h-[64px] border-b border-outline-variant/30 group hover:bg-surface-container/50 transition-colors text-left -mx-container-padding px-container-padding box-content">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-DEFAULT bg-surface-container-high flex items-center justify-center border border-outline-variant group-hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-[22px] text-secondary">fitness_center</span>
+</div>
+<div class="flex flex-col justify-center h-full">
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Bench press</span>
+<span class="font-label-sm text-label-sm text-secondary/70">Chest · Barbell</span>
+</div>
+</div>
+<div class="flex flex-col items-end justify-center h-full">
+<span class="font-label-sm text-label-sm text-secondary/70">4 × 8 @ 80 kg</span>
+</div>
+</button>
+<!-- Row 2 -->
+<button class="w-full flex items-center justify-between h-[64px] border-b border-outline-variant/30 group hover:bg-surface-container/50 transition-colors text-left -mx-container-padding px-container-padding box-content">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-DEFAULT bg-surface-container-high flex items-center justify-center border border-outline-variant group-hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-[22px] text-secondary">fitness_center</span>
+</div>
+<div class="flex flex-col justify-center h-full">
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Incline bench press</span>
+<span class="font-label-sm text-label-sm text-secondary/70">Chest · Barbell</span>
+</div>
+</div>
+<div class="flex flex-col items-end justify-center h-full">
+<span class="font-label-sm text-label-sm text-secondary/70">3 × 10 @ 60 kg</span>
+</div>
+</button>
+<!-- Row 3 -->
+<button class="w-full flex items-center justify-between h-[64px] border-b border-outline-variant/30 group hover:bg-surface-container/50 transition-colors text-left -mx-container-padding px-container-padding box-content">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-DEFAULT bg-surface-container-high flex items-center justify-center border border-outline-variant group-hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-[22px] text-secondary">fitness_center</span>
+</div>
+<div class="flex flex-col justify-center h-full">
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Barbell row</span>
+<span class="font-label-sm text-label-sm text-secondary/70">Back · Barbell</span>
+</div>
+</div>
+<div class="flex flex-col items-end justify-center h-full">
+<span class="font-label-sm text-label-sm text-secondary/70">4 × 8 @ 70 kg</span>
+</div>
+</button>
+<!-- Row 4 -->
+<button class="w-full flex items-center justify-between h-[64px] border-b border-outline-variant/30 group hover:bg-surface-container/50 transition-colors text-left -mx-container-padding px-container-padding box-content">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-DEFAULT bg-surface-container-high flex items-center justify-center border border-outline-variant group-hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-[22px] text-secondary">accessibility_new</span>
+</div>
+<div class="flex flex-col justify-center h-full">
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Pull-up</span>
+<span class="font-label-sm text-label-sm text-secondary/70">Back · Bodyweight</span>
+</div>
+</div>
+<div class="flex flex-col items-end justify-center h-full">
+<span class="font-label-sm text-label-sm text-secondary/70">3 × max</span>
+</div>
+</button>
+<!-- Row 5 -->
+<button class="w-full flex items-center justify-between h-[64px] border-b border-outline-variant/30 group hover:bg-surface-container/50 transition-colors text-left -mx-container-padding px-container-padding box-content">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-DEFAULT bg-surface-container-high flex items-center justify-center border border-outline-variant group-hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-[22px] text-secondary">fitness_center</span>
+</div>
+<div class="flex flex-col justify-center h-full">
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Squat</span>
+<span class="font-label-sm text-label-sm text-secondary/70">Legs · Barbell</span>
+</div>
+</div>
+<div class="flex flex-col items-end justify-center h-full">
+<span class="font-label-sm text-label-sm text-secondary/70">5 × 5 @ 100 kg</span>
+</div>
+</button>
+<!-- Row 6 -->
+<button class="w-full flex items-center justify-between h-[64px] border-b border-outline-variant/30 group hover:bg-surface-container/50 transition-colors text-left -mx-container-padding px-container-padding box-content">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-DEFAULT bg-surface-container-high flex items-center justify-center border border-outline-variant group-hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-[22px] text-secondary">fitness_center</span>
+</div>
+<div class="flex flex-col justify-center h-full">
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Romanian deadlift</span>
+<span class="font-label-sm text-label-sm text-secondary/70">Legs · Barbell</span>
+</div>
+</div>
+<div class="flex flex-col items-end justify-center h-full">
+<span class="font-label-sm text-label-sm text-secondary/70">3 × 10 @ 80 kg</span>
+</div>
+</button>
+<!-- Row 7 -->
+<button class="w-full flex items-center justify-between h-[64px] border-b border-outline-variant/30 group hover:bg-surface-container/50 transition-colors text-left -mx-container-padding px-container-padding box-content">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-DEFAULT bg-surface-container-high flex items-center justify-center border border-outline-variant group-hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-[22px] text-secondary">fitness_center</span>
+</div>
+<div class="flex flex-col justify-center h-full">
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Overhead press</span>
+<span class="font-label-sm text-label-sm text-secondary/70">Shoulders · Barbell</span>
+</div>
+</div>
+<div class="flex flex-col items-end justify-center h-full">
+<span class="font-label-sm text-label-sm text-secondary/70">4 × 8 @ 50 kg</span>
+</div>
+</button>
+<!-- Row 8 -->
+<button class="w-full flex items-center justify-between h-[64px] border-b border-outline-variant/30 group hover:bg-surface-container/50 transition-colors text-left -mx-container-padding px-container-padding box-content mb-4">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-DEFAULT bg-surface-container-high flex items-center justify-center border border-outline-variant group-hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-[22px] text-secondary">fitness_center</span>
+</div>
+<div class="flex flex-col justify-center h-full">
+<span class="font-body-md text-body-md text-on-surface group-hover:text-primary transition-colors">Lateral raise</span>
+<span class="font-label-sm text-label-sm text-secondary/70">Shoulders · Dumbbell</span>
+</div>
+</div>
+<div class="flex flex-col items-end justify-center h-full">
+<span class="font-label-sm text-label-sm text-secondary/70">3 × 15 @ 12 kg</span>
+</div>
+</button>
+</div>
+<!-- Pinned Bottom Action -->
+<div class="p-container-padding bg-surface border-t border-outline-variant/30 pb-safe">
+<button class="w-full h-[56px] flex items-center justify-center gap-2 border border-outline-variant bg-transparent text-on-surface font-label-md text-label-md uppercase tracking-wider hover:border-primary hover:text-primary transition-all rounded-DEFAULT group relative overflow-hidden">
+<span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">add</span>
+                Forge a custom lift
+            </button>
+</div>
+</div>
+</body></html>
