@@ -176,6 +176,10 @@ Material Community Icons outline at 24px, so the app's existing set is the inten
 no icon package is added — but the exports were built against Material Symbols, whose 61
 distinct glyph names are a different vocabulary. Each is remapped and **verified against the
 installed glyphmap**, not matched by name; several have no counterpart and need a substitute.
+That mapping has since been worked out and verified in full — the finished 61-row table is in
+`to_continue_with.md` under the rebuild's progress section, along with the two names
+(`flame`, `shield-heart-outline`) that sound right and do not exist. Read it rather than
+repeating the exercise.
 
 ## The substitution table
 

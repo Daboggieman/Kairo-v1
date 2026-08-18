@@ -3,10 +3,11 @@
 Handoff for the Kairo v1 sessions so far: Phase 0 scaffold, then Workouts, Weight, Tasks
 and Macros. Read before continuing.
 
-Last updated: **2026-08-18**, after planning a complete Greek-themed UI rebuild from 30 commissioned
-screen designs and writing it into the docs package as `docs/09-ui-rebuild-plan.md`. **The rebuild
-is the current work and it supersedes the partial restyle described further down — read the next two
-sections before touching any screen.**
+Last updated: **2026-08-18**, mid-way through the Greek-themed UI rebuild. Stages 0 and 1
+(foundations and the app shell) are **complete**; Stage 2 (restyling the 22 existing screens) is
+**4 of 22 done** — The Citadel and the whole tasks module. **The rebuild is the current work and it
+supersedes the partial restyle described further down — read the next three sections before touching
+any screen.** The resume point is *"Stage 2, next up: the workouts module"* below.
 
 ## UI rebuild, Greek theme — 2026-08-18 (CURRENT WORK)
 
@@ -19,6 +20,237 @@ maintaining the same logo and accent color of the logo"*. Every screen is rename
 map, the colour/spacing substitution table, the token changes, the five new screens, and the delivery
 gates. This section holds only what a session needs before opening that file, plus the things that
 will bite.
+
+### Where the work actually is — 2026-08-18
+
+Typecheck and lint were **both clean at handoff** (`npx tsc --noEmit` and `npx eslint .` from
+`apps/mobile`, silent, exit 0). `npm test` has **not** been run and now must be: this pass edited
+`src/domain/__tests__/tasks.test.ts`. Nothing is committed — correctly, the user has not asked.
+
+| Stage | State |
+|---|---|
+| **Stage 0 — foundations** | **Done.** Theme tokens, Cinzel, all Layout primitives, `Button`, `Checkbox`, `Logo`. |
+| **Stage 1 — shell** | **Done.** `app/(tabs)/_layout.tsx` is the six-tab Canon bar. |
+| **Stage 2 — 22 screens** | **4 of 22.** The Citadel + the tasks module (3 screens and its `_layout`). |
+| **Stage 3 — 5 new screens** | Not started. |
+
+**Stage 0, in detail — all of it landed and verified:**
+
+- `src/theme/index.ts` (223 lines): `colors.border` `#2A2F38` → **`#504535`**; `layout` on the 8px
+  grid (`screenPadding` 24, `sectionGap` 24, `cardPadding` 16, `cardGap` 16, `rowPadding` 16,
+  `scrollFooter` still 40); `fontSize.xxl = 40` / `lineHeight.xxl = 48`; and the new **`type`**
+  export with six roles — `displayLg`, `displayMd`, `headlineSm` (the three Cinzel ones), `eyebrow`,
+  `label`, `timer`. Screens import it aliased — `import { type as typeScale } from '@/theme'` — and
+  should keep doing so: a bare `type` in an import list reads as TypeScript's type-only import
+  modifier, so the alias is what keeps the line unambiguous to both the compiler and the reader.
+- **`type` is declared `satisfies Record<string, TextStyle>`, not `as const`.** This matters and it
+  will be re-broken by anyone who "tidies" it: `as const` freezes `fontVariant` as a *readonly*
+  tuple, which `StyleSheet.create` will not accept, and the error surfaces at the call site rather
+  than here. `satisfies` also checks every role against what React Native really takes, so a typo in
+  `fontWeight` or `fontVariant` fails in the theme file.
+- **Cinzel is installed and loading.** `@expo-google-fonts/cinzel ^0.4.2` is in
+  `apps/mobile/package.json` and `node_modules` is restored (that install also fixed the
+  "`node_modules` is absent" blocker recorded further down — every command below runs now).
+  `app/_layout.tsx` calls `useFonts({ Cinzel_600SemiBold, Cinzel_700Bold })` above the provider and
+  gates first paint on `fontsLoaded || fontError !== null` behind the same `AppLoader` as the SQLite
+  migration. A **font error is deliberately not fatal** — it degrades to the platform serif rather
+  than hanging on a loader forever.
+- **`src/components/Layout.tsx` is now 1014 lines and owns 25 exports.** This is the file to read
+  before writing any screen; nothing below should be rebuilt per-screen:
+
+  `Screen` · `ScreenScroll` · `ScreenHeader` (tab roots) · `AppBar` (pushed/modal screens) ·
+  `Eyebrow` · `Section` · `Card` · `CardHeader` · `CardAction` · `RowGroup` · `NavRow` · `Notice` ·
+  `EmptyState` · `IconButton` · `StatStrip` · `Pill` · `Chip` · `Field` · `Divider` · `Stat` ·
+  `StatCard` · `Timer` · `ProgressBar` · `Meander` · `Fluting`
+
+  Notes on the ones with contracts worth not re-deriving: `ScreenScroll` owns the
+  `insets.bottom + layout.scrollFooter` footer inset, so a screen inside it must **not** also read
+  `useSafeAreaInsets`. `RowGroup` draws the rules between its children, so its rows must not carry
+  their own `borderBottomWidth`, and it takes a `style` prop for group-level dimming. `StatStrip`
+  takes `size?: 'md' | 'lg'` and a per-item `progress?: number` that draws a bar pinned to the
+  bottom of that cell. `Chip` takes `role?: 'radio' | 'checkbox'` — that picks the accessibility
+  contract (`selected` vs `checked`), so a screen cannot pair them wrongly — and `shape?: 'block' |
+  'circle'`. `Pill` takes `tone?: 'accent' | 'danger' | 'muted' | 'success'`; its border is always
+  `colors.border` because the designs draw it as the tone colour at 30% alpha, which would mean
+  inventing four rgba values.
+- `Button`: labels are uppercase + `type.label`, and **`danger` is outlined** (transparent fill).
+  `Checkbox`: `SIZE = 28`. `Logo`: `KairoWordmark` is `Cinzel_700Bold` with its optical-centring
+  `paddingLeft` re-measured.
+
+**Stage 1, in detail:** `app/(tabs)/_layout.tsx` keeps six visible tabs plus `href: null` on
+`alarms`/`wallpaper`, labelled `CITADEL · RITES · FORGE · FEAST · SCALES · MOVE` at 10px/700/1pt
+tracking. The bar is `TAB_BAR_HEIGHT = 80` **plus `insets.bottom` added by hand** — with an explicit
+`height` the navigator treats it as the whole bar and still pads by the inset, which left 46 points
+of usable bar. The 2pt active accent rule is an absolutely-positioned `View`, not a
+`borderTopWidth`, which would add height to the active tab and jog the icons on every switch. A
+local `TabButton` replaces the default (which packs icon and label to the top of an 80pt item); its
+props type is declared **structurally** rather than imported, because `BottomTabBarButtonProps`
+lives inside expo-router's vendored react-navigation. `aria-selected` is the only source of focus
+state for a replaced button.
+
+**Stage 2, done so far.** `app/(tabs)/index.tsx` — The Citadel: fluted header with `KairoMark` +
+wordmark on `colors.background` (never a card), a `Meander` under it, four `DashboardCard`s named
+The Rites / The Feast / The Scales / The Forge, and a `Section title="The Outer Ward"` `RowGroup`
+holding The Oracle and The Call. Then the tasks module, all four files rewritten:
+
+| File | Lines | Screen |
+|---|---|---|
+| `app/(tabs)/tasks/_layout.tsx` | 28 | `headerShown: false`; `new` stays `presentation: 'modal'` |
+| `app/(tabs)/tasks/index.tsx` | 357 | The Rites |
+| `app/(tabs)/tasks/new.tsx` | 168 | The New Rite |
+| `app/(tabs)/tasks/[taskId].tsx` | 364 | The Flame |
+
+Plus `src/domain/tasks.ts`: `formatProgress` now returns `"3 of 4 kept"` / `"nothing due"` and
+`formatStreak` returns a bare number or `''`. The Greek wording lives in the domain rather than at
+the call site so the screen and its unit tests cannot disagree — **that is why
+`src/domain/__tests__/tasks.test.ts` changed and why `npm test` must be re-run.**
+
+Four visual decisions on those screens that look like mistakes and are not, so they don't get
+"corrected": The Flame's history window went from 8 weeks to **13** (a quarter, rounded to whole
+weeks because the grid is week-aligned) and its heatmap **scrolls horizontally** rather than shrinking
+its cells — thirteen 14pt columns fit a modern phone and not a small one, and squares that shrink to
+fit stop being readable before they stop being drawable. A missed day is **tinted red** rather than
+left empty, because the point of a quarter of history is seeing where it broke and an empty square
+looks identical to a day off. The cell `borderRadius` is a literal **2**, not `radius.sm` — at 14
+points the smallest token in the scale (8) rounds the square into a circle. And on The Rites, the
+"not due today" and archived groups dim at the **`RowGroup`** level, not per row, because the rules
+between rows are drawn by the group and fading one row makes the rules look misaligned.
+
+### The conventions Stage 2 established — follow these for the remaining 18 screens
+
+Each of these was a decision made once on the tasks module; re-deciding them per module is how the
+app ends up looking assembled rather than designed.
+
+- **Every module `_layout.tsx` sets `headerShown: false`** and keeps
+  `contentStyle: { backgroundColor: colors.background }` (it is what paints behind a push
+  transition). Drop the `title` from each `Stack.Screen` — nothing renders it any more.
+- **A tab root renders `ScreenHeader` as the first child of its `ScreenScroll`; a pushed or modal
+  screen renders `AppBar`.** `AppBar` takes `onBack` for a push and **omits it for a modal** — the
+  way out of a modal is its own dismiss, and a back chevron there claims a screen underneath that
+  does not exist. A modal's escape is an `IconButton icon="close"` in the `AppBar`'s `action` slot.
+  **Exception: `movement/active.tsx` keeps no back affordance at all** — it currently sets
+  `headerBackVisible: false` deliberately, and that must survive the restyle.
+- **One action per tab root, as an outlined `IconButton` in `ScreenHeader`'s `action` slot.** The
+  designs' docked full-width footer button is dropped: a 56pt slab above an 80pt tab bar was eating
+  a fifth of the screen.
+- **Aggregate strips render only when there is something to aggregate.** Three zeroes above an empty
+  list is chrome describing nothing.
+- **Fold the carried-over items in as you go** — the `.catch` → `<Notice tone="danger">` guard, the
+  density pass, `LogoLoader`. The list is under *"What was left when this pass stopped"* below, and
+  `tasks/index.tsx` is already ticked off it.
+- **Where the design and the app's data disagree, the tested domain wins and the deviation gets a
+  comment.** Precedents set on the tasks module: The Flame's heatmap day labels stay Sunday-first
+  because `dayOfWeek` is `getDay()` order (re-basing a tested grid to match a label column is the
+  wrong trade); The New Rite drops the design's "OR / Every N days" numeric field because nothing in
+  the app creates an `interval:` rule and two live ways to express one cadence with no apply step
+  leaves "which wins" to be inferred; and its *"Selecting no day repeats every day"* hint was
+  rejected in favour of refusing to save an empty custom selection, because a sheet that silently
+  converts your choice into a different rule is the harder thing to notice.
+
+### Stage 2, next up: the workouts module
+
+Four screens, in this order: `§5.6 forge → workouts/index.tsx` (140 lines),
+`§5.7 anvil → workouts/active.tsx` (315), `§5.8 armory → workouts/exercises.tsx` (170),
+`§5.9 stele → workouts/[sessionId].tsx` (136), plus `workouts/_layout.tsx` (22). Then macros
+(`add.tsx` 238, `index.tsx` 306, `targets.tsx` 107), weight (`index.tsx` 334, `log.tsx` 184,
+`goal.tsx` 170), movement (`index.tsx` 111, `new.tsx` 112, `active.tsx` 158, `[activityId].tsx` 206,
+`replay.tsx` 103, `settings.tsx` 79), and finally `alarms.tsx` (391) and `wallpaper.tsx` (211).
+
+Those last two already import `Layout.tsx` — from the **2026-08-17** pass, not the rebuild. They
+still need §5.22 / §5.23 transcribing; do not read the import as "already done".
+
+**§5.6 The Forge is already read.** What it asks for:
+
+- A fixed header: `THE FORGE` in accent display, subtitle *"16 sessions · 84,120 kg lifted"* — so
+  `ScreenHeader` with that aggregate as its `subtitle`.
+- An **active-session card**: fill `#2B2110` (= `colors.accentSoft`), a 4px accent left border, the
+  eyebrow `AT THE ANVIL`, a pulsing green dot, `In progress · 24m 10s`, `3 exercises · 11 strikes`,
+  and a full-width *Return to the anvil* button. Its `bg-gradient-to-r from-primary/10` overlay is
+  one of the five gradients to flatten.
+- `THE ANNALS OF THE FORGE` — a section title with a hairline running off to the right — then one
+  card per session: a ruled header row (`Sat 16 Aug` / `1h 04m`), a three-column grid divided by
+  `border-l` reading **STRIKES** (accent) / **TONNAGE** (`5,240 kg`, tabular) / **LIFTS**, and a
+  wrapped row of exercise-name chips ending in a `+2` overflow chip in accent. That maps onto
+  `CardHeader` + a three-cell `StatStrip` + `Pill`s.
+- **Vocabulary to carry through the module**: sets → **strikes**, volume → **tonnage**, exercises →
+  **lifts**. Same treatment as `formatProgress` — if a formatter is tested, move the wording into
+  `src/domain/workouts.ts` rather than writing it at the call site.
+
+`workouts/index.tsx` is a `FlatList` today and should stay one: a session log genuinely grows
+without limit, unlike the rites list.
+
+### The design dumper, and the glyph table — both already worked out
+
+Reading `code.html` raw is unpleasant. This script flattens one to tag-plus-class-plus-text, which
+is how all the designs above were read. It lives in `/tmp` and **`/tmp` does not survive a reboot**,
+so it is reproduced here rather than referenced:
+
+```python
+# /tmp/dump_design.py — usage: python3 /tmp/dump_design.py media/stitch/5.7_the_anvil/code.html
+import re, sys
+for path in sys.argv[1:]:
+    h = open(path).read()
+    body = h[h.index('<body'):]
+    body = re.sub(r'<(script|style)[\s\S]*?</\1>', '', body)
+    print('\n########', path)
+    out = []
+    for m in re.finditer(r'<(/?)(\w+)([^>]*)>|([^<]+)', body):
+        if m.group(4):
+            t = ' '.join(m.group(4).split())
+            if t and t != '-->': out.append('    TEXT: ' + t)
+        else:
+            close, tag, attrs = m.group(1), m.group(2), m.group(3) or ''
+            cls = re.search(r'class="([^"]*)"', attrs)
+            out.append(('</' + tag) if close else ('<' + tag + (' ' + cls.group(1) if cls else '')))
+    print('\n'.join(out))
+```
+
+**Note the folder is `media/stitch/5.4_new_rite`, not `5.4_the_new_rite`** — every other one takes
+the `the`.
+
+**All 61 Material Symbols names in the 30 exports are now mapped and verified against the installed
+`MaterialCommunityIcons` glyphmap.** Use this table; do not re-guess, and do not trust a name that
+merely sounds right — a wrong one renders as a box, not an error.
+
+| Design | Ours | Design | Ours |
+|---|---|---|---|
+| `accessibility_new` | `human` | `local_fire_department`, `whatshot` | `fire` |
+| `add` | `plus` | `location_on` | `map-marker` |
+| `architecture` | `ruler-square-compass` | `lock` | `lock-outline` |
+| `arrow_back` | `arrow-left` | `my_location` | `crosshairs-gps` |
+| `arrow_back_ios`, `arrow_back_ios_new` | `chevron-left` | `notifications` | `bell-outline` |
+| `arrow_downward` | `arrow-down` | `pause` | `pause` |
+| `arrow_forward` | `arrow-right` | `photo_camera` | `camera-outline` |
+| `balance` | `scale-balance` | `play_circle` | `play-circle-outline` |
+| `broken_image` | `image-broken-variant` | `remove` | `minus` |
+| `check` | `check` | `replay` | `replay` |
+| `check_circle` | `check-circle` | `restaurant` | `silverware-fork-knife` |
+| `chevron_left` / `chevron_right` | `chevron-left` / `chevron-right` | `restaurant_menu` | `silverware-variant` |
+| `dark_mode`, `nights_stay` | `weather-night` | `schedule` | `clock-outline` |
+| `delete` | `trash-can-outline` | `search` | `magnify` |
+| `directions_bike`, `pedal_bike` | `bike` | `security` | `shield-outline` |
+| `directions_run` | `run` | `shield_person` | `shield-account-outline` |
+| `directions_walk` | `walk` | `shield_with_heart` | **`shield-crown-outline`** (see below) |
+| `edit` | `pencil-outline` | `speed` | `speedometer` |
+| `emoji_events` | `trophy-outline` | `sports_martial_arts` | `karate` |
+| `error` | `alert-circle-outline` | `sports_mma` | `boxing-glove` |
+| `expand_more` | `chevron-down` | `sprint` | `run-fast` |
+| `fitness_center` | `dumbbell` | `star` | `star-outline` |
+| `flag` | `flag-outline` | `swords` | `sword-cross` |
+| `fort` | `castle` | `task_alt` | `checkbox-marked-circle-outline` |
+| `hiking` | `hiking` | `terrain` | `terrain` |
+| `light_mode` | `weather-sunny` | `timer` | `timer-outline` |
+| `trending_down` | `trending-down` | `warning` | `alert-outline` |
+| `wb_twilight` | `weather-sunset` | | |
+
+**Two names that do not exist and will waste a session if trusted:** `flame` (use `fire` — this one
+was caught mid-build) and `shield-heart-outline` (the family has `shield-cross-outline`,
+`shield-check-outline`, `shield-crown-outline`, no heart; `shield_with_heart` appears once, in The
+Sanctum, and `shield-crown-outline` suits the theme). Re-verify any glyph not in the table with:
+
+```sh
+cd apps/mobile && node -e "const m=require('@expo/vector-icons/build/vendor/react-native-vector-icons/glyphmaps/MaterialCommunityIcons.json'); console.log('NAME' in m)"
+```
 
 ### The design handoff — read the markup, not the pictures
 
@@ -64,16 +296,17 @@ itself is titled THE EXPEDITION. This is the one knowing divergence from the des
 ### Things that will go wrong
 
 - **`letterSpacing` is in points in React Native, not `em`.** The design's `0.15em` / `0.12em` /
-  `0.1em` are resolved against their own font size once, in the new `type` export in
+  `0.1em` are resolved against their own font size once, in the `type` export in
   `src/theme/index.ts`. Do not put an `em` value or a raw `fontFamily` string at a call site.
 - **A missing font falls back silently.** Cinzel absent looks like a slightly wrong serif, not an
-  error. It has to be confirmed on a device.
+  error. It has to be confirmed on a device. The loader deliberately does not gate on a font error,
+  so a failed fetch reaches the user as slightly-wrong type rather than a stuck splash.
 - **The exports' 61 Material Symbols names are a different vocabulary** from
-  `MaterialCommunityIcons`. Remap each and **verify against the installed glyphmap** rather than
-  guessing by name — several have no counterpart. A wrong name renders as a box, not an error.
-- **`node_modules` is not installed anywhere in the repo right now.** `npx expo install
-  @expo-google-fonts/cinzel` in `apps/mobile` is the first code step and also restores the tree;
-  nothing — lint, typecheck, the glyphmap check — can run before it.
+  `MaterialCommunityIcons`. **They are all mapped and verified now — use the table above** rather
+  than guessing by name. A wrong name renders as a box, not an error.
+- **`node_modules` is installed again.** `@expo-google-fonts/cinzel` went in with `npx expo install`,
+  which restored the whole tree, so lint, typecheck, tests and the glyphmap check all run. (Historic
+  note: earlier in this file the absent tree is described as a blocker. It no longer is.)
 - Do not port the designs' gradients (5), `backdrop-blur-sm` (8), or shadows. Flatten them. No
   `expo-linear-gradient`, no `expo-blur`. `DESIGN.md` itself says the system avoids soft shadows.
 - Six remote `lh3.googleusercontent.com` `<img>` tags in the exports are placeholders — use the local
@@ -88,8 +321,10 @@ screens. `docs/06-roadmap.md`'s "Pulled forward from Phase 6" section now record
 as superseded. `docs/07-repo-structure.md` gained `media/` in the tree, the new Layout primitives, a
 convention for the `type` token group, and the English-identifiers rule.
 
-No code has been touched for the rebuild yet. The working tree is as described under the section
-below.
+`ui_rebuild_stitch_prompt.md` at the repo root — the prompt the 30 designs were generated from, added
+in `e164a93` — is **deleted in the working tree and that deletion is unstaged**. It is superseded by
+`docs/09-ui-rebuild-plan.md`. Restore it with `git checkout -- ui_rebuild_stitch_prompt.md` if that
+was not intended; otherwise it goes with the next commit.
 
 ## UI restructure and branding — 2026-08-17 (SUPERSEDED by the rebuild above)
 
@@ -208,32 +443,37 @@ The repo gate is **0 errors and 0 warnings**, and this ESLint config is React-Co
 These are no longer a separate pass. Items 1–4 happen **while each module is being restyled** for the
 Greek rebuild, because every one of these files is being opened anyway and a second sweep over the
 same 13 files would be wasted. The lists themselves are still the checklist — keep ticking them off.
+**Struck-through entries are done as of 2026-08-18.**
 
 1. **`app/(tabs)/macros/index.tsx`**: replace its local `MACRO_COLORS` (`carbs: '#58A6FF'`,
    `fat: '#D29922'`) with `chartColors`, keeping `calories: colors.accent`. This was the file open
    when that session ended; nothing in it has been changed yet.
-2. **Unguarded loaders — 13 screens.** Every one loads with an async IIFE and no `.catch`, which is
-   why one dead SQLite connection printed ~57 unhandled rejections instead of one visible error.
-   Each needs the `catch` → `Notice tone="danger"` treatment now used in `index.tsx`, `alarms.tsx`,
-   and `wallpaper.tsx`:
-   `macros/index.tsx`, `tasks/index.tsx`, `weight/index.tsx`, `weight/goal.tsx`,
+2. **Unguarded loaders — 13 screens, 12 left.** Every one loads with an async IIFE and no `.catch`,
+   which is why one dead SQLite connection printed ~57 unhandled rejections instead of one visible
+   error. Each needs the `catch` → `Notice tone="danger"` treatment now used in `index.tsx`,
+   `alarms.tsx`, `wallpaper.tsx` and `tasks/index.tsx`:
+   `macros/index.tsx`, ~~`tasks/index.tsx`~~, `weight/index.tsx`, `weight/goal.tsx`,
    `workouts/index.tsx`, `workouts/active.tsx`, `workouts/exercises.tsx`,
    `workouts/[sessionId].tsx`, `movement/index.tsx`, `movement/active.tsx`,
    `movement/settings.tsx`, `movement/replay.tsx`, `movement/[activityId].tsx`.
+   (`tasks/[taskId].tsx` was not on the list but got the same guard, since it was open anyway.)
    (Their `requestSync(db).catch(() => {})` calls are deliberate and unrelated — sync is
    best-effort.)
 3. **Full-screen `ActivityIndicator` → `LogoLoader`**: `movement/[activityId].tsx:87`,
    `movement/active.tsx:87` and `:116`. Keep `ActivityIndicator` inside `Button`, where it has to
-   fit a 56px control.
-4. **Density pass on the 12 screens still setting their own screen padding**: `padding: spacing.lg`
-   → `layout.screenPadding`, gaps → `layout.cardGap`/`layout.sectionGap`, and `lineHeight` on body
-   text. `macros/index.tsx`, `macros/add.tsx`, `macros/targets.tsx`, `tasks/index.tsx`,
-   `tasks/new.tsx`, `tasks/[taskId].tsx`, `weight/log.tsx`, `weight/goal.tsx`,
-   `workouts/active.tsx`, `workouts/[sessionId].tsx`, `movement/new.tsx`, `movement/settings.tsx`.
-   Adopt `Layout.tsx` primitives where a screen's own container adds nothing; only `wallpaper`,
-   `alarms`, and `index` import it so far. **Note the values moved** — the rebuild puts `layout` on
-   an 8px grid, so read them from the theme rather than from this list.
-5. Re-run `npm run typecheck` and `npm run lint`, then have the user run `npm test`.
+   fit a 56px control. Neither file is touched yet — the line numbers predate the rebuild, so
+   re-grep rather than trusting them.
+4. **Density pass on the 12 screens still setting their own screen padding, 9 left**:
+   `padding: spacing.lg` → `layout.screenPadding`, gaps → `layout.cardGap`/`layout.sectionGap`, and
+   `lineHeight` on body text. `macros/index.tsx`, `macros/add.tsx`, `macros/targets.tsx`,
+   ~~`tasks/index.tsx`~~, ~~`tasks/new.tsx`~~, ~~`tasks/[taskId].tsx`~~, `weight/log.tsx`,
+   `weight/goal.tsx`, `workouts/active.tsx`, `workouts/[sessionId].tsx`, `movement/new.tsx`,
+   `movement/settings.tsx`.
+   Adopt `Layout.tsx` primitives where a screen's own container adds nothing. **Note the values
+   moved** — the rebuild put `layout` on an 8px grid, so read them from the theme rather than from
+   this list.
+5. Re-run `npm run typecheck` and `npm run lint` after every module, then have the user run
+   `npm test`.
 
 Two things the tab bar does **not** need: `alarms` and `wallpaper` are already `href: null` with
 six visible tabs, and both are reachable from Home's "More" rows. No navigation restructure. (The
@@ -248,15 +488,23 @@ All of the 2026-08-17 work is committed (`791a588`, `493da42`, `e78fcea`), inclu
 landed separately in `e164a93`. HEAD was `92c21da` on 2026-08-18. The "nothing is committed"
 warning that used to be here no longer applies.
 
-As of 2026-08-18 the only uncommitted changes are the documentation for the rebuild:
-`docs/09-ui-rebuild-plan.md` (new) and edits to `docs/README.md`, `docs/00-overview.md`,
-`docs/04-feature-specs.md`, `docs/06-roadmap.md`, `docs/07-repo-structure.md`, and this file.
+As of 2026-08-18, **nothing from the rebuild is committed** and the working tree carries all of it.
+Two things about its shape, both worth knowing before running any git command:
 
-Do not commit or amend unless the user asks. One question is still open from before this work:
-`npx expo install --check` reports four packages a patch behind (`expo-location`,
-`expo-notifications`, `expo-router`, `expo-task-manager`). The recommendation was to leave them —
-nothing observed traces to those versions — and the user has not decided. Worth re-checking after
-`@expo-google-fonts/cinzel` is installed, since that run restores `node_modules` from scratch.
+- **Part of it is already in the index** (`git add` was run at some point, not by a commit): the
+  rebuild's docs, `apps/mobile/package.json` + `package-lock.json`, `src/theme/index.ts`,
+  `src/components/{Button,Checkbox,Logo}.tsx`, `app/_layout.tsx`, `app/(tabs)/_layout.tsx`, and
+  `app/(tabs)/index.tsx`. `src/components/Layout.tsx` is **`MM`** — staged *and* further modified
+  since. The tasks module, `src/domain/tasks.ts` and its test are unstaged, as is the
+  `ui_rebuild_stitch_prompt.md` deletion. `git status --short` is the only trustworthy account;
+  `git diff` alone hides the staged half (use `git diff HEAD`).
+- **Do not commit or amend unless the user asks.** That includes not "tidying" the index.
+
+One question is still open from before this work: `npx expo install --check` reported four packages a
+patch behind (`expo-location`, `expo-notifications`, `expo-router`, `expo-task-manager`). The
+recommendation was to leave them — nothing observed traces to those versions — and the user has not
+decided. `node_modules` has since been reinstalled from scratch by the Cinzel install, so it is worth
+re-running `--check` to see whether the drift is still the same four.
 
 ## Shared SQLite connection — 2026-08-17
 
@@ -302,8 +550,8 @@ handle from `useSQLiteContext()`; anything outside the React tree opens with
 
 Related: every screen loaded with `query().then(setState)` and no `.catch`, which is why one dead
 connection printed ~57 unhandled rejections instead of one visible error. Fixed on Home, reminders,
-and wallpaper; **13 screens still unguarded** — the list is item 2 under "What was left when this
-pass stopped" above, and the fix happens as each module is restyled for the rebuild.
+wallpaper and both tasks screens; **12 screens still unguarded** — the list is item 2 under "What was
+left when this pass stopped" above, and the fix happens as each module is restyled for the rebuild.
 
 ## Expo Go runtime gate — 2026-08-17
 
@@ -650,10 +898,10 @@ Kairo data; the populated v3-to-v4 migration remains covered by the automated SQ
 | `src/domain/tasks.ts` | 434 lines, pure — recurrence parsing, streak walks, history grid |
 | `src/db/tasks.ts` | 204 lines, 11 query functions |
 | `src/components/Checkbox.tsx` | presentational tick box |
-| `app/(tabs)/tasks/_layout.tsx` | Stack: `index` "Today", `new` (modal), `[taskId]` "Streak" |
-| `app/(tabs)/tasks/index.tsx` | the Today list |
-| `app/(tabs)/tasks/new.tsx` | add-task modal |
-| `app/(tabs)/tasks/[taskId].tsx` | streak detail + history grid |
+| `app/(tabs)/tasks/_layout.tsx` | Stack: `index`, `new` (modal), `[taskId]`; `headerShown: false` since the rebuild |
+| `app/(tabs)/tasks/index.tsx` | the Today list — **The Rites** since the rebuild |
+| `app/(tabs)/tasks/new.tsx` | add-task modal — **The New Rite** |
+| `app/(tabs)/tasks/[taskId].tsx` | streak detail + history grid — **The Flame** |
 | `app/(tabs)/_layout.tsx` | `Tabs.Screen name="tasks"` added between Home and Workouts |
 | `app/(tabs)/index.tsx` | Home gained a "Today" card |
 
@@ -906,8 +1154,9 @@ Do not restart the provider/integration decision. It is locked: Kairo records an
 movement data; there is no Strava connection, import, segment competition, social feature,
 or third-party activity upload. Read `docs/08-phase-3-movement-plan.md` first for the complete
 product and technical contract. Do not create or amend commits unless the user asks. Inspect
-`git status --short --branch` first — as of 2026-08-18 the tree carries only the rebuild's
-documentation changes; everything else is committed. Preserve any pre-existing user changes,
+`git status --short --branch` first — as of 2026-08-18 the tree carries the rebuild's documentation
+**plus the Stage 0/1 foundations and its first four rebuilt screens**, about half of it already sitting
+in the index; everything else is committed. Preserve any pre-existing user changes,
 especially `.devcontainer/setup.sh`.
 
 The most useful code entry points are:
@@ -978,14 +1227,20 @@ EXPO_NO_TELEMETRY=1 npx expo export --platform ios --output-dir /tmp/kairo-phase
                         # both successful; telemetry disabled because the sandbox cannot write ~/.expo
 ```
 
-`typecheck` and `lint` were last run clean **after** the 2026-08-17 UI work. `npm test`,
-`expo-doctor`, and both `expo export` runs predate it. The user runs the test suite, the exports,
-and every device check personally — their words: *"i will run all the tests myself and return their
-output"*. Offer to check readiness; do not run those yourself.
+`typecheck` and `lint` were last run clean on **2026-08-18**, after The Citadel and the whole tasks
+module — both silent, exit 0. `npm test`, `expo-doctor`, and both `expo export` runs all predate the
+rebuild, and `npm test` in particular is now **known stale**: `src/domain/__tests__/tasks.test.ts`
+changed with `formatProgress`/`formatStreak`. The user runs the test suite, the exports, and every
+device check personally — their words: *"i will run all the tests myself and return their output"*.
+Offer to check readiness; do not run those yourself.
 
-`node_modules` is currently **absent** repo-wide, so none of the mobile commands above will run until
-`npx expo install @expo-google-fonts/cinzel` (or a plain `npm install`) restores the tree — that is
-the first code step of the UI rebuild.
+Two things about this machine that cost time if rediscovered:
+
+- **Node is not on the non-interactive shell's `PATH`.** Every shell call that runs `npm`/`npx`/`node`
+  needs `export PATH="$HOME/.nvm/versions/node/v22.23.2/bin:$PATH" &&` in front of it.
+- **The shell is zsh, where an unmatched glob is a hard error**, not a literal. `grep -rn foo
+  --include=*.ts .` dies with `no matches found: --include=*.ts`, and any unquoted route path breaks:
+  write `app/'(tabs)'/workouts/index.tsx` or reach for `find`.
 
 To regenerate the app icons after an artwork change (needs Pillow):
 
