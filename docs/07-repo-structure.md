@@ -6,6 +6,8 @@ alongside the code they describe.
 ```
 kairo/
 ├── docs/                        # this planning package
+├── media/                       # design source, not shipped
+│   └── stitch/                  # the 30 screen designs — code.html is authoritative
 ├── apps/
 │   ├── mobile/                  # Expo React Native app
 │   │   ├── app.json
@@ -78,8 +80,9 @@ sit in two different trees rather than one folder per module.
   principle from `00-overview.md` enforced by the folder structure itself, not just
   intention.
 - **Screen structure comes from `src/components/Layout.tsx`, never from a screen's own
-  `StyleSheet`.** A screen composes `Screen`/`ScreenScroll`, `Section`, `Card`, `Notice`,
-  `EmptyState`, `Field`; it does not invent its own card padding or scroll footer. The app had
+  `StyleSheet`.** A screen composes `Screen`/`ScreenScroll`, `AppBar`, `Section`, `Card`, `Notice`,
+  `EmptyState`, `Field`, `Eyebrow`, `StatCard`, `ProgressBar`, `Timer`, `Meander`, `Fluting`; it does
+  not invent its own card padding or scroll footer. The app had
   reached fourteen slightly different card paddings, and two screens that never picked up the dark
   palette at all — their default black text sat on a near-black background and could not be read.
   A screen that builds its own containers can forget the theme; one that composes these cannot.
@@ -87,10 +90,21 @@ sit in two different trees rather than one folder per module.
   Both scales lived in `spacing`, so a screen margin and an icon gap were the same 16px and there
   was no hierarchy left to read. Running text sets `lineHeight` from the theme — React Native
   leaves it unset at ~1.15×, which is what made the app feel congested.
+- **Composed text roles come from `type`, and a screen never writes a `fontFamily` string.** The
+  display faces, their sizes, and their letter-spacing are one export in `src/theme/index.ts`. Two
+  reasons it is a token group rather than a per-screen style: the design specifies tracking in `em`
+  while React Native's `letterSpacing` is in points, so the conversion must happen exactly once; and
+  a mistyped family name falls back to the platform serif silently and looks almost right.
 - **Brand assets are generated, not hand-made.** `assets/source/` holds the original artwork and
   `scripts/generate-icons.py` renders everything else from it, including the accent colour that
   `src/theme/index.ts` records. Editing a generated PNG by hand puts the app and its launcher icon
   on separate colours.
+- **Identifiers are English; only user-facing copy is Greek.** Every screen has a Greek display name
+  — the dashboard is THE CITADEL, workouts is THE FORGE — but routes, tables, columns, types, stores,
+  and functions keep their plain names, because `02-data-model.md`, `03-api-design.md`, and the
+  backend's matching router all use them. A `domain/pantheon.ts` is fine: it is named after a screen
+  that exists. Renaming `domain/tasks.ts` to `rites.ts` is not. The lexicon lives in
+  `09-ui-rebuild-plan.md` and nowhere else.
 - Shared types between frontend/backend: since the frontend is TypeScript and the
   backend is Python, there's no automatic type sharing. Two reasonable options: (a)
   generate a TypeScript client from FastAPI's OpenAPI schema (`openapi-typescript`),

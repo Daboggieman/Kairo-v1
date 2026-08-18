@@ -362,15 +362,26 @@ export function splitByDueToday(
   };
 }
 
-/** "3 of 4 done" for the Today header. */
+/**
+ * "3 of 4 kept" for The Rites' subtitle.
+ *
+ * "Kept" rather than "done", because a rite is kept — the module's display copy is Greek per the
+ * lexicon in `docs/09-ui-rebuild-plan.md`, and it lives here rather than at the call site so the
+ * screen and its tests cannot disagree about the wording.
+ */
 export function formatProgress(done: number, total: number): string {
-  if (total === 0) return 'Nothing scheduled';
-  return `${done} of ${total} done`;
+  if (total === 0) return 'nothing due';
+  return `${done} of ${total} kept`;
 }
 
-/** Streak badge text. Empty string means "no badge" — a zero streak is not worth the pixels. */
+/**
+ * Flame badge text. Empty string means "no badge" — a zero streak is not worth the pixels.
+ *
+ * A bare number now, not `14d`: the badge is a pill with a flame glyph beside it, and "d" next to a
+ * flame reads as a unit on the wrong noun.
+ */
 export function formatStreak(streak: number): string {
-  return streak > 0 ? `${streak}d` : '';
+  return streak > 0 ? `${streak}` : '';
 }
 
 /**

@@ -2,6 +2,13 @@
 
 Each spec covers: purpose, core screens, key logic, and open decisions to make before/while building.
 
+**Screen names here are functional, not the app's display copy.** Every module was renamed on a
+Greek lexicon during the UI rebuild — the Active Session below is THE ANVIL on the device, the Day
+log is THE FEAST, the Trend chart is THE SCALES. The mapping lives in `09-ui-rebuild-plan.md` and
+only there; these specs describe behaviour, which the rebuild did not change. Where a spec and the
+app disagree on a *name*, the lexicon wins; where they disagree on what a screen *does*, this file
+wins and the app is wrong.
+
 ## Workout logging
 - **Purpose**: replace a paper/notes-app log with structured, queryable training history.
 - **Screens**: Active Session (add exercise → add sets, big tap targets for rest-timer
@@ -82,6 +89,24 @@ Each spec covers: purpose, core screens, key logic, and open decisions to make b
   the app polls or subscribes to now-playing state and proxies playback controls through
   the backend. Realistic v1 scope is Spotify only — see integrations doc for why Apple
   Music and "other platforms" are meaningfully harder.
+
+## App-shell screens (added by the UI rebuild)
+
+Five screens that belong to no feature module. They read data the other modules already own; none
+adds a table. Locked scope and Greek display names are in `09-ui-rebuild-plan.md`.
+
+- **Onboarding** — first-run introduction and initial preferences. Gated on a single
+  `ONBOARDING_COMPLETE` preference key; the root layout redirects while it is unset.
+- **Settings** — units, reminder defaults, sync status, a JSON export of every local table, a
+  confirmed local wipe, and a read-only foundations block (runtime, schema version, app version).
+- **Sync outbox viewer** — the pending queue with per-entry entity, operation, attempt count, last
+  error, and next attempt time, plus a manual retry. Read-only over `src/db/outbox.ts` apart from
+  the retry.
+- **Personal records** — bests derived from existing history: heaviest lift and session, longest
+  and fastest activity, greatest climb, longest streak, most tasks kept in a day, lowest weight
+  trend. **Derived, never a target** — nothing here is editable and nothing sets a goal.
+- **Weekly review** — one week at a time: a plain-language verdict, per-module aggregates with a
+  seven-day strip, weight this week against last, and what slipped. Read-only.
 
 ## Backlog ("and more")
 Not specced yet by design — add a spec here once a specific idea is ready to build,

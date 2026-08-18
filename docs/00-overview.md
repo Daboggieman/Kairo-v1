@@ -29,6 +29,31 @@ them now. Don't pay the complexity tax of multi-user systems until you actually 
   Apple Music playback, background GPS) run into real iOS/Android platform constraints.
   The docs below flag these clearly rather than hand-waving them — see
   `05-integrations-and-credentials.md`.
+- **The interface is the name, made visible.** Not decoration chosen after the fact — see
+  the next section.
+
+## Voice and visual identity
+
+Kairo is a dark, Greek-themed app: obsidian surfaces, bronze accents, inscriptional display
+type, and a screen lexicon drawn from a citadel — The Citadel for the day's dashboard, The
+Forge for training, The Feast for food, The Scales for weight, The Rites for daily
+discipline. That is *kairos* made concrete: each module is a named place you go to do one
+thing at the right moment, rather than a tab called "Nutrition".
+
+Three constraints bound it, and none of them is a preference:
+
+- **The accent is measured, not chosen.** `colors.accent` is the mean gold of the user's own
+  helmet artwork, computed by `apps/mobile/scripts/generate-icons.py`. The app and its
+  launcher icon are the same colour because one derives from the other. It cannot be
+  re-picked without re-deriving the icon set.
+- **It is dark-only.** There is no light palette, and `userInterfaceStyle` is pinned `dark`
+  in `app.json` so native alerts and the keyboard don't clash with it. A screen that assumes
+  a light default renders black on near-black — that has happened, twice.
+- **Only user-facing copy is Greek.** Routes, tables, types, and functions keep plain English
+  names. The lexicon is display language, not an identifier scheme.
+
+The full lexicon, the design handoff it came from, and the token changes are in
+`09-ui-rebuild-plan.md`.
 
 ## Feature list, prioritized
 

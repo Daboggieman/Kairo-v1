@@ -1,35 +1,35 @@
 /**
- * New task — a modal, like the weight quick-entry.
+ * The New Rite — a modal, like the weight quick-entry.
  *
  * Two decisions, then save. The presets from `RECURRENCE_PRESETS` cover the rules people
- * actually keep habits on; "Custom days" reveals the seven day toggles and builds a `weekly:…`
+ * actually keep habits on; "Custom" reveals the seven day toggles and builds a `weekly:…`
  * rule, which is the only shape in the vocabulary that needs more than one tap to express.
  *
  * The rule is assembled with `formatRecurrence` rather than by string concatenation here, so the
  * screen cannot invent a rule `parseRecurrence` would reject — the parser stays the contract.
+ *
+ * Two deliberate departures from the design. It offers an "OR / Every N days" numeric field beside
+ * the day toggles: `interval:` rules do parse and describe correctly, but nothing in the app creates
+ * one, and two live ways to express one cadence in a sheet with no explicit apply step leaves "which
+ * of the two wins" to be inferred. And its hint reads *"Selecting no day repeats every day"* — here
+ * an empty custom selection cannot be saved instead, because a sheet that silently converts your
+ * choice into a different rule is the harder thing to notice.
  */
 
 import { randomUUID } from 'expo-crypto';
 import { useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
+import { AppBar, Chip, Field, IconButton, Screen, Section } from '@/components/Layout';
 import { createTask } from '@/db/tasks';
 import { WEEKDAY_LABELS } from '@/domain/dates';
 import { formatRecurrence, RECURRENCE_PRESETS } from '@/domain/tasks';
 import { LOCAL_USER_ID } from '@/constants';
-import { colors, fontSize, radius, spacing, TAP_TARGET } from '@/theme';
+import { colors, fontSize, layout, lineHeight, spacing } from '@/theme';
 import { requestSync } from '@/sync/scheduler';
 
 const CUSTOM = 'custom';
@@ -40,6 +40,7 @@ const MAX_TITLE = 80;
 export default function NewTaskScreen() {
   const db = useSQLiteContext();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const [title, setTitle] = useState('');
   const [mode, setMode] = useState<string>(RECURRENCE_PRESETS[0].rule);
@@ -78,128 +79,90 @@ export default function NewTaskScreen() {
   }, [canSave, custom, customDays, db, mode, router, trimmed]);
 
   return (
-    <KeyboardAvoidingView
-      style={styles.screen}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <View>
-          <Text style={styles.label}>Task</Text>
-          <TextInput
-            style={styles.titleInput}
+    <Screen>
+      {/*
+        No `onBack`: this is a modal, and the way out of a modal is its own dismiss. The chevron an
+        `AppBar` draws for `onBack` would claim there is a screen underneath to go back to.
+      */}
+      <AppBar
+        title="New rite"
+        action={<IconButton icon="close" label="Cancel" onPress={() => router.back()} />}
+      />
+
+      <KeyboardAvoidingView
+        style={styles.body}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: insets.bottom + layout.scrollFooter },
+          ]}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Field
+            label="Title"
             value={title}
             onChangeText={setTitle}
             placeholder="Stretch for ten minutes"
-            placeholderTextColor={colors.textMuted}
             maxLength={MAX_TITLE}
             autoFocus
-            accessibilityLabel="Task title"
+            accessibilityLabel="Rite title"
           />
-        </View>
 
-        <View>
-          <Text style={styles.label}>Repeats</Text>
-          <View style={styles.chipRow}>
-            {[...RECURRENCE_PRESETS, { rule: CUSTOM, label: 'Custom days' }].map((preset) => (
-              <Pressable
-                key={preset.rule}
-                onPress={() => setMode(preset.rule)}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: mode === preset.rule }}
-                style={({ pressed }) => [
-                  styles.chip,
-                  mode === preset.rule && styles.chipActive,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={[styles.chipText, mode === preset.rule && styles.chipTextActive]}>
-                  {preset.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-
-        {custom ? (
-          <View>
-            <Text style={styles.label}>On these days</Text>
-            <View style={styles.dayRow}>
-              {WEEKDAY_LABELS.map((label, day) => (
-                <Pressable
-                  key={label}
-                  onPress={() => toggleDay(day)}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: customDays.includes(day) }}
-                  accessibilityLabel={label}
-                  style={({ pressed }) => [
-                    styles.dayChip,
-                    customDays.includes(day) && styles.chipActive,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <Text
-                    style={[styles.dayText, customDays.includes(day) && styles.chipTextActive]}
-                  >
-                    {label.slice(0, 1)}
-                  </Text>
-                </Pressable>
+          <Section title="Cadence">
+            <View style={styles.cadenceGrid}>
+              {[...RECURRENCE_PRESETS, { rule: CUSTOM, label: 'Custom' }].map((preset) => (
+                <Chip
+                  key={preset.rule}
+                  label={preset.label}
+                  selected={mode === preset.rule}
+                  onPress={() => setMode(preset.rule)}
+                  style={styles.cadenceChip}
+                />
               ))}
             </View>
-          </View>
-        ) : null}
+          </Section>
 
-        <Button label="Add task" onPress={onSave} disabled={!canSave} loading={saving} />
-        <Button label="Cancel" variant="secondary" onPress={() => router.back()} />
-      </ScrollView>
-    </KeyboardAvoidingView>
+          {custom ? (
+            <Section title="On these days">
+              <View style={styles.dayRow}>
+                {WEEKDAY_LABELS.map((label, day) => (
+                  <Chip
+                    key={label}
+                    label={label.slice(0, 1)}
+                    accessibilityLabel={label}
+                    role="checkbox"
+                    shape="circle"
+                    selected={customDays.includes(day)}
+                    onPress={() => toggleDay(day)}
+                  />
+                ))}
+              </View>
+              <Text style={styles.hint}>Pick at least one day.</Text>
+            </Section>
+          ) : null}
+
+          <View style={styles.actions}>
+            <Button label="Swear the rite" onPress={onSave} disabled={!canSave} loading={saving} />
+            <Button label="Cancel" variant="secondary" onPress={() => router.back()} />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.lg, gap: spacing.lg },
-  label: {
-    color: colors.textMuted,
-    fontSize: fontSize.xs,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: spacing.sm,
-  },
-  titleInput: {
-    backgroundColor: colors.surfaceRaised,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    color: colors.text,
-    fontSize: fontSize.md,
-    height: TAP_TARGET,
-    paddingHorizontal: spacing.md,
-  },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  chip: {
-    backgroundColor: colors.surfaceRaised,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.lg,
-    minHeight: TAP_TARGET - spacing.lg,
-    justifyContent: 'center',
-  },
-  chipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
-  chipText: { color: colors.textMuted, fontSize: fontSize.sm, fontWeight: '600' },
-  chipTextActive: { color: colors.accentText },
-  dayRow: { flexDirection: 'row', gap: spacing.sm },
-  dayChip: {
-    flex: 1,
-    aspectRatio: 1,
-    maxHeight: TAP_TARGET,
-    backgroundColor: colors.surfaceRaised,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dayText: { color: colors.textMuted, fontSize: fontSize.md, fontWeight: '700' },
-  pressed: { opacity: 0.7 },
+  body: { flex: 1 },
+  content: { padding: layout.screenPadding, gap: layout.sectionGap },
+  /**
+   * Two across, as the design has it: four cadence labels in one row would each get 70 points and
+   * "Weekends" does not fit in 70 points.
+   */
+  cadenceGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  cadenceChip: { flexGrow: 1, flexBasis: '45%' },
+  dayRow: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.xs },
+  hint: { color: colors.textMuted, fontSize: fontSize.xs, lineHeight: lineHeight.xs },
+  actions: { gap: spacing.md, paddingTop: spacing.sm },
 });

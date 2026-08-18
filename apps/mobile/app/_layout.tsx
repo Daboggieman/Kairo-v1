@@ -6,6 +6,7 @@
  * migration surfaces as an error screen rather than a blank app with silent query failures.
  */
 
+import { Cinzel_600SemiBold, Cinzel_700Bold, useFonts } from '@expo-google-fonts/cinzel';
 import { SQLiteProvider } from 'expo-sqlite';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -50,23 +51,43 @@ export function ErrorBoundary({ error, retry }: { error: Error; retry: () => Pro
 }
 
 export default function RootLayout() {
+  /**
+   * The two display weights, loaded here so the whole tree can name them in `type`.
+   *
+   * `useFonts` is called above the provider on purpose: it starts fetching on the very first render,
+   * at the same moment `SQLiteProvider` starts opening the database, so the two waits overlap
+   * instead of queueing. Whichever finishes last decides when the app appears, and both show the
+   * same `AppLoader` — one loading state, not two. `AppLoader` itself sets no Cinzel text, so there
+   * is no flash of the fallback face while this resolves.
+   *
+   * A failed load is not fatal and is deliberately not gated on: `useFonts` returns an error, the
+   * families fall back to the platform serif, and the app is legible if less inscribed. Refusing to
+   * start over a webfont would be worse than the wrong face.
+   */
+  const [fontsLoaded, fontError] = useFonts({ Cinzel_600SemiBold, Cinzel_700Bold });
+  const fontsSettled = fontsLoaded || fontError !== null;
+
   return (
     <Suspense fallback={<AppLoader label="Opening your training data" />}>
       <SQLiteProvider databaseName={DATABASE_NAME} onInit={migrate} useSuspense>
-        <View style={styles.root}>
-          <SyncBootstrap />
-          <StatusBar style="light" />
-          <Stack
-            screenOptions={{
-              headerStyle: { backgroundColor: colors.background },
-              headerTintColor: colors.text,
-              contentStyle: { backgroundColor: colors.background },
-            }}
-          >
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          </Stack>
-          <Intro />
-        </View>
+        {fontsSettled ? (
+          <View style={styles.root}>
+            <SyncBootstrap />
+            <StatusBar style="light" />
+            <Stack
+              screenOptions={{
+                headerStyle: { backgroundColor: colors.background },
+                headerTintColor: colors.text,
+                contentStyle: { backgroundColor: colors.background },
+              }}
+            >
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            </Stack>
+            <Intro />
+          </View>
+        ) : (
+          <AppLoader label="Opening your training data" />
+        )}
       </SQLiteProvider>
     </Suspense>
   );

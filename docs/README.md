@@ -16,6 +16,9 @@ Read in this order:
 8. **07-repo-structure.md** — proposed monorepo layout for mobile app + backend
 9. **08-phase-3-movement-plan.md** — locked scope and implementation plan for Kairo-owned
    GPS tracking, background recording, voice cues, and route replay
+10. **09-ui-rebuild-plan.md** — locked scope for the Greek-themed UI rebuild: the screen
+    lexicon, the design handoff and how to read it, the design-token changes, and the five
+    new screens — **the lexicon of display names lives only here**
 
 ## The one-paragraph summary
 Build the mobile app in React Native/Expo and the backend in Python/FastAPI +

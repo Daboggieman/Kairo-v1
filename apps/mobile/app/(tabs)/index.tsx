@@ -1,23 +1,38 @@
 /**
- * Home — the daily aggregate across the four local-first P0 modules.
+ * The Citadel — the daily aggregate across the four local-first P0 modules.
  *
- * Home reads each module on focus in one load, so returning from a modal immediately updates
- * the dashboard and an app left open across midnight changes all four sections together.
+ * It reads each module on focus in one load, so returning from a modal immediately updates the
+ * dashboard and an app left open across midnight changes all four sections together.
  *
- * The four data modules are cards; everything else is a row. Home had been six cards of equal
- * weight, which made a one-line navigation shortcut look as important as the day's macros and left
- * nothing to scan for. Weight follows from how much a card actually says.
+ * The four data modules are cards; everything else is a row in The Outer Ward. Home had been six
+ * cards of equal weight, which made a one-line navigation shortcut look as important as the day's
+ * macros and left nothing to scan for. Weight follows from how much a card actually says.
+ *
+ * Display names come from the lexicon in `docs/09-ui-rebuild-plan.md`: The Rites, The Feast, The
+ * Scales, The Forge. The routes keep their plain English names — only the copy is Greek.
  */
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Card, Notice, ScreenScroll, Section } from '@/components/Layout';
-import { LogoLoader } from '@/components/Logo';
+import {
+  Card,
+  CardAction,
+  CardHeader,
+  Eyebrow,
+  Fluting,
+  Meander,
+  NavRow,
+  Notice,
+  ProgressBar,
+  RowGroup,
+  ScreenScroll,
+  Section,
+} from '@/components/Layout';
+import { KairoMark, LogoLoader } from '@/components/Logo';
 import { LOCAL_USER_ID } from '@/constants';
 import {
   completionDatesByTask,
@@ -35,8 +50,16 @@ import { dayKeyFromDate } from '@/domain/dates';
 import { formatNutrition } from '@/domain/macros';
 import { formatDuration } from '@/domain/workouts';
 import { formatDelta, toDisplayWeight } from '@/domain/weight';
-import { quoteForDate } from '@/domain/motivation';
-import { chartColors, colors, fontSize, layout, lineHeight, radius, spacing, TAP_TARGET } from '@/theme';
+import {
+  chartColors,
+  colors,
+  fontSize,
+  layout,
+  lineHeight,
+  radius,
+  spacing,
+  type as typeScale,
+} from '@/theme';
 
 function formatDate(nowMs: number): string {
   return new Date(nowMs).toLocaleDateString(undefined, {
@@ -60,7 +83,6 @@ export default function HomeScreen() {
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const quote = quoteForDate(new Date(nowMs));
 
   const load = useCallback(async () => {
     const capturedNow = Date.now();
@@ -102,7 +124,7 @@ export default function HomeScreen() {
           setNowMs(result.capturedNow);
           setError(null);
         } catch (caught) {
-          // Home reads all four modules at once, so a single failed query used to reject
+          // The Citadel reads all four modules at once, so a single failed query used to reject
           // unhandled and leave the spinner up for good. Say what broke instead.
           if (!cancelled) setError(caught instanceof Error ? caught.message : String(caught));
         } finally {
@@ -117,10 +139,25 @@ export default function HomeScreen() {
 
   return (
     <ScreenScroll>
+      {/*
+        The header is the theme at its densest: fluting down the left gutter, the mark and wordmark,
+        the greeting, and the Greek key underneath. `KairoMark` has to sit on `colors.background` —
+        its interior is opaque, not transparent — which is why this block is not a card.
+      */}
       <View style={styles.header}>
-        <Text style={styles.greeting}>{greeting(nowMs)}</Text>
-        <Text style={styles.date}>{formatDate(nowMs)}</Text>
+        <Fluting />
+        <View style={styles.headerMain}>
+          <View style={styles.brandRow}>
+            <KairoMark height={28} />
+            <Text style={styles.brand}>KAIRO</Text>
+          </View>
+          <View>
+            <Text style={styles.greeting}>{greeting(nowMs)}</Text>
+            <Text style={styles.date}>{formatDate(nowMs)}</Text>
+          </View>
+        </View>
       </View>
+      <Meander />
 
       {error ? (
         <Notice tone="danger" title="Could not read today's data">
@@ -136,27 +173,28 @@ export default function HomeScreen() {
 
       {summary ? (
         <View style={styles.cards}>
-          <DashboardCard
-            title="Today"
-            onPress={() => router.push('/tasks')}
-            action="Open"
-          >
-            <View style={styles.taskTopline}>
+          <DashboardCard title="The Rites" action="Open" onPress={() => router.push('/tasks')}>
+            <View style={styles.topline}>
               <Text style={styles.primaryStat}>
-                {summary.tasks.due === 0 ? 'No tasks' : `${summary.tasks.done} / ${summary.tasks.due}`}
+                {summary.tasks.due === 0 ? 'None due' : `${summary.tasks.done} / ${summary.tasks.due}`}
               </Text>
               <Text style={styles.statCaption}>
                 {summary.tasks.due === 0
-                  ? 'scheduled'
+                  ? 'today'
                   : summary.tasks.remaining === 0
-                    ? 'all done'
-                    : 'completed'}
+                    ? 'all kept'
+                    : 'kept today'}
               </Text>
             </View>
             {summary.tasks.next.length > 0 ? (
               <View style={styles.previewList}>
                 {summary.tasks.next.map((entry) => (
                   <View key={entry.task.id} style={styles.previewRow}>
+                    {/*
+                      The design dims the at-risk row to 50%. Kept at full contrast here: dimming the
+                      one row that needs attention is the readability problem this rebuild exists to
+                      fix. The red dot carries it.
+                    */}
                     <View style={[styles.dot, entry.streak.atRisk && styles.dotRisk]} />
                     <Text style={styles.previewText} numberOfLines={1}>{entry.task.title}</Text>
                     {entry.streak.current > 0 ? (
@@ -167,23 +205,23 @@ export default function HomeScreen() {
               </View>
             ) : (
               <Text style={styles.mutedBody}>
-                {summary.tasks.due === 0 ? 'Rest day' : 'Nothing left to tick off'}
+                {summary.tasks.due === 0 ? 'Rest day' : 'Nothing left to keep'}
               </Text>
             )}
             {summary.tasks.atRisk > 0 ? (
-              <Text style={styles.riskText}>
-                {summary.tasks.atRisk} {summary.tasks.atRisk === 1 ? 'streak' : 'streaks'} at risk
-              </Text>
+              <Eyebrow tone="danger">
+                {summary.tasks.atRisk === 1
+                  ? '1 flame guttering'
+                  : `${summary.tasks.atRisk} flames guttering`}
+              </Eyebrow>
             ) : null}
           </DashboardCard>
 
-          <DashboardCard
-            title="Macros"
-            onPress={() => router.push('/macros')}
-            action="Open"
-          >
-            <View style={styles.macroHeadline}>
-              <Text style={styles.primaryStat}>{formatNutrition(summary.macros.totals.calories, 'kcal')}</Text>
+          <DashboardCard title="The Feast" action="Open" onPress={() => router.push('/macros')}>
+            <View style={styles.topline}>
+              <Text style={styles.primaryStat}>
+                {formatNutrition(summary.macros.totals.calories, 'kcal')}
+              </Text>
               <Text style={styles.statCaption}>
                 {summary.macros.calories.target === null
                   ? 'today'
@@ -191,29 +229,38 @@ export default function HomeScreen() {
               </Text>
             </View>
             <View style={styles.macroList}>
-              <MacroLine label="Protein" metric={summary.macros.protein} color={chartColors.protein} />
-              <MacroLine label="Carbs" metric={summary.macros.carbs} color={chartColors.carbs} />
-              <MacroLine label="Fat" metric={summary.macros.fat} color={chartColors.fat} />
+              <MacroLine
+                label="Protein Den"
+                metric={summary.macros.protein}
+                color={chartColors.protein}
+              />
+              <MacroLine
+                label="The Granary"
+                metric={summary.macros.carbs}
+                color={chartColors.carbs}
+              />
+              <MacroLine
+                label="The Fat Pool"
+                metric={summary.macros.fat}
+                color={chartColors.fat}
+              />
             </View>
           </DashboardCard>
 
-          <DashboardCard
-            title="Weight"
-            onPress={() => router.push('/weight')}
-            action="Open"
-          >
+          <DashboardCard title="The Scales" action="Open" onPress={() => router.push('/weight')}>
             {summary.weight.trendKg === null ? (
-              <Text style={styles.mutedBody}>No weigh-ins yet</Text>
+              <Text style={styles.mutedBody}>No weighings yet</Text>
             ) : (
               <View style={styles.weightRow}>
-                <View>
+                <View style={styles.weightMain}>
                   <Text style={styles.primaryStat}>
-                    {toDisplayWeight(summary.weight.trendKg, summary.weight.unit)}{summary.weight.unit}
+                    {toDisplayWeight(summary.weight.trendKg, summary.weight.unit)}
+                    {summary.weight.unit}
                   </Text>
                   <Text style={styles.statCaption}>7-day trend</Text>
                 </View>
                 <View style={styles.weightChange}>
-                  <Text style={styles.statCaption}>30 days</Text>
+                  <Eyebrow>30 days</Eyebrow>
                   <Text style={[
                     styles.changeValue,
                     summary.weight.changeKg !== null && summary.weight.changeKg < 0 && styles.changeDown,
@@ -226,9 +273,9 @@ export default function HomeScreen() {
           </DashboardCard>
 
           <DashboardCard
-            title="Workout"
-            onPress={() => router.push(summary.workout.active ? '/workouts/active' : '/workouts')}
+            title="The Forge"
             action={summary.workout.active ? 'Resume' : 'Open'}
+            onPress={() => router.push(summary.workout.active ? '/workouts/active' : '/workouts')}
           >
             {summary.workout.active ? (
               <View style={styles.workoutRow}>
@@ -245,7 +292,7 @@ export default function HomeScreen() {
             ) : summary.workout.latestCompleted ? (
               <View style={styles.workoutRow}>
                 <View style={styles.workoutMain}>
-                  <Text style={styles.primaryStat}>Last session</Text>
+                  <Text style={styles.primaryStat}>Last forging</Text>
                   <Text style={styles.statCaption}>
                     {summary.workout.latestCompleted.setCount} sets · {Math.round(summary.workout.latestCompleted.totalVolume).toLocaleString()} kg volume
                   </Text>
@@ -255,65 +302,33 @@ export default function HomeScreen() {
                 </Text>
               </View>
             ) : (
-              <Text style={styles.mutedBody}>No workouts yet</Text>
+              <Text style={styles.mutedBody}>Nothing forged yet</Text>
             )}
           </DashboardCard>
         </View>
       ) : null}
 
       {/*
-        Rows, not cards: neither of these holds today's numbers, and as cards they competed with
-        the four that do. The quote is shown in full on the wallpaper screen that renders it.
+        Rows, not cards: neither of these holds today's numbers, and as cards they competed with the
+        four that do.
       */}
-      <Section title="More">
-        <Card style={styles.rowCard}>
-          <NavRow
-            icon="image-filter-hdr"
-            title="Daily focus"
-            detail={quote.text}
-            onPress={() => router.push('/wallpaper')}
-          />
-          <View style={styles.rowDivider} />
-          <NavRow
-            icon="bell-outline"
-            title="Reminders"
-            detail="Daily and weekly local notifications"
-            onPress={() => router.push('/alarms')}
-          />
-        </Card>
+      <Section title="The Outer Ward">
+        <RowGroup>
+          <NavRow label="The Oracle" onPress={() => router.push('/wallpaper')} />
+          <NavRow label="The Call" onPress={() => router.push('/alarms')} />
+        </RowGroup>
       </Section>
     </ScreenScroll>
   );
 }
 
-function NavRow({
-  icon,
-  title,
-  detail,
-  onPress,
-}: {
-  icon: keyof typeof MaterialCommunityIcons.glyphMap;
-  title: string;
-  detail: string;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`${title}. ${detail}`}
-      style={({ pressed }) => [styles.navRow, pressed && styles.pressed]}
-    >
-      <MaterialCommunityIcons name={icon} size={22} color={colors.accent} />
-      <View style={styles.navMain}>
-        <Text style={styles.navTitle}>{title}</Text>
-        <Text style={styles.navDetail} numberOfLines={2}>{detail}</Text>
-      </View>
-      <MaterialCommunityIcons name="chevron-right" size={22} color={colors.textMuted} />
-    </Pressable>
-  );
-}
-
+/**
+ * One module's card: its Greek name, where it goes, and whatever it has to say today.
+ *
+ * The `Pressable` wraps `Card` rather than restyling itself as one, so there is still exactly one
+ * card shape in the app. The `CardAction` inside the header is not itself pressable — the whole card
+ * is the target.
+ */
 function DashboardCard({
   title,
   action,
@@ -330,17 +345,22 @@ function DashboardCard({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`${title}. ${action}`}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      style={({ pressed }) => pressed && styles.pressed}
     >
-      <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle}>{title}</Text>
-        <Text style={styles.cardAction}>{action} ›</Text>
-      </View>
-      {children}
+      <Card>
+        <CardHeader title={title} action={<CardAction label={action} />} />
+        {children}
+      </Card>
     </Pressable>
   );
 }
 
+/**
+ * One macro's name, how far through its target it is, and the bar.
+ *
+ * The percentage on the right is the design's, and it is only shown when there is a target to be a
+ * percentage of — with no target set the grams are the only honest thing to print.
+ */
 function MacroLine({
   label,
   metric,
@@ -354,73 +374,49 @@ function MacroLine({
     <View style={styles.macroLine}>
       <View style={styles.macroLabelRow}>
         <Text style={styles.macroLabel}>{label}</Text>
-        <Text style={styles.macroValue}>
-          {formatNutrition(metric.consumed, 'g')}{metric.target === null ? '' : ` / ${formatNutrition(metric.target, 'g')}`}
+        <Text style={[styles.macroValue, { color }]}>
+          {metric.target === null
+            ? formatNutrition(metric.consumed, 'g')
+            : `${Math.round(metric.fillRatio * 100)}%`}
         </Text>
       </View>
-      <View style={styles.track}>
-        <View style={[styles.fill, { width: `${metric.fillRatio * 100}%`, backgroundColor: color }]} />
-      </View>
+      <ProgressBar value={metric.consumed} max={metric.target ?? 0} color={color} height={4} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { paddingTop: spacing.xs },
-  greeting: { color: colors.text, fontSize: fontSize.xl, lineHeight: lineHeight.xl, fontWeight: '700' },
-  date: { color: colors.textMuted, fontSize: fontSize.sm, marginTop: spacing.xs },
+  header: { flexDirection: 'row', gap: spacing.lg, paddingTop: spacing.sm },
+  headerMain: { flex: 1, gap: layout.cardGap },
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  brand: { color: colors.text, ...typeScale.headlineSm },
+  greeting: { color: colors.text, ...typeScale.displayMd },
+  date: { color: colors.textMuted, fontSize: fontSize.sm, lineHeight: lineHeight.sm },
   loading: { minHeight: 260, justifyContent: 'center', alignItems: 'center' },
   cards: { gap: layout.cardGap },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: layout.cardPadding,
-    gap: layout.cardGap,
-  },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  cardTitle: { color: colors.text, fontSize: fontSize.lg, fontWeight: '700' },
-  cardAction: { color: colors.accent, fontSize: fontSize.xs, fontWeight: '700' },
   pressed: { opacity: 0.72 },
-  taskTopline: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
-  primaryStat: { color: colors.text, fontSize: fontSize.xl, lineHeight: lineHeight.xl, fontWeight: '700' },
-  statCaption: { color: colors.textMuted, fontSize: fontSize.sm },
+  topline: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
+  primaryStat: { color: colors.text, ...typeScale.displayMd },
+  statCaption: { color: colors.textMuted, fontSize: fontSize.sm, lineHeight: lineHeight.sm },
   previewList: { gap: spacing.md },
-  previewRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 24 },
+  previewRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 24 },
   dot: { width: 8, height: 8, borderRadius: radius.pill, backgroundColor: colors.accent },
   dotRisk: { backgroundColor: colors.danger },
   previewText: { color: colors.text, fontSize: fontSize.sm, lineHeight: lineHeight.sm, flex: 1 },
   previewMeta: { color: colors.textMuted, fontSize: fontSize.xs, fontWeight: '700' },
   mutedBody: { color: colors.textMuted, fontSize: fontSize.sm, lineHeight: lineHeight.sm },
-  riskText: { color: colors.danger, fontSize: fontSize.xs, fontWeight: '700' },
-  macroHeadline: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
-  macroList: { gap: spacing.md },
+  macroList: { gap: layout.cardGap },
   macroLine: { gap: spacing.xs },
   macroLabelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  macroLabel: { color: colors.textMuted, fontSize: fontSize.xs },
-  macroValue: { color: colors.textMuted, fontSize: fontSize.xs },
-  track: { height: 6, backgroundColor: colors.surfaceRaised, borderRadius: radius.pill, overflow: 'hidden' },
-  fill: { height: '100%', borderRadius: radius.pill },
+  macroLabel: { color: colors.textMuted, fontSize: fontSize.sm, lineHeight: lineHeight.sm },
+  macroValue: { ...typeScale.label },
   weightRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
+  weightMain: { gap: spacing.xs },
   weightChange: { alignItems: 'flex-end', gap: spacing.xs },
-  changeValue: { color: colors.text, fontSize: fontSize.lg, fontWeight: '600' },
+  changeValue: { color: colors.text, fontSize: fontSize.md, lineHeight: lineHeight.md, fontWeight: '600' },
   changeDown: { color: colors.success },
   workoutRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   activeIndicator: { width: 10, height: 10, borderRadius: radius.pill, backgroundColor: colors.success },
   workoutMain: { flex: 1, gap: spacing.xs },
   workoutDate: { color: colors.textMuted, fontSize: fontSize.sm },
-  // The rows own their own padding, so the card gives them none of its own.
-  rowCard: { paddingVertical: 0, paddingHorizontal: layout.cardPadding, gap: 0 },
-  rowDivider: { height: 1, backgroundColor: colors.border },
-  navRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.lg,
-    minHeight: TAP_TARGET,
-    paddingVertical: spacing.md,
-  },
-  navMain: { flex: 1, gap: 2 },
-  navTitle: { color: colors.text, fontSize: fontSize.md, fontWeight: '600' },
-  navDetail: { color: colors.textMuted, fontSize: fontSize.xs, lineHeight: lineHeight.xs },
 });

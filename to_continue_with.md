@@ -3,12 +3,100 @@
 Handoff for the Kairo v1 sessions so far: Phase 0 scaffold, then Workouts, Weight, Tasks
 and Macros. Read before continuing.
 
-Last updated: **2026-08-17**, after fixing the Expo Go runtime gate that prevented the app from
-rendering at all on a physical device, the shared-SQLite-connection bug it exposed, and then the
-first half of a UI restructure and branding pass. **The UI pass is unfinished — read the next
-section before touching any screen.**
+Last updated: **2026-08-18**, after planning a complete Greek-themed UI rebuild from 30 commissioned
+screen designs and writing it into the docs package as `docs/09-ui-rebuild-plan.md`. **The rebuild
+is the current work and it supersedes the partial restyle described further down — read the next two
+sections before touching any screen.**
 
-## UI restructure and branding — 2026-08-17 (IN PROGRESS)
+## UI rebuild, Greek theme — 2026-08-18 (CURRENT WORK)
+
+The brief: *"i want to rebuild the ui completely … dark masculine greek themed app for Kairo
+maintaining the same logo and accent color of the logo"*. Every screen is renamed on a Greek lexicon
+— The Citadel (dashboard), The Rites (tasks), The Forge (workouts), The Feast (macros), The Scales
+(weight), The Expedition (movement), The Call (reminders), The Oracle (wallpaper).
+
+**`docs/09-ui-rebuild-plan.md` is the locked scope.** It holds the screen lexicon, the screen → route
+map, the colour/spacing substitution table, the token changes, the five new screens, and the delivery
+gates. This section holds only what a session needs before opening that file, plus the things that
+will bite.
+
+### The design handoff — read the markup, not the pictures
+
+30 designs are in `media/stitch/`, one folder per screen, each with `code.html` and `screen.png`,
+plus `media/stitch/kairo/DESIGN.md`.
+
+- **`code.html` is authoritative. The PNGs are lossy.** All are capped at 1600px; seven are viewport
+  screenshots that crop content away (the Citadel preview stops mid "74.8 kg" although its code
+  continues through three more cards), and the rest are downscaled to 273–575px so the text is soft.
+  Nothing needs re-exporting — just don't diff against the PNGs.
+- **The exported palette drifted from ours and must be substituted, never copied.** The Material-3
+  frontmatter carries `#101418` background, `#e1e2e9` text, `#f9bc4a` primary, while the prose in the
+  same file correctly cites our real tokens. Across the 30 exports `#F9BC4A` appears 92 times and our
+  `#F2F4F7` twice. `5.1_the_canon` is the design-system sheet and is drifted too — its swatch grid
+  renders the wrong values under our token names, so it cannot be transcribed literally either. The
+  substitution table is in `docs/09-ui-rebuild-plan.md`.
+- **`DESIGN.md` has a split personality.** Its frontmatter is the drifted M3 theme; its prose cites
+  the app's real hexes and prescribes 12px radii, 56px buttons, a 24px outer margin, an 8px grid,
+  tonal layering instead of shadows, and **Material Community Icons** — which is the icon set the app
+  already has. When the two disagree, the prose is right.
+- The logo shipped with the designs is **unchanged art** — same 1216×1294, same measured mean gold,
+  same sampled-pixel count as `assets/source/kairo-mark.png`, differing only by SHA. A re-encode.
+  Do not re-run `generate-icons.py`; `colors.accent` stays `#D79E2D`.
+
+### The five decisions already taken
+
+| | |
+|---|---|
+| Palette | Ours, plus the handoff's warm bronze-brown border. **Only `colors.border` changes**, `#2A2F38` → `#504535`. |
+| Display font | Install **Cinzel** only (`@expo-google-fonts/cinzel`). Body text keeps the platform font — no Inter payload. |
+| Density | Adopt the 8px grid: `screenPadding` 24, `cardPadding`/`cardGap`/`rowPadding` 16, `sectionGap` 24. |
+| New screens | Build 5 — Gates, Sanctum, Envoy, Pantheon, Annals. Defer 2 — Agoge (new feature + table), Scrolls (needs editorial content, overlaps Phase 4). |
+| Tab bar | **Six tabs kept, movement labelled `MOVE`.** |
+
+### The tab-bar deviation — say so if it's wrong
+
+All 30 designs ship a five-tab bar (`CITADEL | RITES | FORGE | FEAST | SCALES`) with **no movement
+entry anywhere**, and the Citadel's Outer Ward row group doesn't list it either. Following that would
+strand the whole of Phase 3 two taps deep. So the implementation keeps six visible tabs with movement
+labelled `MOVE` — short enough to fit at six across, and already what it reads today; the screen
+itself is titled THE EXPEDITION. This is the one knowing divergence from the designs.
+
+### Things that will go wrong
+
+- **`letterSpacing` is in points in React Native, not `em`.** The design's `0.15em` / `0.12em` /
+  `0.1em` are resolved against their own font size once, in the new `type` export in
+  `src/theme/index.ts`. Do not put an `em` value or a raw `fontFamily` string at a call site.
+- **A missing font falls back silently.** Cinzel absent looks like a slightly wrong serif, not an
+  error. It has to be confirmed on a device.
+- **The exports' 61 Material Symbols names are a different vocabulary** from
+  `MaterialCommunityIcons`. Remap each and **verify against the installed glyphmap** rather than
+  guessing by name — several have no counterpart. A wrong name renders as a box, not an error.
+- **`node_modules` is not installed anywhere in the repo right now.** `npx expo install
+  @expo-google-fonts/cinzel` in `apps/mobile` is the first code step and also restores the tree;
+  nothing — lint, typecheck, the glyphmap check — can run before it.
+- Do not port the designs' gradients (5), `backdrop-blur-sm` (8), or shadows. Flatten them. No
+  `expo-linear-gradient`, no `expo-blur`. `DESIGN.md` itself says the system avoids soft shadows.
+- Six remote `lh3.googleusercontent.com` `<img>` tags in the exports are placeholders — use the local
+  mark or nothing.
+
+### Docs written for this, 2026-08-18
+
+`docs/09-ui-rebuild-plan.md` is new. `docs/README.md` lists it as item 10. `docs/00-overview.md`
+gained a "Voice and visual identity" section. `docs/04-feature-specs.md` gained a note that its
+screen names are functional rather than display copy, plus a spec block for the five new app-shell
+screens. `docs/06-roadmap.md`'s "Pulled forward from Phase 6" section now records the partial restyle
+as superseded. `docs/07-repo-structure.md` gained `media/` in the tree, the new Layout primitives, a
+convention for the `type` token group, and the English-identifiers rule.
+
+No code has been touched for the rebuild yet. The working tree is as described under the section
+below.
+
+## UI restructure and branding — 2026-08-17 (SUPERSEDED by the rebuild above)
+
+**Read this for the facts it established, not for its plan.** Its screen-by-screen resume point is no
+longer the resume point — the three restyled screens are being re-done along with the other nineteen,
+and its outstanding items are folded into the rebuild's per-module work. The constraints, the lint
+rules, and the reasoning below are all still binding.
 
 The brief, in the user's words: *"fix other and every issue that was found, or that stopped the app
 from running, also the reminder section has bad ui, i think we should restructure the whole app ui
@@ -18,9 +106,11 @@ icon … and then u could convert the png icon to a animated loader"* — follow
 itself (a gold Spartan helmet, transparent background). So: the user's art is the app icon, the
 app's accent is **sampled from** that art, and the art is the loader.
 
-Nothing here is committed. Typecheck and lint are clean; `npm test` has not been run since these
-changes (expected **426 passed (20 suites)** — the previous 394 plus 32 new reminder-helper cases;
-confirm from a real run before writing that number anywhere as fact).
+This pass is committed (see "Working tree" below). Typecheck and lint were clean at handoff;
+`npm test` has not been run since. The expectation was **426 passed (20 suites)** — the previous 394
+plus 32 new reminder-helper cases — but **that has never been measured, so do not write it anywhere
+as fact.** The rebuild adds `pantheon.ts` and `annals.ts` suites on top, so the number will move
+again; the only trustworthy count is one the user returns from a real run.
 
 ### The mark, and the accent that comes from it
 
@@ -71,7 +161,16 @@ values, because `spacing` was being used for both "gap between two icons" and "s
 everything ended up 16px from everything else), `lineHeight` (React Native leaves it unset at
 ~1.15×, which was the single largest cause of the cramped feel), and `chartColors`.
 
-### Screens rewritten so far — 3 of 16
+The rebuild keeps all of this and extends it: a fourth token group (`type`), new primitives
+(`AppBar`, `Eyebrow`, `Meander`, `Fluting`, `StatCard`, `Timer`, `ProgressBar`), and three changes to
+existing ones — `Field` gains a focus state, `Notice` moves from a full border to a 3px left rule over
+a 10% tint, `Divider` gains a vertical orientation, and `Button`'s danger variant becomes outlined.
+Details in `docs/09-ui-rebuild-plan.md`.
+
+### Screens rewritten in that pass — 3 of 16, all three now being re-done
+
+Their **defects** are the useful part of this list: each one is a mistake the rebuild must not
+reintroduce on 22 screens.
 
 - **`app/(tabs)/alarms.tsx`** — the "bad ui" the user named. It had light-theme hex on a dark
   scene, so the title and every reminder's time rendered **black on near-black**; it duplicated the
@@ -104,11 +203,15 @@ The repo gate is **0 errors and 0 warnings**, and this ESLint config is React-Co
   instead of storing a status and setting it to `'loading'` at the top of the fetch. Setting state
   after an `await` is fine.
 
-### What is left — this is the resume point
+### What was left when this pass stopped — now folded into the rebuild
+
+These are no longer a separate pass. Items 1–4 happen **while each module is being restyled** for the
+Greek rebuild, because every one of these files is being opened anyway and a second sweep over the
+same 13 files would be wasted. The lists themselves are still the checklist — keep ticking them off.
 
 1. **`app/(tabs)/macros/index.tsx`**: replace its local `MACRO_COLORS` (`carbs: '#58A6FF'`,
    `fat: '#D29922'`) with `chartColors`, keeping `calories: colors.accent`. This was the file open
-   when the session ended; nothing in it has been changed yet.
+   when that session ended; nothing in it has been changed yet.
 2. **Unguarded loaders — 13 screens.** Every one loads with an async IIFE and no `.catch`, which is
    why one dead SQLite connection printed ~57 unhandled rejections instead of one visible error.
    Each needs the `catch` → `Notice tone="danger"` treatment now used in `index.tsx`, `alarms.tsx`,
@@ -128,25 +231,32 @@ The repo gate is **0 errors and 0 warnings**, and this ESLint config is React-Co
    `tasks/new.tsx`, `tasks/[taskId].tsx`, `weight/log.tsx`, `weight/goal.tsx`,
    `workouts/active.tsx`, `workouts/[sessionId].tsx`, `movement/new.tsx`, `movement/settings.tsx`.
    Adopt `Layout.tsx` primitives where a screen's own container adds nothing; only `wallpaper`,
-   `alarms`, and `index` import it so far.
+   `alarms`, and `index` import it so far. **Note the values moved** — the rebuild puts `layout` on
+   an 8px grid, so read them from the theme rather than from this list.
 5. Re-run `npm run typecheck` and `npm run lint`, then have the user run `npm test`.
 
 Two things the tab bar does **not** need: `alarms` and `wallpaper` are already `href: null` with
-six visible tabs, and both are reachable from Home's "More" rows. No navigation restructure.
+six visible tabs, and both are reachable from Home's "More" rows. No navigation restructure. (The
+rebuild renames that row group THE OUTER WARD and hangs the Pantheon and Annals off it.)
 
-### Working tree at handoff — nothing committed, branch `phase_3`
+### Working tree — branch `phase_3`, that pass is now committed
 
-Modified: `app.json`, `app/_layout.tsx`, `app/(tabs)/{index,alarms,wallpaper}.tsx`,
-`src/theme/index.ts`, `src/domain/reminders.ts`, `src/domain/__tests__/reminders.test.ts`,
-`src/services/movementTracking.ts` (the SQLite fix), `personal_test.txt`, `to_continue_with.md`.
-New and untracked: `apps/mobile/assets/`, `apps/mobile/scripts/`, `apps/mobile/types/assets.d.ts`
-(declares `*.png` as `number`, without which the asset imports fail typecheck — nothing in
-`node_modules` provides it), `src/components/Layout.tsx`, `src/components/Logo.tsx`, `media/`.
+All of the 2026-08-17 work is committed (`791a588`, `493da42`, `e78fcea`), including
+`apps/mobile/assets/`, `apps/mobile/scripts/`, `apps/mobile/types/assets.d.ts` (declares `*.png` as
+`number`, without which the asset imports fail typecheck — nothing in `node_modules` provides it),
+`src/components/Layout.tsx`, and `src/components/Logo.tsx`. The 30 Stitch designs under `media/`
+landed separately in `e164a93`. HEAD was `92c21da` on 2026-08-18. The "nothing is committed"
+warning that used to be here no longer applies.
+
+As of 2026-08-18 the only uncommitted changes are the documentation for the rebuild:
+`docs/09-ui-rebuild-plan.md` (new) and edits to `docs/README.md`, `docs/00-overview.md`,
+`docs/04-feature-specs.md`, `docs/06-roadmap.md`, `docs/07-repo-structure.md`, and this file.
 
 Do not commit or amend unless the user asks. One question is still open from before this work:
 `npx expo install --check` reports four packages a patch behind (`expo-location`,
 `expo-notifications`, `expo-router`, `expo-task-manager`). The recommendation was to leave them —
-nothing observed traces to those versions — and the user has not decided.
+nothing observed traces to those versions — and the user has not decided. Worth re-checking after
+`@expo-google-fonts/cinzel` is installed, since that run restores `node_modules` from scratch.
 
 ## Shared SQLite connection — 2026-08-17
 
@@ -192,7 +302,8 @@ handle from `useSQLiteContext()`; anything outside the React tree opens with
 
 Related: every screen loaded with `query().then(setState)` and no `.catch`, which is why one dead
 connection printed ~57 unhandled rejections instead of one visible error. Fixed on Home, reminders,
-and wallpaper; **13 screens still unguarded** — see the UI section above for the list.
+and wallpaper; **13 screens still unguarded** — the list is item 2 under "What was left when this
+pass stopped" above, and the fix happens as each module is restyled for the rebuild.
 
 ## Expo Go runtime gate — 2026-08-17
 
@@ -354,19 +465,24 @@ workouts, weight, tasks, and nutrition; deterministic motivation; Pillow wallpap
 local daily/weekly reminders are implemented and verified.
 Sync is opt-in through Expo public configuration; without it the app stays fully offline.
 
-**Git branch strategy**: `phase_1` preserves the completed Phase 1 snapshot at `ea80c37`.
-Active Phase 2 lives on `phase_2`, which includes all Phase 1 history plus the complete
-auth, workout/weight/task/nutrition replay implementation, motivation/reminder features,
-tests, and documentation. `master` remains at the Phase 1 snapshot for now.
-Confirm the real state with `git status --short` and `git log --oneline origin/master..HEAD`.
+**Git branch strategy**: `phase_1` preserves the completed Phase 1 snapshot at `ea80c37`;
+`phase_2` preserves the Phase 2 slice. Active work lives on **`phase_3`**, and `master` is
+**no longer** at the Phase 1 snapshot — it has been advanced through pull requests (`origin/master`
+was at `1df12bc`, "Merge pull request #12 from Daboggieman/phase_3", on 2026-08-18). Two branches
+of the same name can therefore disagree: local `master` lagged `origin/master` at that point.
+Confirm the real state with `git status --short`, `git log --oneline -5`, and
+`git rev-list --left-right --count origin/master...HEAD` rather than trusting this paragraph —
+the user pushes and merges outside these sessions, so any commit list here dates the moment it
+was written.
 
-The completed Phase 2 slice is committed as `af5b2da` and the local branch is synchronized
-with `origin/phase_2` at the time of this handoff.
-
-The last pushed commits are:
+The last recorded commits, newest first — the top three are the 2026-08-18 rebuild groundwork,
+the rest are Phase 1/2 history:
 
 | Commit | What |
 |---|---|
+| `92c21da` | Merge `phase_3` from the remote into local `phase_3` — HEAD on 2026-08-18 |
+| `e164a93` | The 30 Stitch UI/UX designs under `media/stitch/` |
+| `e78fcea`, `493da42`, `791a588` | The partial restyle, frontend remodel, and database-schema fixes |
 | `af5b2da` | Complete workout replay, quotes, Pillow wallpapers, local reminders, tests, and docs |
 | `ea80c37` | Confirm physical-device retest for locale decimals and final tab icons |
 | `77d4016` | Locale-safe numeric parsing, real tab icons, regression tests and manual findings |
@@ -375,12 +491,13 @@ The last pushed commits are:
 | `9d641d3` | `feat(tasks)` — the whole tasks module, migration v3, three screens, 97 new tests |
 | `984901c` | `docs` — tasks-module handoff |
 
-Two corrections to what the previous version of this file claimed:
+Two corrections that were made to this file during the Phase 2 session, kept because the second
+one is still in force:
 
-- The "Unpushed / credential helper has no usable credentials" paragraph is **resolved**.
-  `origin/master` and `HEAD` were level at the start of this session, so the earlier work
-  did get pushed.
-- Git identity is now configured **repo-local** as `Daboggieman` / `adaraph722@gmail.com`
+- The "Unpushed / credential helper has no usable credentials" paragraph was **resolved**:
+  `origin/master` and `HEAD` were level at the start of *that* session, so the earlier work had
+  been pushed. Do not read it as current — on 2026-08-18 the two had diverged (1 behind, 3 ahead).
+- Git identity is configured **repo-local** as `Daboggieman` / `adaraph722@gmail.com`
   because this environment could not see the previous global identity when creating the
   Phase 2 commit.
 
@@ -765,22 +882,33 @@ Decisions worth keeping:
   screen say which tier it is in. A static import is hoisted past every guard, and in Expo Router
   its failure presents as "Route ... is missing the required default export" rather than as the
   native error it is — see the 2026-08-17 section above for the day that cost.
+- **Greek display copy, English identifiers.** Every screen has a Greek display name — the dashboard
+  is THE CITADEL, workouts THE FORGE, macros THE FEAST — but routes, tables, columns, types, stores,
+  and functions keep their plain English names, because `docs/02-data-model.md`,
+  `docs/03-api-design.md`, and the backend's matching routers all use them. A `domain/pantheon.ts` is
+  fine — it is named after a screen that exists. Renaming `domain/tasks.ts` to `rites.ts` is not. The
+  lexicon lives in `docs/09-ui-rebuild-plan.md` and nowhere else.
+- **The app is dark-only and its accent is measured, not chosen.** `userInterfaceStyle` is pinned
+  `dark` in `app.json` because there is no light palette; a screen that assumes a light default
+  renders black on near-black, which has happened twice. `colors.accent` is the mean gold of the
+  user's own artwork, computed by `scripts/generate-icons.py` — it cannot be re-picked without
+  re-deriving the whole icon set.
 - **Infra/CI written, not fully exercised**: Docker/Postgres and GitHub CI remain optional
   follow-up checks; they are not prerequisites for the current local movement work.
 
 ## Next session: Phase 3 physical acceptance and handoff
 
-**Before any of this, finish the UI pass at the top of this file.** It is mid-flight, uncommitted,
-and three of sixteen screens in; a device run against a half-restyled app produces findings that
-have to be re-collected afterwards. Phase 3 acceptance below is the step after it.
+**Before any of this, finish the Greek UI rebuild at the top of this file.** A device run against a
+half-rebuilt app produces findings that have to be re-collected afterwards. Its locked scope is
+`docs/09-ui-rebuild-plan.md`; Phase 3 acceptance below is the step after it.
 
 Do not restart the provider/integration decision. It is locked: Kairo records and owns its
 movement data; there is no Strava connection, import, segment competition, social feature,
 or third-party activity upload. Read `docs/08-phase-3-movement-plan.md` first for the complete
-product and technical contract, then inspect the current dirty worktree before editing. The
-user is committing the latest implementation changes. Do not create or amend commits unless
-the user asks. Inspect `git status --short --branch` first. Preserve any pre-existing user
-changes, especially `.devcontainer/setup.sh`.
+product and technical contract. Do not create or amend commits unless the user asks. Inspect
+`git status --short --branch` first — as of 2026-08-18 the tree carries only the rebuild's
+documentation changes; everything else is committed. Preserve any pre-existing user changes,
+especially `.devcontainer/setup.sh`.
 
 The most useful code entry points are:
 
@@ -841,8 +969,9 @@ alembic upgrade head    # reaches head (idempotent)
 cd apps/mobile
 npm run typecheck       # tsc --noEmit, 0 errors
 npm run lint            # eslint ., clean
-npm test -- --runInBand # 394 passed (20 suites) as of the last full run.
-                        # Expect 426 after the 2026-08-17 reminder-helper cases; not yet measured.
+npm test -- --runInBand # 394 passed (20 suites) as of the last full run. Every number since is
+                        # an expectation, not a measurement — the 2026-08-17 reminder-helper cases
+                        # and the rebuild's pantheon/annals suites both add to it.
 EXPO_NO_TELEMETRY=1 npx expo-doctor # 21/21
 EXPO_NO_TELEMETRY=1 npx expo export --platform android --output-dir /tmp/kairo-phase3-android-export
 EXPO_NO_TELEMETRY=1 npx expo export --platform ios --output-dir /tmp/kairo-phase3-ios-export
@@ -853,6 +982,10 @@ EXPO_NO_TELEMETRY=1 npx expo export --platform ios --output-dir /tmp/kairo-phase
 `expo-doctor`, and both `expo export` runs predate it. The user runs the test suite, the exports,
 and every device check personally — their words: *"i will run all the tests myself and return their
 output"*. Offer to check readiness; do not run those yourself.
+
+`node_modules` is currently **absent** repo-wide, so none of the mobile commands above will run until
+`npx expo install @expo-google-fonts/cinzel` (or a plain `npm install`) restores the tree — that is
+the first code step of the UI rebuild.
 
 To regenerate the app icons after an artwork change (needs Pillow):
 
