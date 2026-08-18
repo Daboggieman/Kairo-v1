@@ -54,13 +54,38 @@ The implementation is complete through the executable mobile/backend layers:
   data.
 - Completed activities enqueue a movement aggregate only after completion; later edits enqueue
   replacement revisions and deletes enqueue idempotent removal.
-- Automated verification is green: mobile 376 tests across 18 suites, backend 28 tests, Ruff,
-  TypeScript, ESLint, Expo Doctor 21/21, and Android/iOS exports.
+- Automated verification was green as of that date: mobile 376 tests across 18 suites, backend 28
+  tests, Ruff, TypeScript, ESLint, Expo Doctor 21/21, and Android/iOS exports. Suites have been
+  added since — the mobile baseline reached 394 across 20 suites, and the 2026-08-17 reminder-helper
+  cases below should put it at 426, though that has not been measured yet. Treat
+  `to_continue_with.md` as the current count, not this line.
 
 Physical Android development-build results have not yet been provided by the user. Background
 location, screen lock, foreground-service notification, force-kill recovery, Bluetooth speech,
 battery use, and iOS native behavior remain acceptance gates. Use `personal_test.txt` for the
 required test sequence; do not mark Phase 3 complete until those results are recorded.
+
+### Pulled forward from Phase 6: UI and branding — 2026-08-17, in progress
+
+The first physical Expo Go run made this unavoidable rather than optional. Two screens had never
+picked up the dark palette, so their text rendered black on near-black and was simply unreadable on
+a device; the reminders time field used an iOS-only keyboard type and could not be filled on
+Android at all. Fixing legibility meant owning screen structure in one place, and the user asked
+for the app icon, an intro, and a loader at the same time.
+
+Done: the icon set and in-app mark generated from the user's artwork by
+`apps/mobile/scripts/generate-icons.py`, with `colors.accent` sampled from it; a shared screen shell
+(`src/components/Layout.tsx`) plus `layout`/`lineHeight`/`chartColors` design tokens; the intro and
+loader (`src/components/Logo.tsx`); and three of sixteen screens restyled — Home, reminders, and
+wallpaper.
+
+Outstanding: the remaining thirteen screens — a density pass and, on each, the missing loader
+`.catch` that let a single failed query print dozens of unhandled rejections instead of one visible
+error. `to_continue_with.md` carries the file-by-file list. **Finish this before the Phase 3 device
+run**: a device pass against a half-restyled app produces findings that have to be collected twice.
+
+Splash-screen variety and wallpaper styles stay in Phase 6. The intro is a JS overlay, not a native
+splash — `expo-splash-screen` is deliberately not installed.
 
 ## Phase 4 — Bible (P2b)
 - Integrate chosen public-domain Bible API, chapter caching for offline reading
@@ -72,7 +97,8 @@ required test sequence; do not mark Phase 3 complete until those results are rec
   module (flag this as a separate mini-project, not a Phase 5 sub-task)
 
 ## Phase 6 — Polish & release
-- App icon, splash, wallpaper style variety
+- App icon — **done early** from the user's own artwork, along with the in-app intro and loader; see
+  the 2026-08-17 note under Phase 3. Native splash and wallpaper style variety still open.
 - Offline-sync edge cases (conflict handling, retry logic)
 - TestFlight / Play Console internal testing
 - Revisit the "and more" backlog now that the core app is in daily use — you'll have a

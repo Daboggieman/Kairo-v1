@@ -9,6 +9,14 @@ kairo/
 ├── apps/
 │   ├── mobile/                  # Expo React Native app
 │   │   ├── app.json
+│   │   ├── assets/
+│   │   │   ├── source/          # original artwork, kept for provenance
+│   │   │   ├── logo.png         # in-app mark
+│   │   │   ├── icon.png         # launcher icon
+│   │   │   └── adaptive-icon.png
+│   │   ├── scripts/
+│   │   │   └── generate-icons.py  # renders every asset above from source/
+│   │   ├── types/               # ambient declarations (e.g. *.png imports)
 │   │   ├── app/                 # Expo Router routes — see "Navigation" below
 │   │   │   ├── _layout.tsx      # SQLiteProvider + migrations
 │   │   │   └── (tabs)/
@@ -16,7 +24,7 @@ kairo/
 │   │   │       ├── index.tsx    # Home
 │   │   │       └── workouts/    # one folder per feature module
 │   │   ├── src/
-│   │   │   ├── components/      # shared UI (buttons, cards, chart wrappers)
+│   │   │   ├── components/      # shared UI — Layout.tsx is the screen shell, Logo.tsx the brand
 │   │   │   ├── store/           # Zustand stores, one per module
 │   │   │   ├── db/              # local SQLite schema + queries
 │   │   │   ├── domain/          # pure per-module logic, unit-tested
@@ -69,6 +77,20 @@ sit in two different trees rather than one folder per module.
   `app/` + one store per feature module on the frontend — keeps the "modular features"
   principle from `00-overview.md` enforced by the folder structure itself, not just
   intention.
+- **Screen structure comes from `src/components/Layout.tsx`, never from a screen's own
+  `StyleSheet`.** A screen composes `Screen`/`ScreenScroll`, `Section`, `Card`, `Notice`,
+  `EmptyState`, `Field`; it does not invent its own card padding or scroll footer. The app had
+  reached fourteen slightly different card paddings, and two screens that never picked up the dark
+  palette at all — their default black text sat on a near-black background and could not be read.
+  A screen that builds its own containers can forget the theme; one that composes these cannot.
+- **Screen rhythm comes from `layout`, distance between two adjacent things from `spacing`.**
+  Both scales lived in `spacing`, so a screen margin and an icon gap were the same 16px and there
+  was no hierarchy left to read. Running text sets `lineHeight` from the theme — React Native
+  leaves it unset at ~1.15×, which is what made the app feel congested.
+- **Brand assets are generated, not hand-made.** `assets/source/` holds the original artwork and
+  `scripts/generate-icons.py` renders everything else from it, including the accent colour that
+  `src/theme/index.ts` records. Editing a generated PNG by hand puts the app and its launcher icon
+  on separate colours.
 - Shared types between frontend/backend: since the frontend is TypeScript and the
   backend is Python, there's no automatic type sharing. Two reasonable options: (a)
   generate a TypeScript client from FastAPI's OpenAPI schema (`openapi-typescript`),
