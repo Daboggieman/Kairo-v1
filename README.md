@@ -4,7 +4,7 @@ A personal, all-in-one self-improvement app: training, nutrition, daily discipli
 motivation, movement, scripture, and music in one place. Named for Greek *kairos* —
 "the right moment."
 
-Planning docs live in [`docs/`](docs/); start with [`docs/README.md`](docs/README.md).
+Planning docs live in [`docs/`](docs/); start with [`docs/README.md`](docs/README.md). Handover docs live in [`to_continue_with.md`](to_continue_with_md)
 
 ## Status
 
