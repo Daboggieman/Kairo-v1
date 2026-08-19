@@ -56,10 +56,10 @@ The implementation is complete through the executable mobile/backend layers:
   replacement revisions and deletes enqueue idempotent removal.
 - Automated verification was green as of that date: mobile 376 tests across 18 suites, backend 28
   tests, Ruff, TypeScript, ESLint, Expo Doctor 21/21, and Android/iOS exports. Suites have been
-  added since — the mobile baseline reached 394 across 20 suites, and the 2026-08-17 reminder-helper
-  cases should put it higher, though that has not been measured. The UI rebuild adds two more domain
-  suites again. **No mobile test count in this file is current**; treat `to_continue_with.md` as the
-  count, and treat any number there as expected-not-measured unless it says otherwise.
+  added since — the mobile baseline reached 394 across 20 suites, and the UI rebuild's domain work
+  took it to **481 across 20, measured 2026-08-19**. **No mobile test count in this file is
+  current**; `HANDOVER_DOCS/08-verification.md` holds the measured figures with their dates, and
+  anything undated there is an expectation rather than a measurement.
 
 Physical Android development-build results have not yet been provided by the user. Background
 location, screen lock, foreground-service notification, force-kill recovery, Bluetooth speech,
@@ -88,7 +88,11 @@ The three already-restyled screens are re-done along with the rest; the outstand
 partial pass (the missing loader `.catch` on 13 screens, a hardcoded macro-colour constant, two
 stray full-screen spinners) are folded into the per-module work rather than run as a separate pass.
 Locked scope, the screen lexicon, the design-token changes, and five new screens are in
-`09-ui-rebuild-plan.md`; `to_continue_with.md` carries the file-by-file lists.
+`09-ui-rebuild-plan.md`. The running record is in `../HANDOVER_DOCS/`: the rules every remaining
+screen must follow and the per-file fold-in checklist are in
+`HANDOVER_DOCS/02-ui-rebuild-conventions.md`, and what is already restyled — with every deliberate
+departure from the designs — is in `HANDOVER_DOCS/03-ui-rebuild-progress.md`. Stage board and the
+current screen count are in `HANDOVER_DOCS/01-current-state.md`.
 
 **Finish this before the Phase 3 device run** — unchanged, and now more so: a device pass against a
 half-rebuilt app produces findings that have to be collected twice.

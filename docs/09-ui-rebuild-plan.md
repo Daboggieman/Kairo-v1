@@ -177,9 +177,9 @@ no icon package is added — but the exports were built against Material Symbols
 distinct glyph names are a different vocabulary. Each is remapped and **verified against the
 installed glyphmap**, not matched by name; several have no counterpart and need a substitute.
 That mapping has since been worked out and verified in full — the finished 61-row table is in
-`to_continue_with.md` under the rebuild's progress section, along with the two names
-(`flame`, `shield-heart-outline`) that sound right and do not exist. Read it rather than
-repeating the exercise.
+`../HANDOVER_DOCS/05-design-handoff.md`, along with the two names (`flame`,
+`shield-heart-outline`) that sound right and do not exist, and the one-liner that re-verifies a
+name against the installed glyphmap. Read it rather than repeating the exercise.
 
 ## The substitution table
 
@@ -309,4 +309,6 @@ Both designs stay in `media/stitch/` for whenever their phase arrives.
 Absorbed into gate 4, from the superseded partial restyle: the 13 screens whose loader `.catch`
 is missing and which need the error surfaced as a `Notice`, the local `MACRO_COLORS` constant
 that should be `chartColors`, and the remaining full-screen `ActivityIndicator`s that should be
-`LogoLoader`. `to_continue_with.md` carries the file-by-file lists.
+`LogoLoader`. The per-file fold-in checklist is in
+`../HANDOVER_DOCS/02-ui-rebuild-conventions.md`, and which screens have already had it applied is
+in `../HANDOVER_DOCS/03-ui-rebuild-progress.md`.

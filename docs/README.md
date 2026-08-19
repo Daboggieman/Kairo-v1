@@ -1,5 +1,10 @@
 # Kairo — Planning Package
 
+This is the **plan**: what the app is meant to be, and the decisions that are locked. The running
+record of what is actually built — current state, conventions in force, verified test results,
+history — is a separate package in [`../HANDOVER_DOCS/`](../HANDOVER_DOCS/); start at
+[`../HANDOVER_DOCS/README.md`](../HANDOVER_DOCS/README.md) before doing any work.
+
 Read in this order:
 
 1. **00-overview.md** — vision, principles, prioritized feature list
