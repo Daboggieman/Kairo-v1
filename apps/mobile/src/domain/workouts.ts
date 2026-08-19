@@ -150,3 +150,51 @@ export function groupByExercise(sets: WorkoutSetWithExercise[]): ExerciseGroup[]
 export function formatWeight(weight: number, unit: WeightUnit): string {
   return `${Math.round(weight * 100) / 100}${unit}`;
 }
+
+/* ------------------------------------------------------------------------- *
+ * The Forge's vocabulary
+ *
+ * Sets are **strikes**, volume is **tonnage**, exercises are **lifts** — the workout module's
+ * display copy from `09-ui-rebuild-plan.md`. The words live here rather than at the call sites for
+ * the same reason `formatProgress` lives in `tasks.ts`: four screens say the same three things
+ * about a session, and a phrase written four times is a phrase that ends up worded three ways.
+ * Identifiers stay English throughout; only the strings are the theme.
+ * ------------------------------------------------------------------------- */
+
+/** "1 strike" / "11 strikes". English pluralisation, which is all the copy needs. */
+function count(quantity: number, singular: string): string {
+  return `${quantity} ${singular}${quantity === 1 ? '' : 's'}`;
+}
+
+/**
+ * "5,240 kg" — a load, grouped, in kilograms.
+ *
+ * Always kg regardless of the unit the sets were logged in: `setVolume` normalises through `toKg`,
+ * so a session logged partly in lb has no single unit to report it in. Grouped because a month of
+ * training is five figures, and `84120 kg` is not a number anyone reads at a glance.
+ */
+export function formatTonnage(volumeKg: number): string {
+  return `${Math.round(volumeKg).toLocaleString()} kg`;
+}
+
+/** Tonnage across many sessions, in kg. The history query has already totalled each one. */
+export function totalTonnage(sessions: { totalVolume: number }[]): number {
+  return sessions.reduce((sum, session) => sum + session.totalVolume, 0);
+}
+
+/** "16 sessions · 84,120 kg lifted" — The Forge's one line of aggregate, under its name. */
+export function formatForgeTotals(sessionCount: number, totalVolumeKg: number): string {
+  if (sessionCount === 0) return 'Nothing forged yet';
+  return `${count(sessionCount, 'session')} · ${formatTonnage(totalVolumeKg)} lifted`;
+}
+
+/**
+ * "3 lifts · 11 strikes" — what a session amounts to, for a card that has no room for a stat grid.
+ *
+ * The design writes this as "3 exercises · 11 strikes"; the module's own lexicon calls an exercise
+ * a lift, and mixing the two vocabularies in one sentence is worse than either alone.
+ */
+export function formatAnvilSummary(liftCount: number, strikeCount: number): string {
+  if (strikeCount === 0) return 'Nothing struck yet';
+  return `${count(liftCount, 'lift')} · ${count(strikeCount, 'strike')}`;
+}

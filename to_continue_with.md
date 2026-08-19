@@ -3,13 +3,14 @@
 Handoff for the Kairo v1 sessions so far: Phase 0 scaffold, then Workouts, Weight, Tasks
 and Macros. Read before continuing.
 
-Last updated: **2026-08-18**, mid-way through the Greek-themed UI rebuild. Stages 0 and 1
+Last updated: **2026-08-19**, mid-way through the Greek-themed UI rebuild. Stages 0 and 1
 (foundations and the app shell) are **complete**; Stage 2 (restyling the 22 existing screens) is
-**4 of 22 done** — The Citadel and the whole tasks module. **The rebuild is the current work and it
-supersedes the partial restyle described further down — read the next three sections before touching
-any screen.** The resume point is *"Stage 2, next up: the workouts module"* below.
+**15 of 22 done** — The Citadel, the whole tasks module, the whole workouts module, the whole macros
+module and the whole weight module. **The rebuild is the current work and it supersedes the partial
+restyle described further down — read the next three sections before touching any screen.** The
+resume point is *"Stage 2, next up: movement"* below.
 
-## UI rebuild, Greek theme — 2026-08-18 (CURRENT WORK)
+## UI rebuild, Greek theme — 2026-08-19 (CURRENT WORK)
 
 The brief: *"i want to rebuild the ui completely … dark masculine greek themed app for Kairo
 maintaining the same logo and accent color of the logo"*. Every screen is renamed on a Greek lexicon
@@ -21,17 +22,22 @@ map, the colour/spacing substitution table, the token changes, the five new scre
 gates. This section holds only what a session needs before opening that file, plus the things that
 will bite.
 
-### Where the work actually is — 2026-08-18
+### Where the work actually is — 2026-08-19
 
-Typecheck and lint were **both clean at handoff** (`npx tsc --noEmit` and `npx eslint .` from
-`apps/mobile`, silent, exit 0). `npm test` has **not** been run and now must be: this pass edited
-`src/domain/__tests__/tasks.test.ts`. Nothing is committed — correctly, the user has not asked.
+Typecheck and lint are **both clean** (`npx tsc --noEmit` and `npm run lint` from `apps/mobile`,
+silent, exit 0). `npm test` has **not** been run and now must be: four passes have edited the domain
+suites — `src/domain/__tests__/tasks.test.ts` (`formatProgress` / `formatStreak`),
+`src/domain/__tests__/workouts.test.ts` (four new describe blocks),
+`src/domain/__tests__/macros.test.ts` (five) plus `dates.test.ts` (`relativeDayLabel`), and
+`src/domain/__tests__/weight.test.ts` (five new blocks and four rewritten `formatDelta`
+assertions). Five suites, none of them executed. Nothing is committed — correctly, the user has not
+asked.
 
 | Stage | State |
 |---|---|
 | **Stage 0 — foundations** | **Done.** Theme tokens, Cinzel, all Layout primitives, `Button`, `Checkbox`, `Logo`. |
 | **Stage 1 — shell** | **Done.** `app/(tabs)/_layout.tsx` is the six-tab Canon bar. |
-| **Stage 2 — 22 screens** | **4 of 22.** The Citadel + the tasks module (3 screens and its `_layout`). |
+| **Stage 2 — 22 screens** | **15 of 22.** The Citadel, the tasks module (3 + `_layout`), the workouts module (4 + `_layout`), the macros module (3 + `_layout`), the weight module (3 + `_layout`). |
 | **Stage 3 — 5 new screens** | Not started. |
 
 **Stage 0, in detail — all of it landed and verified:**
@@ -55,7 +61,7 @@ Typecheck and lint were **both clean at handoff** (`npx tsc --noEmit` and `npx e
   gates first paint on `fontsLoaded || fontError !== null` behind the same `AppLoader` as the SQLite
   migration. A **font error is deliberately not fatal** — it degrades to the platform serif rather
   than hanging on a loader forever.
-- **`src/components/Layout.tsx` is now 1014 lines and owns 25 exports.** This is the file to read
+- **`src/components/Layout.tsx` is now 1050 lines and owns 25 exports.** This is the file to read
   before writing any screen; nothing below should be rebuilt per-screen:
 
   `Screen` · `ScreenScroll` · `ScreenHeader` (tab roots) · `AppBar` (pushed/modal screens) ·
@@ -67,8 +73,8 @@ Typecheck and lint were **both clean at handoff** (`npx tsc --noEmit` and `npx e
   `insets.bottom + layout.scrollFooter` footer inset, so a screen inside it must **not** also read
   `useSafeAreaInsets`. `RowGroup` draws the rules between its children, so its rows must not carry
   their own `borderBottomWidth`, and it takes a `style` prop for group-level dimming. `StatStrip`
-  takes `size?: 'md' | 'lg'` and a per-item `progress?: number` that draws a bar pinned to the
-  bottom of that cell. `Chip` takes `role?: 'radio' | 'checkbox'` — that picks the accessibility
+  takes `size?: 'md' | 'lg'`, a per-item `progress?: number` that draws a bar pinned to the
+  bottom of that cell, and `bare` — which drops its own `Card` so the grid can nest inside one. `Chip` takes `role?: 'radio' | 'checkbox'` — that picks the accessibility
   contract (`selected` vs `checked`), so a screen cannot pair them wrongly — and `shape?: 'block' |
   'circle'`. `Pill` takes `tone?: 'accent' | 'danger' | 'muted' | 'success'`; its border is always
   `colors.border` because the designs draw it as the tone colour at 30% alpha, which would mean
@@ -116,7 +122,7 @@ points the smallest token in the scale (8) rounds the square into a circle. And 
 "not due today" and archived groups dim at the **`RowGroup`** level, not per row, because the rules
 between rows are drawn by the group and fading one row makes the rules look misaligned.
 
-### The conventions Stage 2 established — follow these for the remaining 18 screens
+### The conventions Stage 2 established — follow these for the remaining 7 screens
 
 Each of these was a decision made once on the tasks module; re-deciding them per module is how the
 app ends up looking assembled rather than designed.
@@ -135,6 +141,17 @@ app ends up looking assembled rather than designed.
   a fifth of the screen.
 - **Aggregate strips render only when there is something to aggregate.** Three zeroes above an empty
   list is chrome describing nothing.
+- **Three surfaces, three meanings — settled across the macros and weight modules.** An accent-soft
+  `Card` with an accent `CardHeader` is a **computed read-back** of what the user typed or logged (The
+  Decree's calorie total, The Vow's projection). A `Notice` means something is **degraded** — a failed
+  query, a rule that cannot hold. An accent **left rule** on accent-soft means *"the one thing in
+  play"*, and it belongs to The Anvil's active-lift card and nothing else. Picking the wrong one is
+  how a reading starts looking like an error.
+- **A tab root uses `FlatList` only when its list has no natural ceiling** — The Forge's session log,
+  The Scales' weight log. Everything else stays inside `ScreenScroll`. A `FlatList` screen must read
+  `useSafeAreaInsets` itself and add `insets.bottom + layout.scrollFooter` to its
+  `contentContainerStyle`, because it is not inside the component that would have owned that inset;
+  a screen inside `ScreenScroll` must **not** read insets, or it pays them twice.
 - **Fold the carried-over items in as you go** — the `.catch` → `<Notice tone="danger">` guard, the
   density pass, `LogoLoader`. The list is under *"What was left when this pass stopped"* below, and
   `tasks/index.tsx` is already ticked off it.
@@ -147,37 +164,250 @@ app ends up looking assembled rather than designed.
   rejected in favour of refusing to save an empty custom selection, because a sheet that silently
   converts your choice into a different rule is the harder thing to notice.
 
-### Stage 2, next up: the workouts module
+### Stage 2, done: the workouts module — 2026-08-19
 
-Four screens, in this order: `§5.6 forge → workouts/index.tsx` (140 lines),
-`§5.7 anvil → workouts/active.tsx` (315), `§5.8 armory → workouts/exercises.tsx` (170),
-`§5.9 stele → workouts/[sessionId].tsx` (136), plus `workouts/_layout.tsx` (22). Then macros
-(`add.tsx` 238, `index.tsx` 306, `targets.tsx` 107), weight (`index.tsx` 334, `log.tsx` 184,
-`goal.tsx` 170), movement (`index.tsx` 111, `new.tsx` 112, `active.tsx` 158, `[activityId].tsx` 206,
-`replay.tsx` 103, `settings.tsx` 79), and finally `alarms.tsx` (391) and `wallpaper.tsx` (211).
+All five files rewritten. Typecheck and lint clean (`npx tsc --noEmit`, `npm run lint`, both silent).
+**Not yet run on a device, and `npm test` not yet run** — gate 4 ("each module restyled *and run on a
+device* before the next is started") is half-satisfied. `src/domain/__tests__/workouts.test.ts` gained
+four describe blocks this pass, so the suite must run before macros starts.
 
-Those last two already import `Layout.tsx` — from the **2026-08-17** pass, not the rebuild. They
-still need §5.22 / §5.23 transcribing; do not read the import as "already done".
+| File | Screen |
+|---|---|
+| `app/(tabs)/workouts/_layout.tsx` | `headerShown: false`; `exercises` is `presentation: 'modal'` |
+| `app/(tabs)/workouts/index.tsx` | The Forge |
+| `app/(tabs)/workouts/active.tsx` | The Anvil |
+| `app/(tabs)/workouts/exercises.tsx` | The Armory |
+| `app/(tabs)/workouts/[sessionId].tsx` | The Stele |
 
-**§5.6 The Forge is already read.** What it asks for:
+**`src/domain/workouts.ts` gained the module's vocabulary** — `formatTonnage`, `totalTonnage`,
+`formatForgeTotals`, `formatAnvilSummary`, plus a private `count()` pluraliser. Same reasoning as
+`formatProgress` in `tasks.ts`: four screens say the same three things about a session, and a phrase
+written four times ends up worded three ways. `formatTonnage` always reports kg because `setVolume`
+normalises through `toKg`. **Its tests compare against `n.toLocaleString()`, not a literal
+`"5,240"`** — `jest.globalSetup.js` pins `TZ` only, never the locale, so a hard-coded grouping
+separator is a test that passes on this machine and fails on a French one.
 
-- A fixed header: `THE FORGE` in accent display, subtitle *"16 sessions · 84,120 kg lifted"* — so
-  `ScreenHeader` with that aggregate as its `subtitle`.
-- An **active-session card**: fill `#2B2110` (= `colors.accentSoft`), a 4px accent left border, the
-  eyebrow `AT THE ANVIL`, a pulsing green dot, `In progress · 24m 10s`, `3 exercises · 11 strikes`,
-  and a full-width *Return to the anvil* button. Its `bg-gradient-to-r from-primary/10` overlay is
-  one of the five gradients to flatten.
-- `THE ANNALS OF THE FORGE` — a section title with a hairline running off to the right — then one
-  card per session: a ruled header row (`Sat 16 Aug` / `1h 04m`), a three-column grid divided by
-  `border-l` reading **STRIKES** (accent) / **TONNAGE** (`5,240 kg`, tabular) / **LIFTS**, and a
-  wrapped row of exercise-name chips ending in a `+2` overflow chip in accent. That maps onto
-  `CardHeader` + a three-cell `StatStrip` + `Pill`s.
-- **Vocabulary to carry through the module**: sets → **strikes**, volume → **tonnage**, exercises →
-  **lifts**. Same treatment as `formatProgress` — if a formatter is tested, move the wording into
-  `src/domain/workouts.ts` rather than writing it at the call site.
+**Three shared primitives changed, and the changes are app-wide on purpose:**
 
-`workouts/index.tsx` is a `FlatList` today and should stay one: a session log genuinely grows
-without limit, unlike the rites list.
+- **`Section` now draws a trailing hairline** after its title (`flex: 1`, so it stops at the `action`
+  if there is one). The designs give each module a different section ornament — a trailing rule on
+  The Forge, a left accent rule on The Anvil and The Stele. Unified on the trailing rule in the
+  primitive so eight modules cannot arrive at eight rules.
+- **`StatStrip` takes `bare`** — drops its own `Card` and its cells' vertical padding, so the grid can
+  sit *inside* a card that already owns the surface, and so four figures can be two stacked strips
+  with a `Divider` between them. The Forge's session cards and The Stele's hero both need this.
+  The value `Text` is deliberately **not** `numberOfLines={1} adjustsFontSizeToFit`: that prop is
+  iOS-only, and three cells across a phone leaves ~82pt each, which "5,240 kg" does not fit — so
+  Android would clip to "5,240…". Wrapping at the space is the correct failure.
+- **`CardHeader` takes `tone`**, forwarded to its `Eyebrow`.
+
+`SessionElapsed` gained `prefix` and `style` (and tabular figures) so it can serve as both the
+Forge card's *"In progress · 24m 10s"* and the Anvil's app-bar clock. `RestTimer` was rebuilt as
+**The Breath**: a full-bleed `colors.surface` band with a bottom border and the progress rule flush
+to that edge, so the band reads as chrome continuous with the app bar. Its idle `—` mirrors `Timer`'s
+metrics so the band does not change height when the first set is logged.
+
+**Departures from the designs, each commented in the file that makes it** — do not "fix" these:
+
+- **The Forge's kindle `+` shows only when no session is open**, because `startSession` returns the
+  existing id rather than creating a second session.
+- **The Anvil keeps the kg/lb toggle and drops the +/− steppers.** The design hardcodes "WEIGHT (KG)";
+  the unit is real data (`suggestNextSet` returns the unit the lift was last logged in), so a screen
+  that cannot change it silently records pounds as kilograms.
+- **The Anvil drops "Add another lift."** In this data model it and the card's own "Change" are one
+  function — `selectExercise`.
+- **The Anvil's set rows carry the estimated 1RM; The Stele's carry RPE and/or rest.** Nothing in the
+  app writes RPE yet while `logSet` records rest, so the design's RPE-only column would be blanks.
+- **The Armory drops the muscle-group filter chips.** `seed.ts` stores **eleven** raw groups, not the
+  design's six, and a custom lift has `muscleGroup: null` — mapping ours onto theirs is a taxonomy
+  decision hiding inside a UI pass, on a library of thirty rows that the search box already filters.
+  It also drops the per-row last-time, which is thirty queries on open; The Anvil prints it for the
+  lift you actually picked.
+- **The Stele lays its four figures out 2×2, not 1×4.** `5.9_the_stele` is a `max-w-4xl` desktop
+  layout; four display numbers across a phone gives each ~80pt.
+- **The Stele has no EDIT/DELETE footer.** Set edit and delete are deferred work, and the plan locks
+  this pass to copy, structure and type.
+
+Two things that bit and will bite again: a list screen whose data starts `[]` **flashes its
+`EmptyState` before the first query resolves** — gate it on a `loaded` flag set in the effect's
+`finally` (The Armory) or on `loading` (The Forge). And `Meander` must be drawn at its **default
+14px**; the plan says so and the reason is mechanical — the motif is a repeating key pattern whose
+turns close up below ~12px, at which point it is a gold `Divider` with extra render cost.
+
+### Stage 2, done: the macros module — 2026-08-19
+
+All four files rewritten. Typecheck and lint clean, both silent. **Not yet run on a device, and
+`npm test` not yet run** — `macros.test.ts` gained five describe blocks and `dates.test.ts` one, so
+the suite must run before weight starts.
+
+| File | Screen |
+|---|---|
+| `app/(tabs)/macros/_layout.tsx` | `headerShown: false`; `add` and `targets` are `presentation: 'modal'` |
+| `app/(tabs)/macros/index.tsx` | The Feast |
+| `app/(tabs)/macros/add.tsx` | The Offering |
+| `app/(tabs)/macros/targets.tsx` | The Decree |
+
+**`src/domain/macros.ts` gained the module's vocabulary**, the third link in the
+`tasks.ts` → `workouts.ts` chain: `MACRO_LABELS` (Caloric Forge / Protein Den / Granary / Fat Pool),
+`MEAL_PLAIN_LABELS` and `formatMealHeading` ("Dawn (Breakfast)"), `formatMacroSplit`, `describeFood`,
+`describeEntry`, `formatStore`, `formatRemaining`, `caloriesFromMacros` and `checkDecree`.
+`MEAL_LABELS` now holds the Greek names. **`MealType` is untouched** — the column, the type and the
+queries stay `breakfast | lunch | dinner | snack`; only the display string is the theme. The new
+tests compare against `n.toLocaleString()` for the same reason `formatTonnage`'s do.
+
+`src/domain/dates.ts` gained **`relativeDayLabel(day, today)`** — `'Today'`, `'Yesterday'` or `null`.
+It lives there, not in `macros.ts`, because it is about days and The Scales needs it next. It decides
+only the two words: spelling the date out is `toLocaleDateString`'s job at the call site, and pulling
+that into the domain would make every assertion about it a test of the machine's locale.
+
+**`nutritionFor` now takes `PerServing`** — `Pick<FoodItem, 'caloriesPerServing' | 'proteinG' |
+'carbsG' | 'fatG'>` — instead of a whole `FoodItem`. Every existing caller still satisfies it. The
+Offering needs to price a food that has no row yet (the one being forged, whose figures are in the
+form), and doing that with a `FoodItem` meant inventing an `id: ''` and an empty `createdAt`: a value
+that reads like a saved food and is not one.
+
+**Departures from the designs, each commented in the file that makes it** — do not "fix" these:
+
+- **The Feast's day chevrons are their own ruled strip, not the header.** `5.10_the_feast` flanks the
+  title with a chevron either side; `ScreenHeader` has one action slot and the screen's action is
+  adding an offering. The strip is also the only arrangement where the date has room to be spelled
+  out ("Today · Monday 18 August"). Forward is disabled at today.
+- **An empty meal is not drawn.** `groupByMeal` still returns all four so a caller *can* offer a
+  per-meal add; The Feast filters to the non-empty ones. Four titled empty cards is furniture, and
+  The Offering picks its own meal (defaulting by the hour), so nothing is unreachable.
+- **No per-meal add** — neither has the design; that was invented in an earlier plan reading.
+- **The Four Stores card is pressable as a whole and leads to The Decree.** The card is a reading of
+  progress *against* the decree, so the decree is the honest target, and it avoids a second header
+  action.
+- **`MACRO_LABELS` drops "The" from all four names.** `5.10_the_feast` writes two of them with a
+  leading "THE" and two without; they are read as a column of labels, where an article on half reads
+  as a mistake.
+- **The Offering has no +/− steppers.** The design has steppers *and* quick chips, and the chips
+  (0.5 / 1 / 1.5 / 2) are the stepper; the field takes anything else. Its search box also drops the
+  magnify glyph inside the input — `Field` has no icon slot.
+- **The tribute total is one display figure plus a bare 3-cell strip, not a row of four** — the same
+  ~80pt-per-cell arithmetic as The Stele's hero.
+- **The Decree puts its units in the labels** ("Granary (g)"): `Field` has no suffix slot, and the
+  label is what a screen reader says. Its derived-calories read-out is an `accentSoft` `Card`, not a
+  `Notice` — nothing has gone wrong, it is a reading of what you typed.
+- **The Decree drops the design's "Change" button on the effective date.** There is no date picker in
+  the app and future-dating a decree is a feature, not a restyle; the row states the date instead.
+- **Neither modal has a Cancel button.** The bar's close glyph is the way out.
+
+**`checkDecree` is the one place the transcription went past the design.** `5.12_the_decree` prints
+the macros' own calorie total as a line of text and leaves the subtraction to the reader. It is the
+only thing on that screen that can tell you a decree is internally impossible *before* you spend a
+week failing to hit it, so the gap is named — with a **50 kcal tolerance**, because the Atwater
+factors are themselves rounded and every correctly-written decree lands a few tens of kilocalories
+off its own total.
+
+**One lint trap worth knowing, because it will recur.** `react-hooks/preserve-manual-memoization`
+fires when a value derived from an imported function is both passed to another imported function and
+listed in a `useCallback` dependency array: the compiler must assume the callee could mutate it, so
+it cannot prove the dep array is still correct, and it **declines to optimise the whole component**
+(7 errors from one `useCallback` in The Offering). The fix there was to drop the manual memo, not to
+work around it — `onSave` is only ever reached through `onPress={() => void onSave()}`, so the arrow
+the button holds is new every render either way and the memo bought nothing.
+
+### Stage 2, done: the weight module — 2026-08-19
+
+All four files rewritten. Typecheck and lint clean, both silent. **Not yet run on a device, and
+`npm test` not yet run** — `weight.test.ts` gained five describe blocks *and* four rewritten
+assertions, so the suite must run before movement starts.
+
+| File | Screen |
+|---|---|
+| `app/(tabs)/weight/_layout.tsx` | `headerShown: false`; `log` and `goal` are `presentation: 'modal'` |
+| `app/(tabs)/weight/index.tsx` | The Scales |
+| `app/(tabs)/weight/log.tsx` | The Weighing |
+| `app/(tabs)/weight/goal.tsx` | The Vow |
+
+**`src/domain/weight.ts` gained the module's vocabulary**, the fourth link in the
+`tasks.ts` → `workouts.ts` → `macros.ts` chain: `formatWeight`, `weighings` (+ the `Weighing` type),
+`weeklyRateKg`, `formatVowGap` and `describeVow`. The lexicon the whole module now writes in: a
+weigh-in is a **weighing**, the smoothed line is the **trend**, a goal weight is a **vow**.
+
+- **`weighings` is deliberately not `dailyWeights`.** The chart wants one point a day; the log wants
+  every time you actually stood on the scale, newest first, each row's delta measured against the
+  *previous weighing* — including one that falls outside the visible range, so changing the range
+  never silently changes a delta. It carries `day` so `withinDays` can window the log with the same
+  tested cutoff as the chart.
+- **`weeklyRateKg` returns `null` rather than a slope it cannot justify**: fewer than two trend points
+  in the period, or a span under seven days. A rate from two days multiplied by seven is a month's
+  forecast built from a hydration swing.
+- **`describeVow` owns every sentence The Vow says**, including the four refusals — no rate yet, a
+  flat trend, a trend moving *away* from the vow, and past a year. It says "about 7 weeks" where
+  `5.15_the_vow` writes "seven weeks": the app writes figures as digits everywhere else.
+- **`formatVowGap` says "2.8 kg to lose" / "2.0 kg to gain"**, not the design's "2.8 kg to go" —
+  which direction is meant is the one thing a gap figure cannot convey on its own.
+
+**`formatDelta` now puts a space before the unit — and that rule is now app-wide.** The designs write
+"74.8 kg"; the app had been writing "74.8kg". `formatWeight` was written spaced, `formatDelta` was
+changed to match (two figures side by side in one `StatStrip` cannot disagree about it), the **four
+affected assertions in `weight.test.ts` were updated**, and `app/(tabs)/index.tsx` switched from
+`{toDisplayWeight(...)}{unit}` to `formatWeight(...)`. A grep of the other domain suites confirmed
+none of them assert a formatted weight string, so nothing else needed changing. If a new screen
+prints a weight, call `formatWeight` — do not re-concatenate.
+
+**`StatStrip` gained a `success` tone** (additive; `text` | `accent` | `danger` | `success`). It is
+for a figure that is good news *in its own terms* — a loss on a cut.
+
+**Departures from the designs, each commented in the file that makes it** — do not "fix" these:
+
+- **The Scales' vow is a `NavRow`, not the third stat cell.** `5.13_the_scales`' third cell carries a
+  value *and* a caption ("2.8 kg to go"), which `StatStrip` has no slot for, and three display figures
+  across a phone leaves each ~82pt. As a row it also becomes the way *into* The Vow, which is what
+  makes dropping the design's docked footer safe.
+- **The range moves the chart *and* the log.** The design scopes it to the chart. Windowing the log
+  too is what makes "30 D" mean anything on a screen whose list is the taller half, and it costs no
+  new query and no new data path — `withinDays` is already tested. The trend is smoothed across the
+  **full** history and windowed afterwards, so the leftmost visible point carries a complete 7-day
+  window rather than restarting from a partial one at the range edge.
+- **The 30-day change cell stays 30 days at every range.** The design labels that cell "30 DAYS" under
+  a header reading "Last 90 days", and it is right to: the range moves the view, not the yardstick.
+- **No month ticks and no in-chart vow label.** `LineChart` draws neither; an x axis is a chart
+  feature, not a restyle. The legend names the dashed line instead.
+- **Green for down, red for up assumes a cut** — every weight app assumes it and none of them say so.
+  Localised in one commented `changeTone` helper in `weight/index.tsx`, which is the single place that
+  has to learn about direction when the vow eventually carries one.
+- **The Weighing's kg/lb toggle sits *under* the number, not beside it.** A `Chip` is a 56pt target;
+  two stacked beside a 56pt digit is 120pt of column next to a 70pt figure. Full width underneath is
+  The Anvil's arrangement for the same control.
+- **The Vow's insight block has no left rule**, per the three-surfaces convention above.
+- **No icons on The Vow's buttons** — `Button` has no icon slot, and adding one for two buttons on one
+  screen is a component change in service of decoration.
+- **Neither modal has a Cancel button**, and neither states a "Change" button on its date/time row —
+  there is no picker in the app and back-dating is a feature, not a restyle.
+
+**Two decisions worth not re-deciding:**
+
+- **The Weighing records `openedAt`, the instant the sheet opened, not the instant Save was pressed.**
+  Both reasons agree: it is the honest measurement time (you stepped on the scale before you typed the
+  note), and it is what lets the "Recorded — Today · 07:12" row promise a time without lying. `new
+  Date()` in a render body would be impure, and a sheet left open an hour would then record an hour it
+  never measured. The Scales and The Vow capture `nowMs` the same way, in state at load — `useNow` is
+  the wrong tool for a 90-day window that only moves on refocus.
+- **A vow is device-local on purpose.** `user_preferences` has no entity type in `src/sync/outbox.ts`,
+  so `requestSync` in The Vow would be a no-op that reads like a promise. This **reverses** an earlier
+  note calling the missing `requestSync` a bug — it is not one. A weighing syncs; the line you drew on
+  your own chart does not, yet.
+
+### Stage 2, next up: movement
+
+`app/(tabs)/movement/` — `index.tsx` (111 lines), `new.tsx` (112), `active.tsx` (158),
+`[activityId].tsx` (206), `replay.tsx` (103), `settings.tsx` (79) — then `alarms.tsx` (391) and
+`wallpaper.tsx` (211).
+
+**`movement/active.tsx` keeps no back affordance at all.** It sets `headerBackVisible: false`
+deliberately today and that must survive the restyle — see the conventions list above.
+
+`alarms.tsx` and `wallpaper.tsx` already import `Layout.tsx` — from the **2026-08-17** pass, not the
+rebuild. They still need §5.22 / §5.23 transcribing; do not read the import as "already done".
+
+Fold in per file as each is opened: the `.catch` → `<Notice tone="danger">` guard, the density pass
+(`spacing.lg` → `layout.screenPadding`, gaps → `layout.cardGap` / `layout.sectionGap`, `lineHeight`
+on body text), local colour constants → `chartColors`, and full-screen `ActivityIndicator` →
+`LogoLoader` (the one inside `Button` stays).
 
 ### The design dumper, and the glyph table — both already worked out
 

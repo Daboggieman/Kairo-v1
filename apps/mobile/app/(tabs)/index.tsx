@@ -49,7 +49,7 @@ import { buildDashboard } from '@/domain/dashboard';
 import { dayKeyFromDate } from '@/domain/dates';
 import { formatNutrition } from '@/domain/macros';
 import { formatDuration } from '@/domain/workouts';
-import { formatDelta, toDisplayWeight } from '@/domain/weight';
+import { formatDelta, formatWeight } from '@/domain/weight';
 import {
   chartColors,
   colors,
@@ -254,8 +254,7 @@ export default function HomeScreen() {
               <View style={styles.weightRow}>
                 <View style={styles.weightMain}>
                   <Text style={styles.primaryStat}>
-                    {toDisplayWeight(summary.weight.trendKg, summary.weight.unit)}
-                    {summary.weight.unit}
+                    {formatWeight(summary.weight.trendKg, summary.weight.unit)}
                   </Text>
                   <Text style={styles.statCaption}>7-day trend</Text>
                 </View>

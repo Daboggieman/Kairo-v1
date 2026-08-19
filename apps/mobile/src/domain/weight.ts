@@ -157,14 +157,14 @@ export function withinDays<T extends { day: number }>(points: T[], nowMs: number
   return points.filter((point) => point.day >= cutoff);
 }
 
-/** Signed, one decimal, with an explicit sign so a loss reads as a loss: "-1.4kg". */
+/** Signed, one decimal, with an explicit sign so a loss reads as a loss: "-1.4 kg". */
 export function formatDelta(deltaKg: number | null, unit: WeightUnit): string {
   if (deltaKg === null) return '—';
   const value = unit === 'kg' ? deltaKg : deltaKg * LB_PER_KG;
   const rounded = Math.round(value * 10) / 10;
   // -0 formats as "-0.0", which reads as a loss that did not happen.
   const safe = Object.is(rounded, -0) ? 0 : rounded;
-  return `${safe > 0 ? '+' : ''}${safe.toFixed(1)}${unit}`;
+  return `${safe > 0 ? '+' : ''}${safe.toFixed(1)} ${unit}`;
 }
 
 /** kg to the display unit, rounded for a label. */
@@ -193,4 +193,168 @@ export function displayUnit(entries: BodyWeightEntry[]): WeightUnit {
 export function goalDelta(trendKg: number | null, goalKg: number | null): number | null {
   if (trendKg === null || goalKg === null) return null;
   return trendKg - goalKg;
+}
+
+/* ------------------------------------------------------------------------- *
+ * The Scales' vocabulary
+ *
+ * A weighing is a **weighing**, the smoothed line is the **trend** and a goal weight is a **vow**.
+ * `5.13_the_scales` and `5.15_the_vow` write a fair amount of prose about these numbers — "2.8 kg
+ * from your current trend of 74.8 kg", "at 0.4 kg a week, about seven weeks" — and two screens plus
+ * The Citadel say versions of it about the same figures. Same rule as `formatTonnage` in
+ * `workouts.ts` and the Feast lexicon in `macros.ts`: the wording is a product decision, so it is
+ * tested, so it lives here rather than in a template literal on a screen.
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Within this much of the vow, the trend and the vow are the same number as far as a one-decimal
+ * readout is concerned, and claiming a gap that rounds to "0.0 kg to lose" is claiming a gap.
+ */
+const AT_VOW_KG = 0.05;
+
+/** Below this a weekly rate rounds to 0.0, and dividing a distance by it gives a century. */
+const FLAT_RATE_KG = 0.05;
+
+/** Fewer days of span than this and a weekly rate is arithmetic rather than a measurement. */
+const MIN_RATE_SPAN_DAYS = 7;
+
+/**
+ * "74.8 kg" — one weight, in the display unit, trailing zero kept.
+ *
+ * The space is the designs' ("74.8 kg", "72.0 kg") and is why `formatDelta` gained one too: The
+ * Scales sets a trend figure and a change figure side by side in the same strip, and one of them
+ * closing up its unit while the other does not reads as a typo. `toDisplayWeight` remains the
+ * numeric form, for the chart axis and for pre-filling an input.
+ */
+export function formatWeight(kg: number | null, unit: WeightUnit): string {
+  if (kg === null || !Number.isFinite(kg)) return '—';
+  return `${toDisplayWeight(kg, unit).toFixed(1)} ${unit}`;
+}
+
+/** One row of The Scales' log: a weighing, and what it moved from the one before it. */
+export type Weighing = {
+  entry: BodyWeightEntry;
+  /** Local calendar day, so `withinDays` can window the log with the same cutoff as the chart. */
+  day: number;
+  /** The entry's weight in kg, so a unit switched mid-history does not read as a 96 kg loss. */
+  weightKg: number;
+  /**
+   * Change against the weighing before it, kg. Null for the earliest, which has nothing behind it.
+   *
+   * Per *weighing*, not per day. `dailyWeights` collapses a day to its mean because that is the
+   * series the chart should draw; the log is the other question — a row that says 74.6 wants to say
+   * what the previous number on the scale was, not what the previous daily mean was. Two weigh-ins
+   * on one Tuesday are one chart point and two rows here, and both are honest.
+   *
+   * Measured against the previous weighing even when that one falls outside the visible range, so
+   * windowing the log never silently changes a delta.
+   */
+  changeKg: number | null;
+};
+
+/** The log, newest first — the order it is read in. Input order does not matter. */
+export function weighings(entries: BodyWeightEntry[]): Weighing[] {
+  const ascending = [...entries].sort((a, b) => a.recordedAt.localeCompare(b.recordedAt));
+  return ascending
+    .map((entry, index) => {
+      const weightKg = toKg(entry.weight, entry.weightUnit);
+      const before = index === 0 ? null : ascending[index - 1];
+      return {
+        entry,
+        day: dayNumber(toDayKey(entry.recordedAt)),
+        weightKg,
+        changeKg: before === null ? null : weightKg - toKg(before.weight, before.weightUnit),
+      };
+    })
+    .reverse();
+}
+
+/**
+ * How fast the trend is moving, kg per week, or null when the data cannot say.
+ *
+ * Null rather than a number whenever the period holds fewer than two trend points or spans less
+ * than a week: a rate is a slope, and a slope taken across three days and multiplied up by seven
+ * is a month's prediction made from a hydration swing. The Vow gives no estimate at all rather
+ * than a confident wrong one — the same call `changeKg` makes in `summarise`.
+ */
+export function weeklyRateKg(
+  trend: TrendPoint[],
+  nowMs: number,
+  periodDays = 30,
+): number | null {
+  const inPeriod = withinDays(trend, nowMs, periodDays);
+  if (inPeriod.length < 2) return null;
+  const first = inPeriod[0];
+  const last = inPeriod[inPeriod.length - 1];
+  const spanDays = last.day - first.day;
+  if (spanDays < MIN_RATE_SPAN_DAYS) return null;
+  return ((last.value - first.value) * 7) / spanDays;
+}
+
+/**
+ * "2.8 kg to lose" — the caption under the vow, or null when no vow has been sworn.
+ *
+ * Takes `goalDelta`'s output, so positive means the trend is above the vow.
+ *
+ * The design writes "2.8 kg to go", which only reads unambiguously because its mock happens to sit
+ * above its goal. Nothing recorded says whether a vow is a cut or a bulk, so rather than guess a
+ * direction of intent this states what closing the gap takes, which is true either way.
+ */
+export function formatVowGap(deltaKg: number | null, unit: WeightUnit): string | null {
+  if (deltaKg === null) return null;
+  if (Math.abs(deltaKg) < AT_VOW_KG) return 'Reached';
+  return `${formatWeight(Math.abs(deltaKg), unit)} to ${deltaKg > 0 ? 'lose' : 'gain'}`;
+}
+
+export type VowProjection = {
+  /** "2.8 kg from your current trend of 74.8 kg" — no terminal stop; it is a reading, not a claim. */
+  distance: string;
+  /** "At 0.4 kg a week, about 7 weeks." Null only when there is nothing at all to say about time. */
+  eta: string | null;
+};
+
+/**
+ * The Vow's insight block: how far the vow is, and how long that takes at the current rate.
+ *
+ * Null when there is no vow or no trend — there is no projection to make, and the screen shows the
+ * explainer alone rather than a block of hedges.
+ *
+ * Four things can be true of the rate and each gets its own sentence, because the one thing this
+ * block must never do is imply a date the data does not support: no rate yet, a flat trend, a trend
+ * moving the wrong way, and an actual estimate. The design spells the estimate out ("about seven
+ * weeks"); digits here, since the number is arithmetic and every other figure on the screen is a
+ * numeral, and "about" is already carrying the imprecision.
+ */
+export function describeVow(args: {
+  goalKg: number | null;
+  trendKg: number | null;
+  rateKgPerWeek: number | null;
+  unit: WeightUnit;
+}): VowProjection | null {
+  const { goalKg, trendKg, rateKgPerWeek, unit } = args;
+  if (goalKg === null || trendKg === null) return null;
+
+  const trendLabel = formatWeight(trendKg, unit);
+  const delta = trendKg - goalKg;
+  if (Math.abs(delta) < AT_VOW_KG) {
+    return { distance: `Level with your current trend of ${trendLabel}`, eta: null };
+  }
+
+  const distance = `${formatWeight(Math.abs(delta), unit)} from your current trend of ${trendLabel}`;
+  if (rateKgPerWeek === null) {
+    return { distance, eta: 'Too few weighings yet to say how long that takes.' };
+  }
+
+  const rate = Math.abs(rateKgPerWeek);
+  const rateLabel = formatWeight(rate, unit);
+  if (rate < FLAT_RATE_KG) {
+    return { distance, eta: 'Your trend is flat, so there is no date to give.' };
+  }
+  if (Math.sign(rateKgPerWeek) === Math.sign(delta)) {
+    return { distance, eta: `Your trend is moving away from it, at ${rateLabel} a week.` };
+  }
+
+  const weeks = Math.round(Math.abs(delta) / rate);
+  const when = weeks > 52 ? 'over a year' : weeks <= 1 ? 'about a week' : `about ${weeks} weeks`;
+  return { distance, eta: `At ${rateLabel} a week, ${when}.` };
 }

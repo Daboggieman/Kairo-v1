@@ -13,6 +13,7 @@ import {
   dayNumber,
   dayOfWeek,
   isWeekday,
+  relativeDayLabel,
   toDayKey,
   todayNumber,
   WEEKDAY_LABELS,
@@ -111,5 +112,24 @@ describe('isWeekday', () => {
 describe('dayKeyFromDate', () => {
   it('zero-pads single-digit months and days', () => {
     expect(dayKeyFromDate(new Date('2026-01-05T12:00:00.000Z'))).toBe('2026-01-05');
+  });
+});
+
+describe('relativeDayLabel', () => {
+  const today = dayNumber('2026-08-19');
+
+  it('names today and yesterday', () => {
+    expect(relativeDayLabel(today, today)).toBe('Today');
+    expect(relativeDayLabel(today - 1, today)).toBe('Yesterday');
+  });
+
+  it('returns null for any other day, so the caller spells out the date', () => {
+    expect(relativeDayLabel(today - 2, today)).toBeNull();
+    expect(relativeDayLabel(today + 1, today)).toBeNull();
+  });
+
+  it('crosses a month boundary without special-casing it', () => {
+    const first = dayNumber('2026-09-01');
+    expect(relativeDayLabel(dayNumber('2026-08-31'), first)).toBe('Yesterday');
   });
 });

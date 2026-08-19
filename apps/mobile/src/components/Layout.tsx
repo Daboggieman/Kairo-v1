@@ -193,6 +193,11 @@ export function Eyebrow({
 /**
  * A titled group of cards. `action` renders as a right-aligned affordance when given.
  *
+ * A hairline runs from the end of the title to the edge of the screen — the designs draw a section
+ * heading as an inscription with a rule trailing off it, and it is what separates a section title
+ * from the card headings below it now that both are set in the same eyebrow role. It lives here
+ * rather than in each screen so eight modules cannot arrive at eight different rules.
+ *
  * `children` is optional so a `FlatList` header can use this for its title while the rows it
  * describes are rendered by the list itself.
  */
@@ -210,6 +215,7 @@ export function Section({
       {title || action ? (
         <View style={styles.sectionHeader}>
           {title ? <Text style={styles.sectionTitle}>{title}</Text> : null}
+          {title ? <View style={styles.sectionRule} /> : null}
           {action}
         </View>
       ) : null}
@@ -235,11 +241,22 @@ export function Card({
  * Every card in every one of the designs has this, and the rule is what makes a card read as a
  * plate with a heading rather than a box of text. The title goes through `Eyebrow`, so a card
  * heading and a section heading cannot drift apart.
+ *
+ * `tone="accent"` for a heading that names the thing the card is about rather than the kind of thing
+ * it is — the exercise a group of sets belongs to, as against "TODAY" or "TOTALS".
  */
-export function CardHeader({ title, action }: { title: string; action?: ReactNode }) {
+export function CardHeader({
+  title,
+  tone = 'muted',
+  action,
+}: {
+  title: string;
+  tone?: EyebrowTone;
+  action?: ReactNode;
+}) {
   return (
     <View style={styles.cardHeader}>
-      <Eyebrow>{title}</Eyebrow>
+      <Eyebrow tone={tone}>{title}</Eyebrow>
       {action}
     </View>
   );
@@ -428,43 +445,58 @@ export function IconButton({
  * *is* the content rather than a summary above it. A cell with `progress` grows a bar flush to the
  * card's bottom edge — the designs use it for the one figure that is a ratio, so the number and the
  * proportion it represents are read in the same glance.
+ *
+ * `bare` drops the surface, border and radius, for a strip that is *inside* a card rather than being
+ * one: The Forge's session rows and The Stele's hero both want this grid within a bordered plate, and
+ * nesting the default variant draws a second border 16px inside the first. Two `bare` strips with a
+ * `Divider` between them is also how a four-figure grid becomes 2×2, which is the only way four
+ * display numbers fit across a phone.
  */
 export function StatStrip({
   items,
   size = 'md',
+  bare = false,
 }: {
   items: {
     label: string;
     value: string;
-    tone?: 'text' | 'accent' | 'danger';
+    /** `success` is for a figure that is good news in its own terms — a weight loss on a cut. */
+    tone?: 'text' | 'accent' | 'danger' | 'success';
     /** 0–1. Draws a rule along the bottom of this cell only. */
     progress?: number;
   }[];
   size?: 'md' | 'lg';
+  /** For a strip nested inside a `Card`, which already owns the surface and the padding. */
+  bare?: boolean;
 }) {
-  return (
-    <Card style={styles.strip}>
-      {items.map((item, index) => (
-        <Fragment key={item.label}>
-          {index > 0 ? <Divider orientation="vertical" /> : null}
-          <View style={styles.stripCell}>
-            <Text
-              style={[
-                size === 'lg' ? styles.stripValueLarge : styles.stripValue,
-                stripTones[item.tone ?? 'text'],
-              ]}
-            >
-              {item.value}
-            </Text>
-            <Eyebrow>{item.label}</Eyebrow>
-            {item.progress === undefined ? null : (
-              <ProgressBar value={item.progress} max={1} height={6} style={styles.stripProgress} />
-            )}
-          </View>
-        </Fragment>
-      ))}
-    </Card>
-  );
+  const cells = items.map((item, index) => (
+    <Fragment key={item.label}>
+      {index > 0 ? <Divider orientation="vertical" /> : null}
+      <View style={[styles.stripCell, bare && styles.stripCellBare]}>
+        {/*
+          Deliberately unconstrained: a value too wide for its cell wraps at its space ("5,240" /
+          "kg") rather than being clipped to "5,240…". Three cells across a phone leaves each about
+          82pt, which a five-figure tonnage does not reliably fit, and a truncated number is worse
+          than a tall one.
+        */}
+        <Text
+          style={[
+            size === 'lg' ? styles.stripValueLarge : styles.stripValue,
+            stripTones[item.tone ?? 'text'],
+          ]}
+        >
+          {item.value}
+        </Text>
+        <Eyebrow>{item.label}</Eyebrow>
+        {item.progress === undefined ? null : (
+          <ProgressBar value={item.progress} max={1} height={6} style={styles.stripProgress} />
+        )}
+      </View>
+    </Fragment>
+  ));
+
+  if (bare) return <View style={styles.stripBare}>{cells}</View>;
+  return <Card style={styles.strip}>{cells}</Card>;
 }
 
 type PillTone = 'accent' | 'danger' | 'muted' | 'success';
@@ -806,6 +838,8 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
+  /** Trails off the end of a section title. `flex: 1` is what makes it stop at the action, if any. */
+  sectionRule: { flex: 1, height: 1, backgroundColor: colors.border, marginHorizontal: spacing.md },
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
@@ -878,6 +912,7 @@ const styles = StyleSheet.create({
   iconButtonOutlined: { borderWidth: 1, borderColor: colors.accent },
   iconButtonDisabled: { opacity: 0.4 },
   strip: { flexDirection: 'row', padding: 0, gap: 0, alignItems: 'stretch' },
+  stripBare: { flexDirection: 'row', alignItems: 'stretch' },
   stripCell: {
     flex: 1,
     alignItems: 'center',
@@ -885,6 +920,8 @@ const styles = StyleSheet.create({
     paddingVertical: layout.cardPadding,
     paddingHorizontal: spacing.sm,
   },
+  /** Inside a card, the card's own padding is the vertical room; the cell adds none. */
+  stripCellBare: { paddingVertical: 0 },
   stripValue: { fontSize: fontSize.lg, lineHeight: lineHeight.lg, fontWeight: '600', fontVariant: ['tabular-nums'] },
   stripValueLarge: { ...typeScale.displayMd, fontVariant: ['tabular-nums'] },
   stripProgress: { position: 'absolute', bottom: 0, left: 0, right: 0 },
@@ -981,10 +1018,11 @@ const timerTones: Record<'text' | 'accent' | 'muted', TextStyle> = {
   muted: { color: colors.textMuted },
 };
 
-const stripTones: Record<'text' | 'accent' | 'danger', TextStyle> = {
+const stripTones: Record<'text' | 'accent' | 'danger' | 'success', TextStyle> = {
   text: { color: colors.text },
   accent: { color: colors.accent },
   danger: { color: colors.danger },
+  success: { color: colors.success },
 };
 
 const pillTones: Record<PillTone, { fill: string; ink: string }> = {

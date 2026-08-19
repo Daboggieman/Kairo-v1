@@ -2,8 +2,11 @@ import type { WorkoutSetWithExercise } from '@/db/types';
 import {
   bestOneRepMax,
   estimateOneRepMax,
+  formatAnvilSummary,
   formatDuration,
+  formatForgeTotals,
   formatRest,
+  formatTonnage,
   groupByExercise,
   nextSetNumber,
   restElapsed,
@@ -12,6 +15,7 @@ import {
   setVolume,
   suggestNextSet,
   toKg,
+  totalTonnage,
 } from '@/domain/workouts';
 
 describe('setVolume / sessionVolume', () => {
@@ -184,5 +188,61 @@ describe('groupByExercise', () => {
 
   it('returns nothing for an empty session', () => {
     expect(groupByExercise([])).toEqual([]);
+  });
+});
+
+describe('formatTonnage / totalTonnage', () => {
+  /**
+   * The grouping separator comes from the host locale, which the test run does not pin — only the
+   * timezone is fixed, in `jest.globalSetup.js`. Comparing against `toLocaleString()` tests what
+   * this function actually decides (rounding, grouping at all, the unit suffix) without asserting
+   * that the machine running the suite is `en-US`.
+   */
+  const grouped = (n: number) => n.toLocaleString();
+
+  it('rounds to the kilogram and groups', () => {
+    expect(formatTonnage(5240.4)).toBe(`${grouped(5240)} kg`);
+    expect(formatTonnage(84119.6)).toBe(`${grouped(84120)} kg`);
+  });
+
+  it('reports an empty session as zero rather than blank', () => {
+    expect(formatTonnage(0)).toBe('0 kg');
+  });
+
+  it('totals the volume the history query already computed per session', () => {
+    expect(totalTonnage([{ totalVolume: 5240 }, { totalVolume: 3000 }, { totalVolume: 0 }])).toBe(
+      8240,
+    );
+    expect(totalTonnage([])).toBe(0);
+  });
+});
+
+describe('formatForgeTotals', () => {
+  it('reads as one line of aggregate', () => {
+    expect(formatForgeTotals(16, 84120)).toBe(`16 sessions · ${(84120).toLocaleString()} kg lifted`);
+  });
+
+  it('does not say "1 sessions"', () => {
+    expect(formatForgeTotals(1, 500)).toBe('1 session · 500 kg lifted');
+  });
+
+  it('says nothing has been forged rather than "0 sessions · 0 kg lifted"', () => {
+    expect(formatForgeTotals(0, 0)).toBe('Nothing forged yet');
+  });
+});
+
+describe('formatAnvilSummary', () => {
+  it('counts lifts and strikes', () => {
+    expect(formatAnvilSummary(3, 11)).toBe('3 lifts · 11 strikes');
+  });
+
+  it('singularises both halves independently', () => {
+    expect(formatAnvilSummary(1, 1)).toBe('1 lift · 1 strike');
+    expect(formatAnvilSummary(1, 5)).toBe('1 lift · 5 strikes');
+  });
+
+  /** A session opened but not yet logged into — reachable, and "0 lifts · 0 strikes" is noise. */
+  it('says nothing has been struck when the session is empty', () => {
+    expect(formatAnvilSummary(0, 0)).toBe('Nothing struck yet');
   });
 });
