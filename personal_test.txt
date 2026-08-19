@@ -91,9 +91,11 @@ Expected mobile baseline:
 
 - TypeScript exits with code 0.
 - ESLint exits with code 0 and no warnings.
-- Jest reports 426 tests across 20 suites passing. The last measured run was 394 across 20
-  suites; the 2026-08-17 reminder-helper cases add 32 and have not been run yet, so treat a
-  426 as confirmation and anything else as a real result worth reporting.
+- Jest reports 481 tests across 20 suites passing - measured 2026-08-19, and the figure to
+  expect. It supersedes the 394-across-20 and the never-measured "426 expected" that this
+  runbook used to quote. The UI rebuild's domain suites will keep raising it, so a higher
+  number with 0 failures is progress, not a discrepancy; a lower one is a real result worth
+  reporting. HANDOVER_DOCS/08-verification.md carries the measured figures with their dates.
 - Expo Doctor reports 21/21 checks passing.
 - Android and iOS exports complete successfully.
 

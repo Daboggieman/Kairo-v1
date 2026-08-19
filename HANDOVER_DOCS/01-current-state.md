@@ -61,20 +61,23 @@ user; see [`08-verification.md`](08-verification.md).
 
 ## Working tree — branch `phase_3`
 
-As of 2026-08-19, `git status --porcelain` is **empty**. The whole rebuild through the weight module is
-committed:
+As of 2026-08-19, `git status --porcelain` is **empty**. The whole rebuild through the weight module, and
+this handover folder itself, are committed:
 
 | Commit | Date | What |
 |---|---|---|
+| `f46dca7` | 2026-08-19 | `ox-06(3)` — the `personal_test.txt` rewrite, `docs/07-repo-structure.md`, the `dates.test.ts` comment repoint |
+| `7d744c9` | 2026-08-19 | `ox-06(2)` — the `HANDOVER_DOCS/` split itself, plus the `README.md` / `docs/README.md` / roadmap / rebuild-plan repoints |
 | `369531c` | 2026-08-19 | `ox-06` — carries the weight module (and the last touch to `apps/backend/.env`) |
 | `fff186f`, `65521f2` | 2026-08-18 | `end of day commit` ×2 — the earlier rebuild work; `65521f2` also carries the `ui_rebuild_stitch_prompt.md` deletion |
 | `92c21da` | 2026-08-18 | merge of `phase_3` from the remote |
 | `e164a93` | 2026-08-18 | the 30 Stitch designs under `media/stitch/` |
 
-`phase_3` is **level with `origin/phase_3`** (0/0) and **6 ahead / 1 behind `origin/master`**. The user
-committed and pushed all of this outside these sessions, which retires three warnings the handover used
-to carry: "nothing is committed", "part of it is already in the index", and the unstaged
-`ui_rebuild_stitch_prompt.md` deletion. All three are resolved.
+`phase_3` is **level with `origin/phase_3`** (0/0) and **8 ahead / 1 behind `origin/master`**. The user
+committed and pushed all of this outside these sessions — including the two `ox-06(2)`/`ox-06(3)` commits
+made *during* the handover split — which retires three warnings the handover used to carry: "nothing is
+committed", "part of it is already in the index", and the unstaged `ui_rebuild_stitch_prompt.md` deletion.
+All three are resolved.
 
 Confirm the real state with `git status --short --branch`, `git log --oneline -5` and
 `git rev-list --left-right --count origin/master...HEAD` rather than trusting this table — the user

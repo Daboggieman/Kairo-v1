@@ -38,6 +38,7 @@ Recorded commits, newest first:
 
 | Commit | What |
 |---|---|
+| `f46dca7`, `7d744c9` | `ox-06(3)` and `ox-06(2)` — the `HANDOVER_DOCS/` split and the build-doc repoints that went with it (2026-08-19) |
 | `369531c` | `ox-06` — the weight module and the last `.env` touch (2026-08-19) |
 | `fff186f`, `65521f2` | `end of day commit` ×2 — the rest of the rebuild through the macros module; `65521f2` also carries the `ui_rebuild_stitch_prompt.md` deletion (2026-08-18) |
 | `92c21da` | Merge `phase_3` from the remote into local `phase_3` |
