@@ -44,7 +44,7 @@ dates, weight):
 
 | Check | Result |
 |---|---|
-| `npm test` | **20 suites passed, 481 tests passed, 0 failures** (64.0 s) |
+| `npm test` | **20 suites passed, 481 tests passed, 0 failures** (24–64 s, cache-dependent) |
 | `npx tsc --noEmit` | clean, exit 0, no output |
 | `npm run lint` | clean, banner only — the gate is 0 errors / 0 warnings |
 

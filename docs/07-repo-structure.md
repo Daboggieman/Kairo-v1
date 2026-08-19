@@ -5,7 +5,8 @@ alongside the code they describe.
 
 ```
 kairo/
-├── docs/                        # this planning package
+├── docs/                        # this planning package — what the app is meant to be
+├── HANDOVER_DOCS/               # session handover — what is built, and why; start at its README
 ├── media/                       # design source, not shipped
 │   └── stitch/                  # the 30 screen designs — code.html is authoritative
 ├── apps/

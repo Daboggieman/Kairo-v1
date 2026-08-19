@@ -28,7 +28,7 @@ EXPO_NO_TELEMETRY=1 npx expo export --platform ios     --output-dir /tmp/kairo-i
 
 | Check | Result | Measured |
 |---|---|---|
-| `npm test` | **481 passed, 20 suites, 0 failures** (64.0 s) | **2026-08-19** |
+| `npm test` | **481 passed, 20 suites, 0 failures** (24–64 s, cache-dependent) | **2026-08-19** |
 | `npx tsc --noEmit` | clean, exit 0, no output | **2026-08-19** |
 | `npm run lint` | clean, banner only | **2026-08-19** |
 | `ruff check .` | All checks passed | 2026-08-16 |

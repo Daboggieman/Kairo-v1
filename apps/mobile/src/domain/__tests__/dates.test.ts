@@ -3,8 +3,8 @@
  * needed them, so the streak logic and the weight trend measure days the same way.
  *
  * `jest.globalSetup.js` pins `TZ=UTC` for the run, which is what makes the fixtures below
- * mean one thing on every machine — see the note in `to_continue_with.md` about why that has
- * to be `globalSetup` and not a setup file.
+ * mean one thing on every machine — see the note in `HANDOVER_DOCS/08-verification.md` about
+ * why that has to be `globalSetup` and not a setup file.
  */
 
 import {

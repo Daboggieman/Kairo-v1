@@ -1,7 +1,7 @@
 KAIRO V1 - PHASE 2 AND PHASE 3 PHYSICAL TEST RUNBOOK
 ====================================================
 
-Last updated: 2026-08-17
+Last updated: 2026-08-19
 Branch: phase_3
 Project: /home/student/Kairo-v1
 Mobile app: /home/student/Kairo-v1/apps/mobile
@@ -29,17 +29,28 @@ The product contract is:
 - Raw GPS points are retained; route trims exclude points and recompute derived metrics.
 
 
-READ THIS FIRST - THE UI IS MID-REWRITE AS OF 2026-08-17
+READ THIS FIRST - THE UI IS MID-REBUILD AS OF 2026-08-19
 --------------------------------------------------------
 
-A UI restructure is in flight and only Home, the reminders screen, and the wallpaper screen have
-been converted. The other thirteen screens still set their own padding and still lack the loader
-`.catch` that turns a failed query into one visible error instead of dozens of unhandled
-rejections. `to_continue_with.md` has the file-by-file list.
+The screen-by-screen restyle of 2026-08-17 was superseded by a complete rebuild: a dark
+masculine Greek-themed interface, same logo and same accent, every screen renamed on a Greek
+lexicon. Scope is locked in docs/09-ui-rebuild-plan.md.
 
-Do not run sections 4-8 end to end until that pass is finished. Findings collected against a
-half-converted app have to be collected again. What is worth running now is section 2, section 3,
-and the launch and legibility checks at the top of section 4 - those are what the rewrite is
+Progress as of 2026-08-19: Stage 0 (tokens, primitives) and Stage 1 (the tab shell) are done,
+and 15 of 22 existing screens are restyled. The movement module - the six screens under
+apps/mobile/app/(tabs)/movement/ - is next and has not been touched, so every screen this
+runbook's sections 5-8 exercise is still on the old styling. Stage 3 adds five new screens that
+do not exist yet.
+
+Current state and the stage board: HANDOVER_DOCS/01-current-state.md. The rules a screen must
+satisfy to count as done, including the loader `.catch` that turns a failed query into one
+visible error instead of dozens of unhandled rejections:
+HANDOVER_DOCS/02-ui-rebuild-conventions.md. Which screens have had it applied, and every
+deliberate departure from the designs: HANDOVER_DOCS/03-ui-rebuild-progress.md.
+
+Do not run sections 4-8 end to end until the rebuild is finished. Findings collected against a
+half-rebuilt app have to be collected again. What is worth running now is section 2, section 3,
+and the launch and legibility checks at the top of section 4 - those are what the rebuild is
 meant to fix, and they are cheap to repeat.
 
 
