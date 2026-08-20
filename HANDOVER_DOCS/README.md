@@ -44,6 +44,7 @@ inside one session, twice. One copy is the point of the folder — do not reintr
 | [`09-phase-3-acceptance.md`](09-phase-3-acceptance.md) | Phase 3 movement status and the native acceptance sequence | After the rebuild finishes |
 | [`10-project-history.md`](10-project-history.md) | Phase 1/2 record, git history, resolved device findings, the superseded 2026-08-17 pass | Archaeology — why something is the way it is |
 | [`11-module-pattern-and-hygiene.md`](11-module-pattern-and-hygiene.md) | How a new module is built here; repo hygiene, including one open security item | Adding a module, or before any git housekeeping |
+| [`12-stage-3-brief.md`](12-stage-3-brief.md) | Stage 3's five new screens as decided: the designs checked against the real schema, the figures with no source, the new domain/db work, the build order | Before writing any of the five new screens |
 
 The planning package these sit beside is [`../docs/`](../docs/) — start at
 [`../docs/README.md`](../docs/README.md). The division of labour: `docs/` is what the app is *meant*

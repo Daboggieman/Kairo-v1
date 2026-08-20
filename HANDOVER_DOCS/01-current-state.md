@@ -19,7 +19,7 @@ colour/spacing substitution table, the token changes, the five new screens, the 
 | **Stage 0 — foundations** | **Done.** Theme tokens, Cinzel, all 25 `Layout` primitives, `Button`, `Checkbox`, `Logo`. |
 | **Stage 1 — shell** | **Done.** `app/(tabs)/_layout.tsx` is the six-tab Canon bar. |
 | **Stage 2 — 22 screens** | **Done — 22 of 22.** The Citadel (1), the tasks module (3), the workouts module (4), the macros module (3), the weight module (3), the movement module (6), The Call and The Oracle (2) — plus each module's `_layout.tsx`. |
-| **Stage 3 — 5 new screens** | Not started. Gates, Sanctum, Envoy, Pantheon, Annals. |
+| **Stage 3 — 5 new screens** | **Decided, not built.** Gates, Sanctum, Envoy, Pantheon, Annals — scoped in [`12-stage-3-brief.md`](12-stage-3-brief.md) (2026-08-20). No code written. |
 
 Detail on what landed and why: [`03-ui-rebuild-progress.md`](03-ui-rebuild-progress.md). The rules the
 Stage 3 screens must follow: [`02-ui-rebuild-conventions.md`](02-ui-rebuild-conventions.md).
@@ -34,9 +34,24 @@ which is the expected result rather than a gap in coverage. `motivation.ts` gain
 code. The departures both files took are in
 [`03-ui-rebuild-progress.md`](03-ui-rebuild-progress.md#stage-2--the-call-and-the-oracle).
 
-Next: **Stage 3** — Gates, Sanctum, Envoy, Pantheon, Annals, per `docs/09-ui-rebuild-plan.md`. The
-rebuild hangs the Pantheon and the Annals off The Citadel's Outer Ward row group, so no navigation
-restructure is needed for those two.
+Next: **Stage 3** — Gates, Sanctum, Envoy, Pantheon, Annals, per `docs/09-ui-rebuild-plan.md`. **The
+five screens are now decided, before any code, in
+[`12-stage-3-brief.md`](12-stage-3-brief.md)** — written 2026-08-20 after reading all five designs
+against the real schema and writers, in the same shape as the movement brief. It carries the build
+order, the four new preference keys, the three new domain modules, and the figures the designs show
+that the app has no source for. **Read it before opening any of the five files.**
+
+Two things in it need the user, and neither is started:
+
+- **`expo-sharing` is not installed**, and The Sanctum's "export everything" cannot hand a file to
+  the user without it (RN's own `Share` takes a message string on Android). A dependency is a
+  decision here, so it is flagged, not taken.
+- **Where The Sanctum is reached from.** The plan says "the Citadel header", but the Citadel is the
+  one tab root with no `ScreenHeader` — its brand block is bespoke, because `KairoMark`'s interior is
+  opaque. The brief proposes an `IconButton` in that brand row.
+
+The rebuild hangs the Pantheon and the Annals off The Citadel's Outer Ward row group, so no
+navigation restructure is needed for those two.
 
 **Two things the Stage 2 close-out turned up, neither of them blocking:**
 
@@ -55,6 +70,14 @@ restructure is needed for those two.
 **One tracker gap the movement pass found and did not paper over:** `elevation_gain_meters` is never
 written by anything, so The Chronicle's CLIMB cell and elevation chart were dropped rather than
 rendered as a permanent zero. Whoever implements elevation owns both.
+
+**Stage 3's read of that gap found the way out**, and it matters because the locked plan gets it
+wrong: `docs/09-ui-rebuild-plan.md` justifies the Pantheon's "greatest climb" as *"a `MAX`"* over
+that column, which would return 0 for every activity ever recorded. But **`altitude_meters` on each
+sample *is* written** (`src/services/movementTracking.ts:81` → the insert in `src/db/movement.ts`), so
+the figure comes from the plan's other sentence — the new elevation-from-samples function. Once that
+exists, The Chronicle's CLIMB cell becomes re-addable; **not in Stage 3**. Reasoning in
+[`12-stage-3-brief.md`](12-stage-3-brief.md#the-pantheon--apppantheontsx-527-srcdomainpantheonts).
 
 ## Verification — measured 2026-08-20
 

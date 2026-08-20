@@ -97,8 +97,10 @@ and do not trust a name that merely sounds right — a wrong one renders as a bo
 
 **Two names that do not exist and will waste a session if trusted:** `flame` (use `fire` — caught
 mid-build) and `shield-heart-outline` (the family has `shield-cross-outline`, `shield-check-outline`,
-`shield-crown-outline`, no heart; `shield_with_heart` appears once, in The Sanctum, and
-`shield-crown-outline` suits the theme). Verify any glyph not in the table with:
+`shield-crown-outline`, no heart; `shield_with_heart` appears once, in **The Envoy** (`5.26`) — an
+earlier revision of this table said The Sanctum, which uses `sports_martial_arts`; corrected
+2026-08-20 by `grep -rl` — and `shield-crown-outline` suits the theme). Verify any glyph not in the
+table with:
 
 ```sh
 cd apps/mobile && node -e "const m=require('@expo/vector-icons/build/vendor/react-native-vector-icons/glyphmaps/MaterialCommunityIcons.json'); console.log('NAME' in m)"
