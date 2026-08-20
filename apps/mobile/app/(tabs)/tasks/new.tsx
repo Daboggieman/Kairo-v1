@@ -136,6 +136,7 @@ export default function NewTaskScreen() {
                     shape="circle"
                     selected={customDays.includes(day)}
                     onPress={() => toggleDay(day)}
+                    style={styles.dayChip}
                   />
                 ))}
               </View>
@@ -163,6 +164,12 @@ const styles = StyleSheet.create({
   cadenceGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   cadenceChip: { flexGrow: 1, flexBasis: '45%' },
   dayRow: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.xs },
+  /**
+   * Seven 44pt circles and six 4pt gaps come to 332pt; the screen margin leaves 327 on a 375pt phone
+   * and 312 on a 360pt one. React Native's `flexShrink` defaults to 0, so without this the last day
+   * runs off the edge instead of the row tightening. Same fix as The Call's day row.
+   */
+  dayChip: { flexShrink: 1 },
   hint: { color: colors.textMuted, fontSize: fontSize.xs, lineHeight: lineHeight.xs },
   actions: { gap: spacing.md, paddingTop: spacing.sm },
 });

@@ -191,18 +191,19 @@ so it cannot drift from the screens it summarises.
 
 ## The movement module — data layer
 
-The UI is Stage 2's next job; see [`04-movement-restyle-brief.md`](04-movement-restyle-brief.md). The layer
-underneath is complete and tested.
+The UI was restyled on 2026-08-20; the brief that decided it is
+[`04-movement-restyle-brief.md`](04-movement-restyle-brief.md) and the departures taken are in
+[`03-ui-rebuild-progress.md`](03-ui-rebuild-progress.md). The layer underneath is complete and tested.
 
 | Path | Role |
 |---|---|
 | `src/db/movement.ts` | 18 functions over schemas v7–v9 |
-| `src/domain/movement.ts` | the pure tracking engine and formatters |
+| `src/domain/movement.ts` | the pure tracking engine, the formatters, and the module's display vocabulary |
 | `src/services/movementTracking.ts` | the background task, permissions, start/stop |
 | `src/services/runtime.ts` | `IS_EXPO_GO`, re-exported from `movementTracking` |
-| `app/(tabs)/movement/*` | six screens + `_layout`, **none restyled yet** |
+| `app/(tabs)/movement/*` | six screens + `_layout`, **all restyled 2026-08-20** |
 
-Tests: `src/db/__tests__/movement.test.ts` and `src/domain/__tests__/movement.test.ts` (12 cases).
+Tests: `src/db/__tests__/movement.test.ts` and `src/domain/__tests__/movement.test.ts` (26 cases).
 
 **`src/db/movement.ts` entry points:** `createMovementActivity`, `getMovementActivity`,
 `getActiveMovementActivity`, `listMovementActivities`, `setMovementStatus`, `completeMovementActivity`,
@@ -219,11 +220,23 @@ Tests: `src/db/__tests__/movement.test.ts` and `src/domain/__tests__/movement.te
 `movementThresholds`, `createAutopauseState`, `evaluateAutopause`, `initialCueSchedule`, `crossedCues`,
 `createMovementState`, `transition`, `replayFrameAt`, `processSample`, `recomputeEditedRoute`).
 
+The 2026-08-20 restyle added the module's **display vocabulary** to the same file, so that wording the UI
+depends on is tested once rather than repeated per screen: `MOVEMENT_LABELS`, `movementPerformance` (the
+single ride→speed / else→pace branch, which used to be duplicated in `index.tsx` and `active.tsx`),
+`splits` with `MIN_SPLIT_METERS` / `Split` / `SplitPoint`, `describeMovementEvent`, `movementWeek` with
+`MovementWeek` / `MovementWeekActivity`, `formatExpeditionTotals`, and `heldSeconds`. Compose over these
+rather than reformatting a pace or a distance at a call site.
+
 Three things about it that are easy to get wrong:
 
 - **`MovementEvent.eventType` is a plain `string`**, not the `MovementEventType` union — at both the row
-  type (`src/db/types.ts:254`) and the writer (`src/db/movement.ts:430`). `movement/active.tsx:77` writes
-  `'finished'`, which the union does not contain. Anything reading events must tolerate both spellings.
-- **`elevation_gain_meters` exists on the row and is never written.** It is a tracker gap, not a UI one.
+  type (`src/db/types.ts:254`) and the writer (`src/db/movement.ts:430`). `movement/active.tsx` writes
+  `'finished'` (grep for it; the restyle moved the line), which the union does not contain. Anything
+  reading events must tolerate both spellings — which is why `describeMovementEvent` takes a `string` and
+  handles `'finished'` and `'completed'` alike. Changing the written spelling would need a migration for
+  the rows already stored, not an edit at the call site.
+- **`elevation_gain_meters` exists on the row and is never written.** It is a tracker gap, not a UI one,
+  which is why The Chronicle has no CLIMB cell and no elevation chart — a permanent zero reads as a flat
+  route rather than an unmeasured one. Whoever implements elevation owns both.
 - **`paused_seconds` is only written by `trimMovementActivity`**, so derive held time from
   `elapsedSeconds - movingSeconds` instead of trusting it.

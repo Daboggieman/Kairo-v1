@@ -1,10 +1,10 @@
 # The rebuild so far — what landed, and the departures that are deliberate
 
-Stages 0 and 1 are complete; Stage 2 is 15 of 22. Every "departure from the design" below is commented
+Stages 0, 1 and 2 are complete — **22 of 22 screens**. Every "departure from the design" below is commented
 in the file that makes it. **Do not "fix" them** — each one is a decision about the app's real data, and
 several were made twice because the first record of them was too thin to trust.
 
-Verified after all of it, on **2026-08-19**: `npm test` 481 passed across 20 suites, `npx tsc --noEmit`
+Verified after all of it, on **2026-08-20**: `npm test` 494 passed across 20 suites, `npx tsc --noEmit`
 clean, `npm run lint` clean. No module has been run on a device yet.
 
 ---
@@ -300,3 +300,203 @@ that is good news *in its own terms*, like a loss on a cut.
   `requestSync` in The Vow would be a no-op that reads like a promise. This **reverses** an earlier note
   calling the missing `requestSync` a bug — it is not one. A weighing syncs; the line you drew on your own
   chart does not, yet.
+
+---
+
+## Stage 2 — the movement module
+
+All seven files rewritten, 2026-08-20. Decided in
+[`04-movement-restyle-brief.md`](04-movement-restyle-brief.md); what follows is what was actually built.
+
+| File | Screen |
+|---|---|
+| `app/(tabs)/movement/_layout.tsx` | `headerShown: false`; `new` is `presentation: 'modal'`; `active` is `gestureEnabled: false` |
+| `app/(tabs)/movement/index.tsx` | The Expedition |
+| `app/(tabs)/movement/new.tsx` | The Threshold |
+| `app/(tabs)/movement/active.tsx` | The March |
+| `app/(tabs)/movement/[activityId].tsx` | The Chronicle |
+| `app/(tabs)/movement/replay.tsx` | The Retelling |
+| `app/(tabs)/movement/settings.tsx` | The Compass |
+
+**`src/domain/movement.ts` gained the module's vocabulary**, the fifth link in the chain that starts at
+`formatProgress`: `MOVEMENT_LABELS`, `movementPerformance`, `splits` (+ `MIN_SPLIT_METERS`, the `Split`
+and `SplitPoint` types), `describeMovementEvent`, `movementWeek` (+ `MovementWeek`,
+`MovementWeekActivity`), `formatExpeditionTotals`, `heldSeconds`. Thirteen `it` blocks added to
+`src/domain/__tests__/movement.test.ts` — 26 in the suite, 494 in the app.
+
+The lexicon: the three types are **Dromos** (run), **March** (walk) and **Chariot** (ride). "March" is
+overloaded on purpose — it is both the walk type and the name of the live screen — so the generic word
+for an outing is **journey**: *"42 journeys · 318 km"*. A journey is recorded in The Expedition, lived
+through The March, written up in The Chronicle. There is no fourth word for it.
+
+- **`MOVEMENT_LABELS` is the only place that knows the stored type is `ride` and its glyph is `bike`.**
+  Its test asserts the whole record for that reason. Never write `'bike'` as an activity type.
+- **`movementPerformance` is why no screen branches on the type.** Ride → speed and `km/h`; everything
+  else → pace and `/km`. The Expedition and The March each computed that branch, in slightly different
+  words, which is the usual way two screens end up disagreeing about one activity.
+- **`splits` interpolates each unit boundary between the pair of points that straddle it**, never snaps
+  to the nearest sample. With a fix every few seconds a runner covers 10–30 m between samples and the
+  snapping error accumulates in one direction, so the reported splits drift away from the watch. Its
+  test uses two points 2 km apart at an even 5:00/km: interpolating gives `[300, 300]`, snapping gives
+  `[600, 0]`, so the assertion fails against a wrong implementation rather than merely passing against
+  the right one. Distances are measured **relative to the first point**, so a trimmed route splits the
+  same; a partial tail's `secondsPerUnit` is extrapolated so the last row compares with the whole ones;
+  and a tail under `MIN_SPLIT_METERS` (50 m, the accuracy floor) is dropped rather than shown.
+- **`describeMovementEvent` takes a `string`, not the `MovementEventType` union, and that is deliberate.**
+  `MovementEvent.eventType` is typed `string` in the schema and `active.tsx` writes `'finished'`, which
+  is not in the union (that has `'completed'`). Both spellings are in real rows; both map to "Journey
+  closed". A `switch` over the union alone would silently drop the finish event from every chronicle.
+  It returns `null` for machinery events, and the timeline drops whatever it will not describe.
+- **`movementWeek` is a rolling seven days ending today, not a calendar week.** A calendar week has to
+  pick a first day and that answer is locale-dependent. The rolling window also visits each weekday
+  exactly once, which is what makes the strip's two-letter labels unique — `StatStrip` keys its cells by
+  `item.label`, and S/M/T/W/T/F/S collides twice.
+- **`formatExpeditionTotals` rounds to whole units where `formatMovementDistance` gives two decimals.**
+  A 318 km lifetime total does not want to read "318.00 km". `formatTonnage` already stands apart from
+  `formatWeight` for exactly this reason, so the aggregate follows the aggregate.
+- **`heldSeconds` is `elapsed - moving`, and ignores the stored `pausedSeconds`.** Only
+  `trimMovementActivity` ever writes that column, so it is blank on most rows; the subtraction is true
+  however the row came to be.
+
+**Departures:**
+
+- **No CLIMB cell and no elevation chart on The Chronicle** (`5.19`, `5.20` show both).
+  `elevation_gain_meters` is never written by anything, so both would be a permanent zero — which reads
+  as a flat route rather than an unmeasured one. **This is a real tracker gap**, recorded as one; a gain
+  figure needs an altitude threshold gate, and inventing that gate is a feature.
+- **No "pace peaked at 4:10/km" in the timeline** (`5.20`). No event records a peak. The rest of the
+  timeline is real `movement_events` rows.
+- **The March shows HELD where the design shows a fourth clock.** `SessionElapsed` in the app bar already
+  ticks elapsed once a second while the row is re-read every two, so an elapsed cell beside it would
+  disagree with it by a second. Held is the one figure on that screen not derivable from the bar.
+- **The March keeps no back affordance at all**, and `_layout.tsx` now backs that with
+  `gestureEnabled: false` rather than the `headerBackVisible: false` it used to say — which has nothing
+  left to hide now the native header is gone. A recording is left by finishing it.
+- **The Threshold's three types are `Chip`s, not 104pt icon tiles.** `Chip` is the app's one-of-many
+  control and it is label-only, so the glyph goes and the **gloss** takes its place: "Chariot — the ride".
+  Better here, because Chariot is the one name in the lexicon a first-time reader cannot guess.
+- **The Chronicle's map is a still, not a live map.** Pan and zoom are off and the scroll gesture belongs
+  to the page — a map inside a `ScrollView` otherwise swallows every drag that starts over it, which on
+  that screen is most of them. Interacting with the route is what The Retelling is for.
+- **The Retelling's speed control is four chips, not one cycling button.** The old control advanced
+  1 → 2 → 4 → 8 → 1 per tap, so the only way to learn what it did was to press it and the only way back
+  from 8× was three more presses. Four chips are the same four choices, stated.
+- **The Compass's unit setting is a pair of chips, not a "Metric units" switch.** A switch has an on and
+  an off state, and "off" there meant miles — a choice hidden inside the absence of one.
+- **The Expedition is a `FlatList`**, so it reads `useSafeAreaInsets` itself and adds
+  `insets.bottom + layout.scrollFooter`; a screen inside `ScreenScroll` must not. Its `+` disappears
+  while something is recording, because `getActiveMovementActivity` will not let a second journey start
+  and a `+` beside a live one would be a control that lies about what it does.
+- **Loading and "no route" are told apart on The Retelling.** Both used to render "No route available
+  for replay", so the half-second before the points arrived looked like a permanent failure.
+
+**One decision worth not re-deciding:** the four figures on The March and The Chronicle are laid out
+**2×2 as two `bare` `StatStrip`s with a `Divider` between them** — the idiom `StatStrip`'s own doc
+comment prescribes, and the same arrangement The Stele uses. Four display numbers across a phone give
+each about 80pt.
+
+**A fourth ESLint rule surfaced during this module: `react-hooks/purity`.** `Date.now()` in a render
+body is *"Cannot call impure function during render"*. The house fix, already present in five screens,
+is `useState(() => Date.now())` plus `setNowMs(Date.now())` inside the focus effect after an `await`.
+[`08-verification.md`](08-verification.md) carries it with the other three.
+
+---
+
+## Stage 2 — The Call and The Oracle
+
+The last two screens of Stage 2, restyled 2026-08-20. Both are pushed from The Citadel's Outer Ward, so
+both take an `AppBar` with `onBack`; neither is a module and neither gained a `_layout.tsx`.
+
+| File | Lines | Screen |
+|---|---|---|
+| `app/(tabs)/alarms.tsx` | 430 | The Call |
+| `app/(tabs)/wallpaper.tsx` | 312 | The Oracle |
+
+**No domain vocabulary was added, and that is the point of difference from the five module passes.** Both
+screens already had their wording in the domain: `describeRepeat` / `formatTimeOfDay` / `formatTimeInput`
+in `src/domain/reminders.ts`, and `quoteForDate` in `src/domain/motivation.ts`. Nothing on either screen
+formats a figure at the call site, so there was nothing to pull down. `motivation.ts` gained two doc
+comments instead — see below. **Test count is unchanged at 494 across 20 suites**, which is the expected
+result: no behaviour changed.
+
+The Call keeps its `FlatList` (a standing-call list has no natural ceiling) and therefore reads
+`useSafeAreaInsets` itself; the whole form sits in `ListHeaderComponent`. The Oracle is `ScreenScroll` and
+reads no insets. Both conventions as written in
+[`02-ui-rebuild-conventions.md`](02-ui-rebuild-conventions.md).
+
+**The Call — departures:**
+
+- **No in-content display title.** `5.22_the_call` draws "THE CALL" in the top bar *and* again as a
+  display-md heading beneath it. `AppBar` says it once; the tagline that sat under the duplicate ("Kairo
+  speaks at the hour you name") moved inside the form card, where it describes something rather than
+  repeating it.
+- **The seven weekday toggles are `Chip shape="circle"`**, not the screen's own 46pt `Pressable`s. Same
+  44pt round control, same accent-fill selected state, and the accessibility contract now comes from the
+  primitive. It is the control the New Rite's "On these days" row already uses — two screens that ask for
+  weekdays now ask with one control.
+- **The resolved schedule is printed rather than the design's rule.** The design hints "No day selected
+  repeats every day"; `describeRepeat([])` already answers "Every day", so the line leads with the answer
+  and explains the mechanism only in the one case where it is not self-evident. **This is not the New
+  Rite's rejected hint** (§*Where the design and the app's data disagree*): the Rite has an explicit
+  cadence selector, where an empty custom day set contradicts the cadence chosen above it. Here
+  empty-means-daily is `reminderTriggers`' documented contract.
+- **Delete stays a visible `IconButton`.** The design's footer caption offers "Long-press to delete" as
+  the only way out; a destructive action reachable only through a gesture with no affordance is one
+  nobody finds. The caption goes with it.
+- **The time field is not set in display-md.** `Field` owns its `TextInput` and its `style` prop targets
+  the wrapper, so the design's large tabular clock would need a new prop on the primitive and would leave
+  one form's input unlike every other input in the app. The *row's* time is `headlineSm` with
+  `fontVariant: ['tabular-nums']`.
+- **A row being edited is tinted `accentSoft`, without the accent left rule.** That rule means "the one
+  thing in play" and is reserved for The Anvil's active lift and The Expedition's live recording; an edit
+  is a selection, not a live process. `accessibilityState={{ selected }}` carries it to a screen reader.
+  The tint is paired with `marginHorizontal: -spacing.md` / `paddingHorizontal: spacing.md` so it reaches
+  past the text without shifting the row 12px sideways when an edit starts.
+
+Kept from the old screen, and worth not undoing: the runtime `Notice` sits **above** the form, because
+whether a call can actually sound depends on the build (Expo Go on Android cannot deliver remote
+notifications) and that has to be read before a call is summoned rather than after it fails to arrive.
+A row saved with no `notificationId` says **"Saved, not scheduled"** on its face. And the blank-name
+fallback is still the literal `'Kairo reminder'`, because it has to match `src/services/notifications.ts`
+— the row and the notification that sounds from it must not disagree about what the call is called.
+
+**The Oracle — departures:**
+
+- **No helmet mark under the inscription.** `5.23_the_oracle` centres a 16px `sports_mma` glyph at the
+  foot of the hero and repeats it on the preview. A boxing glove under a Delphic quotation is sample
+  content of the same class as the designs' remote hero photographs, and the app's own mark cannot stand
+  in: **`KairoMark`'s interior is opaque `colors.background`**, so it reads on `background` and never
+  inside a `Card`. The two `Meander` frets are the ornament instead.
+- **The inscription is `headlineSm`, mixed case.** The design sets its twelve-character sample in
+  uppercase display-md; the real quotations are sentences of 40–70 characters, which at 28/34 with 3.4pt
+  tracking and no lowercase runs to five or six lines and overruns its block.
+- **The hero's 260pt height is a floor, not a fixed height**, for the same reason.
+- **The preview is 160pt wide, not the design's 112.** At 112 the inscription rendered *into* the image is
+  illegible, and checking what you are about to save is the whole purpose of a preview. Nor is it the old
+  screen's full-width 9:16 — at 327pt across that stands 581pt tall and pushes both actions below the
+  fold.
+- **"Forge another" appears only on a failure.** The design shows it under "Take the standard" as a
+  permanent pair, but the render is deterministic from the day's inscription: forging again on success
+  returns the identical image, which is a button that appears to do nothing.
+
+Kept and worth not undoing: the four states of the standard — unconfigured, in flight, failed, ready —
+are told apart and each one that a person can act on offers the action. The status is **derived** from
+`result?.attempt === attempt`, not stored alongside the result, which is what let the old screen show a
+spinner and "connect sync settings" at the same time. The `frame` placeholder is `colors.background`, not
+`surface`, for the `KairoMark` reason above.
+
+**`src/domain/motivation.ts` gained two doc comments** and no code change. It was the only domain module
+without one, and the two things a reader needs are not visible from the code: that the quote is chosen
+**by the date rather than at random** so the screen can be opened five times in an evening without the
+inscription changing under the reader; and that `Date.UTC` is fed the date's **local** Y/M/D on purpose —
+it turns a local calendar date into a timezone-free day count, so the line changes at local midnight and
+a DST shift cannot move it. The double modulo is for pre-1970 dates, where the day count is negative and
+JavaScript's `%` keeps the sign.
+
+**One bug found and fixed outside the two-screen scope: `app/(tabs)/tasks/new.tsx`.** Checking the
+`shape="circle"` precedent showed the same latent overflow in a screen already shipped. Seven fixed-44pt
+circles need 308pt (332 with the 4pt gaps) and the screen margin leaves 327 on a 375pt phone, 312 on a
+360pt one — and **React Native's `flexShrink` defaults to 0**, unlike the web, so the row does not
+tighten: the last day runs off the edge. `dayChip: { flexShrink: 1 }` in both The Call and the New Rite.
+Anything else that lays a fixed-width control out seven-across wants the same line.
+

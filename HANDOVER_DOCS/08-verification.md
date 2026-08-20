@@ -28,9 +28,9 @@ EXPO_NO_TELEMETRY=1 npx expo export --platform ios     --output-dir /tmp/kairo-i
 
 | Check | Result | Measured |
 |---|---|---|
-| `npm test` | **481 passed, 20 suites, 0 failures** (24–64 s, cache-dependent) | **2026-08-19** |
-| `npx tsc --noEmit` | clean, exit 0, no output | **2026-08-19** |
-| `npm run lint` | clean, banner only | **2026-08-19** |
+| `npm test` | **494 passed, 20 suites, 0 failures** (11–24 s, cache-dependent) | **2026-08-20** |
+| `npx tsc --noEmit` | clean, exit 0, no output | **2026-08-20** |
+| `npm run lint` | clean, banner only | **2026-08-20** |
 | `ruff check .` | All checks passed | 2026-08-16 |
 | `pytest -q` | 28 passed | 2026-08-16 |
 | `alembic upgrade head` | at head | 2026-08-16 |
@@ -38,8 +38,11 @@ EXPO_NO_TELEMETRY=1 npx expo export --platform ios     --output-dir /tmp/kairo-i
 | `expo export` android + ios | both successful | 2026-08-16 — **predates the rebuild** |
 | Any physical-device run | **never run** | — |
 
-The 481/20 measurement **supersedes every earlier count in this handover** — 350/16, 376/18, 394/20 and the
-never-measured "426 expected". Suites covered:
+The 494/20 measurement **supersedes every earlier count in this handover** — 350/16, 376/18, 394/20, the
+never-measured "426 expected", and 481/20 from 2026-08-19. The +13 over 481 is the movement module's
+domain vocabulary. **The Call and The Oracle added none** and the figure was re-measured unchanged after
+them: both screens' wording already lived in `reminders.ts` and `motivation.ts`, so a flat count there is
+the expected result, not missing coverage. Suites covered:
 `db/{alarms,tasks,workouts,weight,macros,movement,outbox}`, `store/workoutStore`, `sync/sync`, and
 `domain/{tasks,movement,macros,weight,workouts,dashboard,reminders,motivation,chart,dates,numbers}`.
 
@@ -68,9 +71,9 @@ cd apps/backend && python3 -m venv .venv && source .venv/bin/activate && pip ins
 
 `apps/backend/.venv` is **currently absent** — recreate it before any backend check.
 
-## The three ESLint rules that bite
+## The four ESLint rules that bite
 
-This config is React-Compiler-era, and the gate is zero warnings, so all three are effectively errors:
+This config is React-Compiler-era, and the gate is zero warnings, so all four are effectively errors:
 
 - **`react-hooks/refs`** rejects `useRef(new Animated.Value(0)).current` — reading a ref during render.
   `Logo.tsx` has a local `useAnimatedValue()` (a `useState` with an initialiser) for exactly this; reuse it
@@ -81,6 +84,11 @@ This config is React-Compiler-era, and the gate is zero warnings, so all three a
 - **`react-hooks/preserve-manual-memoization`** cost **7 errors** in the macros module alone. The fix is not
   to satisfy it — it is to **drop the manual memo**: write `onPress={() => void onSave()}` rather than
   wrapping a handler in `useCallback` the compiler then objects to.
+- **`react-hooks/purity`** rejects `Date.now()` in a render body — it is an impure read, so a component
+  that derives "now" while rendering fails the gate. The house fix, used by the movement and weight
+  modules: seed it once with `useState(() => Date.now())`, then call `setNowMs(Date.now())` inside the
+  focus effect **after an `await`** (which `set-state-in-effect` allows). The same applies to
+  `Math.random()` and `new Date()` with no argument.
 
 One scoped `eslint-disable @typescript-eslint/no-require-imports` pair exists on purpose, around the five
 deliberate lazy `require()`s in `src/services/notifications.ts`. That rule is `warn`, and the gate is zero

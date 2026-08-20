@@ -76,7 +76,7 @@ Checks:
 ```bash
 npm run typecheck
 npm run lint
-npm test                 # 481 tests across 20 suites (measured 2026-08-19)
+npm test                 # 494 tests across 20 suites (measured 2026-08-20)
 npx expo-doctor
 ```
 

@@ -7,13 +7,14 @@ project history; the file at the repo root is now a pointer to this index.
 **Read [`01-current-state.md`](01-current-state.md) first.** It is the only document here that dates
 quickly. Everything else is reference and stays true until the thing it describes changes.
 
-Last updated: **2026-08-19**.
+Last updated: **2026-08-20**.
 
 ## The resume point
 
-Stage 2 of the Greek UI rebuild — **15 of 22 screens restyled**. Next is the **movement module**;
-[`04-movement-restyle-brief.md`](04-movement-restyle-brief.md) holds the finished design analysis and
-every decision it needs. Nothing under `apps/mobile/app/(tabs)/movement/` has been touched yet.
+Stage 2 of the Greek UI rebuild is **complete — 22 of 22 screens restyled** (`find app -name '*.tsx' !
+-name '_layout.tsx'` is the denominator). The Call and The Oracle closed it out on 2026-08-20; nothing
+from the movement module onward is committed. Next: **Stage 3's five new screens** — Gates, Sanctum,
+Envoy, Pantheon, Annals — per `docs/09-ui-rebuild-plan.md`.
 
 ## Standing constraints
 
@@ -36,7 +37,7 @@ every decision it needs. Nothing under `apps/mobile/app/(tabs)/movement/` has be
 | [`01-current-state.md`](01-current-state.md) | Stage board, what is verified and when, working tree, open items | Always, first |
 | [`02-ui-rebuild-conventions.md`](02-ui-rebuild-conventions.md) | The rules every remaining screen must follow, and the per-file carry-over checklist | Before touching any screen |
 | [`03-ui-rebuild-progress.md`](03-ui-rebuild-progress.md) | What is already restyled, module by module, and the deliberate departures from the designs | Before "correcting" something that looks like a mistake |
-| [`04-movement-restyle-brief.md`](04-movement-restyle-brief.md) | The next module: design analysis, the decisions taken, the domain work it needs | Resuming Stage 2 |
+| [`04-movement-restyle-brief.md`](04-movement-restyle-brief.md) | The movement module as it was decided: design analysis, the decisions taken, the domain work it needed — now a record, not a to-do | Questioning why a movement screen reads the way it does |
 | [`05-design-handoff.md`](05-design-handoff.md) | The 30 Stitch designs, the dumper script, the verified 61-glyph table, the five locked decisions | Transcribing any design |
 | [`06-architecture-decisions.md`](06-architecture-decisions.md) | Project-wide decisions, the shared-SQLite rule, the Expo Go capability rule, the branding invariants | Before adding a dependency, a connection, or a native call |
 | [`07-module-reference.md`](07-module-reference.md) | Tasks, macros, Home and movement: files, schemas, and the decisions embedded in them | Changing a module's data or logic |

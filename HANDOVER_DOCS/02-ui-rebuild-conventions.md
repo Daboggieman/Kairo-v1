@@ -1,8 +1,8 @@
 # The rebuild's conventions — follow these for the remaining screens
 
 Each of these was decided once, on an early module. Re-deciding them per module is how the app ends up
-looking assembled rather than designed. They are binding on the seven screens left in Stage 2 and on
-Stage 3's five new ones.
+looking assembled rather than designed. Stage 2 is complete, so they are binding on **Stage 3's five new
+screens** — and on any return to one of the 22 already restyled.
 
 ## Structure
 
@@ -28,7 +28,12 @@ Stage 3's five new ones.
 - **Aggregate strips render only when there is something to aggregate.** Three zeroes above an empty list
   is chrome describing nothing.
 - **A list screen whose data starts `[]` flashes its `EmptyState` before the first query resolves.** Gate
-  it on a `loaded` flag set in the effect's `finally` (The Armory) or on `loading` (The Forge).
+  it on a `loaded` flag set in the effect's `finally` (The Armory, The Call) or on `loading` (The Forge).
+- **A fixed-width control laid out seven-across needs `flexShrink: 1`.** React Native's `flexShrink`
+  defaults to **0**, unlike the web, so a row of seven 44pt `Chip shape="circle"` day toggles needs 308pt
+  (332 with gaps) against the ~312–327pt a phone's screen margin leaves — and without the line the last
+  one runs off the edge instead of the row tightening. Present in The Call and the New Rite; found in the
+  New Rite *after* it shipped.
 
 ## Meaning
 
@@ -65,7 +70,10 @@ from screens already shipped:
   inferred.
 - The New Rite's *"Selecting no day repeats every day"* hint was rejected in favour of refusing to save an
   empty custom selection — a sheet that silently converts your choice into a different rule is the harder
-  thing to notice.
+  thing to notice. **The Call does the opposite and both are right:** there, empty-means-daily is
+  `reminderTriggers`' documented contract rather than a silent conversion, so the screen prints the
+  resolved schedule (`describeRepeat([])` → "Every day") instead of refusing. The test is whether the
+  domain already means it, not whether the two screens match.
 - A cell the tracker never writes is dropped rather than rendered as a zero. See The Chronicle's CLIMB
   cell in [`04-movement-restyle-brief.md`](04-movement-restyle-brief.md).
 
@@ -75,28 +83,29 @@ wrong.
 
 ## Fold these in as each file is opened
 
-These were an outstanding pass of their own from 2026-08-17. They are **not** a separate sweep any more:
-every one of these files is being opened for the rebuild anyway, and a second pass over the same 13 files
-would be wasted work. Keep ticking them off.
+These were an outstanding pass of their own from 2026-08-17, folded into the rebuild instead of run twice
+over the same 13 files. **Items 1–3 are closed as of 2026-08-20**, when the last two Stage 2 screens were
+opened. What remains — 4, 5, 6 — is standing guidance for Stage 3, not a backlog.
 
-1. **The `.catch` → `<Notice tone="danger">` guard.** Every screen loaded with an async IIFE and no
-   `.catch`, which is why one dead SQLite connection printed ~57 unhandled rejections instead of one
-   visible error. Done: `index.tsx` (Citadel), `alarms.tsx`, `wallpaper.tsx`, the whole tasks module, the
-   whole workouts module, the whole macros module, the whole weight module. **Left:**
-   `movement/index.tsx`, `movement/active.tsx`, `movement/settings.tsx`, `movement/replay.tsx`,
-   `movement/[activityId].tsx`.
+1. **The `.catch` → `<Notice tone="danger">` guard.** ~~Left to do.~~ **Done everywhere** as of
+   2026-08-20: `index.tsx` (Citadel), `alarms.tsx`, `wallpaper.tsx`, and the whole tasks, workouts,
+   macros, weight and movement modules. It was on this list because every screen loaded with an async
+   IIFE and no `.catch`, which is why one dead SQLite connection printed ~57 unhandled rejections
+   instead of one visible error. Keep the pattern for the Stage 3 screens: try/catch around the IIFE,
+   `setError` in the catch, a danger `Notice` above the content.
    (`requestSync(db).catch(() => {})` calls are deliberate and unrelated — sync is best-effort.)
-2. **Full-screen `ActivityIndicator` → `LogoLoader`**, in `movement/[activityId].tsx` and
-   `movement/active.tsx`. Keep `ActivityIndicator` inside `Button`, where it has to fit a 56px control.
-   The old line numbers predate the rebuild — re-grep rather than trusting them.
-3. **The density pass** on any screen still setting its own: `padding: spacing.lg` →
-   `layout.screenPadding`, gaps → `layout.cardGap` / `layout.sectionGap`, and `lineHeight` on body text.
-   **Left:** `movement/new.tsx`, `movement/settings.tsx`, and whatever `alarms.tsx` / `wallpaper.tsx`
-   still carry. Read the values from the theme, not from any list — the rebuild moved `layout` onto an
-   8px grid.
+2. **Full-screen `ActivityIndicator` → `LogoLoader`.** ~~Left to do.~~ **Done** as of 2026-08-20 — both
+   sites were `movement/[activityId].tsx` and `movement/active.tsx`. Keep `ActivityIndicator` inside
+   `Button`, where it has to fit a 56px control; a full-screen wait is `LogoLoader`.
+3. **The density pass** — `padding: spacing.lg` → `layout.screenPadding`, gaps → `layout.cardGap` /
+   `layout.sectionGap`, `lineHeight` on body text. ~~Left: whatever `alarms.tsx` / `wallpaper.tsx` still
+   carry.~~ **Done** as of 2026-08-20; those two were the last files carrying their own. Read the values
+   from the theme, not from any list — the rebuild moved `layout` onto an 8px grid.
 4. **Local colour constants → `chartColors`.** The macros module's `MACRO_COLORS` is done; check any
-   screen that draws a series.
-5. **Adopt `Layout.tsx` primitives** wherever a screen's own container adds nothing.
+   screen that draws a series. Nothing in the 22 still holds one, so this is a rule for new screens.
+5. **Adopt `Layout.tsx` primitives** wherever a screen's own container adds nothing. The Call was the
+   last conversion — `CardHeader`, `Eyebrow`, `Chip`, `Fluting` and `IconButton` replaced bespoke styles
+   and a direct `MaterialCommunityIcons` import.
 6. **Re-run `npx tsc --noEmit` and `npm run lint` after every module, and `npm test` when a domain suite
    changed.**
 

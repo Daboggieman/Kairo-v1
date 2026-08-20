@@ -1,10 +1,12 @@
-# The next module — movement (The Expedition)
+# The movement module (The Expedition) — the brief, as it was decided
 
-Everything here is decided. The six designs (`5.16`–`5.21`) have been dumped and read, the tracker's real
-schema has been checked against them, and the vocabulary the domain layer needs is specified below.
-**There is nothing left to gather.** Open the files and write code.
+**This is now a record, not a to-do.** The module was written and verified on 2026-08-20; the departures
+actually taken are in [`03-ui-rebuild-progress.md`](03-ui-rebuild-progress.md). Read this when you want
+to know why a movement screen reads the way it does, or which gaps in the tracker it worked around.
 
-Nothing under `apps/mobile/app/(tabs)/movement/` has been modified yet.
+Everything here was decided before any code was written. The six designs (`5.16`–`5.21`) were dumped and
+read, the tracker's real schema was checked against them, and the vocabulary the domain layer needed is
+specified below. The line counts in the table are the **pre-restyle** ones.
 
 | File | Lines | Becomes | Design |
 |---|---|---|---|
@@ -127,10 +129,11 @@ Two the designs get right and should be built:
 - No design export. Build it as a `RowGroup` of settings rows in the module's idiom, reached from The
   Expedition's `NavRow`. Density pass owed.
 
-## `src/domain/movement.ts` — the vocabulary to write
+## `src/domain/movement.ts` — the vocabulary that was written
 
-Designed, **not yet written**. Tests go in `src/domain/__tests__/movement.test.ts`, which today holds 12
-`it` blocks across 121 lines; extend it rather than starting a second file. Follow the house style set by
+All seven exports below are **written and under test** as of 2026-08-20.
+`src/domain/__tests__/movement.test.ts` grew from 12 `it` blocks to 26 (121 → 305 lines); the suite is
+the record of what each one actually promises. The house style they follow is
 `src/domain/weight.ts` — named constants at the top, one exported function per phrase, and a `null`
 return wherever the data cannot justify an answer.
 

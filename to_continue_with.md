@@ -10,10 +10,9 @@ reality, and each correction says so where the old claim used to be.
 
 ## The resume point, in one line
 
-Stage 2 of the Greek UI rebuild — **15 of 22 screens restyled**. Next is the **movement module**, whose
-finished design analysis and decisions are in
-[`HANDOVER_DOCS/04-movement-restyle-brief.md`](HANDOVER_DOCS/04-movement-restyle-brief.md). Nothing under
-`apps/mobile/app/(tabs)/movement/` has been touched yet.
+Stage 2 of the Greek UI rebuild is **complete — 22 of 22 screens restyled**, The Call and The Oracle
+closing it out on 2026-08-20 (written and verified, not committed). Next is **Stage 3's five new
+screens**: Gates, Sanctum, Envoy, Pantheon, Annals.
 
 ## Where everything went
 
@@ -23,7 +22,7 @@ finished design analysis and decisions are in
 | [`01-current-state.md`](HANDOVER_DOCS/01-current-state.md) | Stage board, measured verification, working tree, open items |
 | [`02-ui-rebuild-conventions.md`](HANDOVER_DOCS/02-ui-rebuild-conventions.md) | The rules every remaining screen must follow, and the per-file checklist |
 | [`03-ui-rebuild-progress.md`](HANDOVER_DOCS/03-ui-rebuild-progress.md) | What is restyled, and every deliberate departure from the designs |
-| [`04-movement-restyle-brief.md`](HANDOVER_DOCS/04-movement-restyle-brief.md) | The next module, decided end to end |
+| [`04-movement-restyle-brief.md`](HANDOVER_DOCS/04-movement-restyle-brief.md) | The movement module as decided end to end — now a record of it, not a to-do |
 | [`05-design-handoff.md`](HANDOVER_DOCS/05-design-handoff.md) | The 30 Stitch designs, the dumper, the verified 61-glyph table |
 | [`06-architecture-decisions.md`](HANDOVER_DOCS/06-architecture-decisions.md) | Project-wide decisions, the SQLite rule, the Expo Go rule, branding invariants |
 | [`07-module-reference.md`](HANDOVER_DOCS/07-module-reference.md) | Tasks, macros, Home and movement: files, schemas, embedded decisions |

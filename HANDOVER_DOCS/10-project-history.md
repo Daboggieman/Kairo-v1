@@ -226,8 +226,8 @@ New pure helpers in `src/domain/reminders.ts`, all tested: `describeRepeat` (whi
 `weekdayInitials`, `formatTimeOfDay`, `formatTimeInput`, `parseTimeOfDay`.
 
 That pass expected **426 passed (20 suites)** — the previous 394 plus 32 new reminder-helper cases — but
-**it was never measured, so it should never have been written down as fact.** The real figure, measured
-2026-08-19, is 481 across 20.
+**it was never measured, so it should never have been written down as fact.** The real figure was 481
+across 20 on 2026-08-19, and is **494 across 20** as measured on 2026-08-20.
 
 ## Docs written for the rebuild, 2026-08-18
 

@@ -1,27 +1,68 @@
 /**
- * Reminders — create, edit, switch off, and delete local notification schedules.
+ * The Call — the hours at which Kairo speaks: summon one, recast it, silence it, delete it.
  *
- * Two things drive the layout. A reminder is defined by three fields that have to be seen at once
- * (name, time, days), so the form is one card and stays on screen rather than becoming a modal.
- * And whether a reminder can actually *fire* depends on the runtime — Expo Go on Android cannot
- * deliver remote notifications, and a development build is needed for full support — so the notice
- * that says so sits at the top, above the form, where it is read before a reminder is created
- * rather than after it fails to arrive.
+ * Two things drive the layout, and both survive the restyle. A call is defined by three fields that
+ * have to be seen at once (name, time, days), so the form is one card that stays on screen rather
+ * than becoming a modal. And whether a call can actually *sound* depends on the runtime — Expo Go on
+ * Android cannot deliver remote notifications, and a development build is needed for full support —
+ * so the notice that says so sits above the form, where it is read before a call is summoned rather
+ * than after it fails to arrive.
  *
- * Rows are always saved even when nothing could be scheduled (see `src/db/alarms.ts`), so a row
- * that has no native schedule says so on its face. A saved reminder that silently never fires is
- * the failure this screen exists to make impossible.
+ * Rows are always saved even when nothing could be scheduled (see `src/db/alarms.ts`), so a row that
+ * has no native schedule says so on its face. A saved call that silently never sounds is the failure
+ * this screen exists to make impossible.
+ *
+ * Departures from `5.22_the_call`:
+ *
+ * - **No in-content display title.** The design draws "THE CALL" twice — once in the top bar and
+ *   again as a display-md heading directly beneath it. `AppBar` says it once, and the tagline that
+ *   sat under the duplicate ("Kairo speaks at the hour you name") moves inside the form card under
+ *   its own heading, where it is describing something rather than repeating it.
+ * - **The seven weekday toggles are `Chip shape="circle"`**, not this screen's own 46pt `Pressable`s.
+ *   Same 44pt round control, same accent-fill selected state, and the accessibility contract now
+ *   comes from the primitive instead of from three props written out by hand. It is the control the
+ *   New Rite's "On these days" row already uses, which is the point: two screens that ask for
+ *   weekdays now ask with one control.
+ * - **The resolved schedule is printed rather than the design's rule.** The design hints "No day
+ *   selected repeats every day"; `describeRepeat([])` already answers "Every day", so the line leads
+ *   with the answer and explains the mechanism only in the one case where it is not self-evident.
+ *   This is *not* the New Rite's rejected hint (`02-ui-rebuild-conventions.md`): the Rite has an
+ *   explicit cadence selector, where an empty custom day set contradicts the cadence chosen above it.
+ *   Here empty-means-daily is `reminderTriggers`' documented contract.
+ * - **Delete stays a visible glyph.** The design's footer caption offers "Long-press to delete" as
+ *   the only way out; a destructive action reachable only through a gesture with no affordance is one
+ *   nobody finds. The caption goes with it.
+ * - **The time field is not set in display-md.** `Field` owns its `TextInput`, and its `style` prop
+ *   targets the wrapper — the design's large tabular clock would need a new prop on the primitive and
+ *   would leave one form's input unlike every other input in the app.
+ * - **A row being edited is tinted, without the accent left rule.** That rule on accent-soft means
+ *   "the one thing in play" and is reserved for The Anvil's active lift and The Expedition's live
+ *   recording; an edit is a selection, not a live process, and the conventions ask for the
+ *   reservation not to be widened again.
  */
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
 import { Alert, FlatList, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
-import { Card, Divider, EmptyState, Field, Notice, Screen, Section } from '@/components/Layout';
+import {
+  AppBar,
+  Card,
+  CardHeader,
+  Chip,
+  Divider,
+  EmptyState,
+  Eyebrow,
+  Field,
+  Fluting,
+  IconButton,
+  Notice,
+  Screen,
+  Section,
+} from '@/components/Layout';
 import { LOCAL_USER_ID } from '@/constants';
 import { createAlarm, deleteAlarm, listAlarms, updateAlarm, type Alarm } from '@/db/alarms';
 import {
@@ -32,15 +73,31 @@ import {
   weekdayInitials,
 } from '@/domain/reminders';
 import { notificationsMode } from '@/services/notifications';
-import { colors, fontSize, layout, lineHeight, radius, spacing, TAP_TARGET } from '@/theme';
+import {
+  colors,
+  fontSize,
+  layout,
+  lineHeight,
+  radius,
+  spacing,
+  TAP_TARGET,
+  type as typeScale,
+} from '@/theme';
 
 const WEEKDAYS = weekdayInitials();
 
-export default function AlarmsScreen() {
+export default function CallScreen() {
   const db = useSQLiteContext();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [alarms, setAlarms] = useState<Alarm[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
+  /**
+   * Gates the empty state. `alarms` starts `[]`, so without this the screen says "No calls stand"
+   * for the frame before the first query resolves — on a phone that has a standing call. Only the
+   * first load matters: once it is true a re-read shows the previous rows rather than flashing empty.
+   */
+  const [loaded, setLoaded] = useState(false);
   const [label, setLabel] = useState('');
   const [time, setTime] = useState('07:00');
   const [repeatDays, setRepeatDays] = useState<number[]>([]);
@@ -55,8 +112,10 @@ export default function AlarmsScreen() {
       setLoadError(null);
     } catch (error) {
       // Surfaced rather than swallowed: an unhandled rejection here is invisible on a phone, and
-      // the screen would sit empty as though there were simply no reminders.
+      // the screen would sit empty as though there were simply no calls.
       setLoadError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setLoaded(true);
     }
   }, [db]);
 
@@ -96,7 +155,7 @@ export default function AlarmsScreen() {
     }
 
     // Blank falls back to the same name `scheduleReminder` would use, so the row and the
-    // notification that fires from it never disagree about what it is called.
+    // notification that sounds from it never disagree about what it is called.
     const input = {
       label: label.trim() || 'Kairo reminder',
       hour: parsed.hour,
@@ -111,11 +170,11 @@ export default function AlarmsScreen() {
         ? await updateAlarm(db, editing, input)
         : await createAlarm(db, LOCAL_USER_ID, input);
       // A missing id with a working runtime means permission was denied — otherwise the row would
-      // look saved and simply never fire.
+      // look saved and simply never sound.
       if (!saved.notificationId && mode !== 'unavailable') {
         Alert.alert(
           'Saved, but not scheduled',
-          'Kairo needs notification permission to fire this reminder.',
+          'Kairo needs notification permission to sound this call.',
         );
       }
       reset();
@@ -145,7 +204,7 @@ export default function AlarmsScreen() {
   }
 
   function confirmDelete(alarm: Alarm) {
-    Alert.alert('Delete reminder', `Remove "${alarm.label}"?`, [
+    Alert.alert('Delete this call', `Remove "${alarm.label}"?`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
@@ -166,6 +225,8 @@ export default function AlarmsScreen() {
 
   return (
     <Screen>
+      <AppBar title="The Call" onBack={() => router.back()} />
+
       <FlatList
         data={alarms}
         keyExtractor={(item) => item.id}
@@ -178,25 +239,26 @@ export default function AlarmsScreen() {
         ListHeaderComponent={
           <View style={styles.header}>
             {loadError ? (
-              <Notice tone="danger" title="Could not load reminders">
+              <Notice tone="danger" title="Could not read the calls">
                 {loadError}
               </Notice>
             ) : null}
 
             {mode === 'unavailable' ? (
               <Notice tone="warning" title="Reminders will not fire here">
-                Notifications are not available in this build. Reminders are saved, but they only
-                fire in a development build.
+                Notifications are not available in this build. Calls are saved, but they only sound in
+                a development build.
               </Notice>
             ) : null}
             {mode === 'local-only' ? (
               <Notice tone="info" title="Expo Go">
-                Expo Go: local reminders fire, remote notifications need a development build.
+                Local reminders only on this device. Remote notifications need a development build.
               </Notice>
             ) : null}
 
             <Card>
-              <Text style={styles.formTitle}>{editing ? 'Edit reminder' : 'New reminder'}</Text>
+              <CardHeader title={editing ? 'Recast this call' : 'Summon a new call'} />
+              <Text style={styles.tagline}>Kairo speaks at the hour you name.</Text>
               <Field
                 label="Name"
                 value={label}
@@ -214,59 +276,53 @@ export default function AlarmsScreen() {
                 hint="Four digits on a 24-hour clock. 1830 is half past six in the evening."
               />
               <View style={styles.repeat}>
-                <Text style={styles.fieldLabel}>Repeat</Text>
+                <Eyebrow>Days</Eyebrow>
                 <View style={styles.days}>
-                  {WEEKDAYS.map(({ weekday, initial }) => {
-                    const selected = repeatDays.includes(weekday);
-                    return (
-                      <Pressable
-                        key={weekday}
-                        onPress={() => toggleDay(weekday)}
-                        accessibilityRole="checkbox"
-                        accessibilityState={{ checked: selected }}
-                        accessibilityLabel={describeRepeat([weekday])}
-                        style={({ pressed }) => [
-                          styles.day,
-                          selected && styles.daySelected,
-                          pressed && styles.dayPressed,
-                        ]}
-                      >
-                        <Text style={[styles.dayText, selected && styles.dayTextSelected]}>
-                          {initial}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
+                  {WEEKDAYS.map(({ weekday, initial }) => (
+                    <Chip
+                      key={weekday}
+                      label={initial}
+                      selected={repeatDays.includes(weekday)}
+                      onPress={() => toggleDay(weekday)}
+                      shape="circle"
+                      role="checkbox"
+                      accessibilityLabel={describeRepeat([weekday])}
+                      style={styles.dayChip}
+                    />
+                  ))}
                 </View>
                 <Text style={styles.hint}>
                   {repeatDays.length === 0
-                    ? 'No day selected repeats every day.'
+                    ? 'Every day — naming no day is what makes it every day.'
                     : describeRepeat(repeatDays)}
                 </Text>
               </View>
               <Button
-                label={editing ? 'Save changes' : 'Add reminder'}
+                label={editing ? 'Save the call' : 'Sound the call'}
                 onPress={() => void save()}
                 loading={saving}
               />
-              {editing ? (
-                <Button label="Cancel" variant="secondary" onPress={reset} />
-              ) : null}
+              {editing ? <Button label="Cancel" variant="secondary" onPress={reset} /> : null}
             </Card>
 
-            <Section title={alarms.length === 1 ? '1 reminder' : `${alarms.length} reminders`} />
+            {alarms.length > 0 ? (
+              <Section
+                title="The standing calls"
+                action={<Eyebrow>{alarms.length === 1 ? '1 call' : `${alarms.length} calls`}</Eyebrow>}
+              />
+            ) : null}
           </View>
         }
         ListEmptyComponent={
-          loadError ? null : (
+          loadError || !loaded ? null : (
             <EmptyState
-              title="No reminders yet"
-              body="Add one above and Kairo will nudge you at that time."
+              title="No calls stand"
+              body="Summon one above and Kairo will speak at that hour."
             />
           )
         }
         renderItem={({ item }) => (
-          <AlarmRow
+          <CallRow
             alarm={item}
             editing={editing?.id === item.id}
             // A row with no native identifiers was saved but never handed to the OS. In a runtime
@@ -283,7 +339,7 @@ export default function AlarmsScreen() {
   );
 }
 
-function AlarmRow({
+function CallRow({
   alarm,
   editing,
   unscheduled,
@@ -302,20 +358,20 @@ function AlarmRow({
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
+      accessibilityState={{ selected: editing }}
       accessibilityLabel={`Edit ${alarm.label}, ${formatTimeOfDay(alarm.hour, alarm.minute)}`}
       style={({ pressed }) => [styles.row, editing && styles.rowEditing, pressed && styles.pressed]}
     >
+      <Text style={[styles.time, !alarm.isActive && styles.inactive]}>
+        {formatTimeOfDay(alarm.hour, alarm.minute)}
+      </Text>
+      {/* The design's own "fluting divider" between the hour and what is called at it. */}
+      <Fluting style={styles.rowFluting} />
       <View style={styles.rowMain}>
-        <Text style={[styles.time, !alarm.isActive && styles.inactive]}>
-          {formatTimeOfDay(alarm.hour, alarm.minute)}
-        </Text>
         <Text style={[styles.rowLabel, !alarm.isActive && styles.inactive]} numberOfLines={1}>
           {alarm.label}
         </Text>
-        <Text style={styles.rowMeta}>
-          {describeRepeat(alarm.repeatDays)}
-          {alarm.isActive ? '' : ' · off'}
-        </Text>
+        <Eyebrow>{`${describeRepeat(alarm.repeatDays)}${alarm.isActive ? '' : ' · off'}`}</Eyebrow>
         {unscheduled ? <Text style={styles.warning}>Saved, not scheduled</Text> : null}
       </View>
       <Switch
@@ -325,15 +381,7 @@ function AlarmRow({
         trackColor={{ true: colors.accent, false: colors.border }}
         thumbColor={colors.text}
       />
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Delete ${alarm.label}`}
-        onPress={onDelete}
-        hitSlop={spacing.md}
-        style={({ pressed }) => [styles.delete, pressed && styles.pressed]}
-      >
-        <MaterialCommunityIcons name="trash-can-outline" size={22} color={colors.textMuted} />
-      </Pressable>
+      <IconButton icon="trash-can-outline" label={`Delete ${alarm.label}`} onPress={onDelete} />
     </Pressable>
   );
 }
@@ -341,51 +389,42 @@ function AlarmRow({
 const styles = StyleSheet.create({
   content: { padding: layout.screenPadding },
   header: { gap: layout.sectionGap, paddingBottom: spacing.sm },
-  formTitle: { color: colors.text, fontSize: fontSize.lg, fontWeight: '700' },
+  tagline: { color: colors.textMuted, fontSize: fontSize.sm, lineHeight: lineHeight.sm },
   repeat: { gap: spacing.sm },
-  fieldLabel: {
-    color: colors.textMuted,
-    fontSize: fontSize.xs,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-  },
-  days: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.xs },
-  day: {
-    flex: 1,
-    aspectRatio: 1,
-    maxWidth: 46,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceRaised,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  daySelected: { backgroundColor: colors.accent, borderColor: colors.accent },
-  dayPressed: { opacity: 0.6 },
-  dayText: { color: colors.text, fontSize: fontSize.sm, fontWeight: '700' },
-  dayTextSelected: { color: colors.accentText },
+  /** Seven 44pt circles across a phone: `space-between` is what puts the gaps where they fit. */
+  days: { flexDirection: 'row', justifyContent: 'space-between' },
+  /**
+   * Seven 44pt circles need 308pt, and a card inside the screen margin gives about 295 on a 375pt
+   * phone. React Native's `flexShrink` defaults to 0, so without this the last day overflows the card
+   * rather than the row tightening — they hold 44 wherever there is room for it and compress where
+   * there is not.
+   */
+  dayChip: { flexShrink: 1 },
   hint: { color: colors.textMuted, fontSize: fontSize.xs, lineHeight: lineHeight.xs },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.lg,
+    gap: spacing.md,
     minHeight: TAP_TARGET + spacing.md,
     paddingVertical: layout.rowPadding,
   },
+  /**
+   * The negative margin is what lets the tint reach past the text it highlights without moving that
+   * text: the padding it cancels is added back inside. Without the pair, starting an edit shifts the
+   * whole row 12px sideways.
+   */
   rowEditing: {
-    borderLeftWidth: 3,
-    borderLeftColor: colors.accent,
-    paddingLeft: spacing.md,
     backgroundColor: colors.accentSoft,
+    marginHorizontal: -spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.sm,
   },
   rowMain: { flex: 1, gap: spacing.xs },
-  time: { color: colors.text, fontSize: fontSize.lg, fontWeight: '700' },
-  rowLabel: { color: colors.text, fontSize: fontSize.md },
-  rowMeta: { color: colors.textMuted, fontSize: fontSize.xs },
-  warning: { color: colors.warning, fontSize: fontSize.xs, fontWeight: '700' },
+  time: { color: colors.text, ...typeScale.headlineSm, fontVariant: ['tabular-nums'] },
+  /** The design draws it 32px tall; `Fluting` would otherwise stretch to the whole row. */
+  rowFluting: { height: 32, alignSelf: 'center' },
+  rowLabel: { color: colors.text, fontSize: fontSize.md, lineHeight: lineHeight.md },
+  warning: { color: colors.warning, ...typeScale.eyebrow, fontWeight: '700' },
   inactive: { color: colors.textMuted },
-  delete: { minWidth: TAP_TARGET / 2, alignItems: 'flex-end' },
   pressed: { opacity: 0.7 },
 });

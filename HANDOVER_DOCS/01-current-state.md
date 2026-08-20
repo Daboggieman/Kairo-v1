@@ -1,4 +1,4 @@
-# Current state — 2026-08-19
+# Current state — 2026-08-20
 
 The status board. Everything here is dated; if a claim is older than the work, distrust it and
 re-measure.
@@ -18,51 +18,86 @@ colour/spacing substitution table, the token changes, the five new screens, the 
 |---|---|
 | **Stage 0 — foundations** | **Done.** Theme tokens, Cinzel, all 25 `Layout` primitives, `Button`, `Checkbox`, `Logo`. |
 | **Stage 1 — shell** | **Done.** `app/(tabs)/_layout.tsx` is the six-tab Canon bar. |
-| **Stage 2 — 22 screens** | **15 of 22.** The Citadel, the tasks module (3 + `_layout`), the workouts module (4 + `_layout`), the macros module (3 + `_layout`), the weight module (3 + `_layout`). |
+| **Stage 2 — 22 screens** | **Done — 22 of 22.** The Citadel (1), the tasks module (3), the workouts module (4), the macros module (3), the weight module (3), the movement module (6), The Call and The Oracle (2) — plus each module's `_layout.tsx`. |
 | **Stage 3 — 5 new screens** | Not started. Gates, Sanctum, Envoy, Pantheon, Annals. |
 
 Detail on what landed and why: [`03-ui-rebuild-progress.md`](03-ui-rebuild-progress.md). The rules the
-remaining screens must follow: [`02-ui-rebuild-conventions.md`](02-ui-rebuild-conventions.md).
+Stage 3 screens must follow: [`02-ui-rebuild-conventions.md`](02-ui-rebuild-conventions.md).
 
-## The resume point — the movement module
+## The resume point — Stage 3's five new screens
 
-`apps/mobile/app/(tabs)/movement/` — `index.tsx` (111 lines), `new.tsx` (112), `active.tsx` (158),
-`[activityId].tsx` (206), `replay.tsx` (103), `settings.tsx` (79), plus `_layout.tsx` (22).
-**None of them has been modified.** All six designs (`5.16`–`5.21`) are dumped and analysed and every
-decision is written down in [`04-movement-restyle-brief.md`](04-movement-restyle-brief.md) — including
-the vocabulary the module's domain layer needs. There is nothing left to gather; open that file and
-write code.
+Stage 2 is **finished**. The last two screens, The Call (`app/(tabs)/alarms.tsx`, 430 lines) and The
+Oracle (`app/(tabs)/wallpaper.tsx`, 312), were restyled 2026-08-20 per §5.22 / §5.23. Neither needed new
+domain vocabulary — `describeRepeat` / `formatTimeOfDay` in `src/domain/reminders.ts` and `quoteForDate`
+in `src/domain/motivation.ts` already held it — so **the test count is unchanged at 494 across 20 suites**,
+which is the expected result rather than a gap in coverage. `motivation.ts` gained two doc comments and no
+code. The departures both files took are in
+[`03-ui-rebuild-progress.md`](03-ui-rebuild-progress.md#stage-2--the-call-and-the-oracle).
 
-After movement: `alarms.tsx` (391 lines) and `wallpaper.tsx` (211), which still need §5.22 / §5.23
-transcribing. Both already import `Layout.tsx` — from the **2026-08-17** pass, not the rebuild — so do
-not read the import as "already done". Then Stage 3's five new screens.
+Next: **Stage 3** — Gates, Sanctum, Envoy, Pantheon, Annals, per `docs/09-ui-rebuild-plan.md`. The
+rebuild hangs the Pantheon and the Annals off The Citadel's Outer Ward row group, so no navigation
+restructure is needed for those two.
 
-## Verification — measured 2026-08-19
+**Two things the Stage 2 close-out turned up, neither of them blocking:**
 
-Run from `apps/mobile`, after the four passes that edited the domain suites (tasks, workouts, macros +
-dates, weight):
+- **A layout bug in a screen already shipped, now fixed:** `app/(tabs)/tasks/new.tsx`'s seven day toggles
+  overflowed the screen margin, because React Native's `flexShrink` defaults to **0** and seven fixed 44pt
+  circles need more width than a 360–375pt phone leaves. `dayChip: { flexShrink: 1 }` in both that file
+  and The Call. Written up as a convention in
+  [`02-ui-rebuild-conventions.md`](02-ui-rebuild-conventions.md).
+- **A content question for the user, not a decision to take unilaterally:** the design for The Oracle
+  quotes *"Know thyself. — Inscribed at Delphi"*, while `QUOTES` in `src/domain/motivation.ts` holds seven
+  modern lines (Twain, Collier, Roosevelt, Mandela, Franklin, Gandhi, Ashe). By the standing rule that
+  design sample content is not transcribed, the existing set was kept. Swapping it for classical sources
+  would fit the lexicon and would break nothing — `motivation.test.ts`'s two `it` blocks are structural
+  and pin no content — but it is a change to what the app *says*, so it waits for the user. See open item 5.
+
+**One tracker gap the movement pass found and did not paper over:** `elevation_gain_meters` is never
+written by anything, so The Chronicle's CLIMB cell and elevation chart were dropped rather than
+rendered as a permanent zero. Whoever implements elevation owns both.
+
+## Verification — measured 2026-08-20
+
+Run from `apps/mobile`, after the movement pass and again after The Call and The Oracle:
 
 | Check | Result |
 |---|---|
-| `npm test` | **20 suites passed, 481 tests passed, 0 failures** (24–64 s, cache-dependent) |
+| `npm test` | **20 suites passed, 494 tests passed, 0 failures** (11–24 s, cache-dependent) |
 | `npx tsc --noEmit` | clean, exit 0, no output |
-| `npm run lint` | clean, banner only — the gate is 0 errors / 0 warnings |
+| `npx eslint .` | clean, exit 0 — the gate is 0 errors / 0 warnings |
 
 Suites covered: `db/{alarms,tasks,workouts,weight,macros,movement,outbox}`, `store/workoutStore`,
 `sync/sync`, and `domain/{tasks,movement,macros,weight,workouts,dashboard,reminders,motivation,chart,dates,numbers}`.
 
-**This supersedes every earlier count in the handover** (350/16, 376/18, 394/20 and the never-measured
-"426 expected"). 481 across 20 suites is the first measurement taken since the rebuild began.
+**This supersedes every earlier count in the handover** (350/16, 376/18, 394/20, the never-measured
+"426 expected", and 481/20 from 2026-08-19). The +13 over 481 is the movement domain vocabulary; The Call
+and The Oracle added none, because nothing they do is untested behaviour that moved.
 
 **Still not run at all:** any device pass. Delivery gate 4 — *each module restyled and run on a device
-before the next is started* — is therefore half-satisfied for all five completed modules. So are
+before the next is started* — is therefore half-satisfied for all of Stage 2. So are
 `npx expo export` (both platforms) and `expo-doctor`, which predate the rebuild. Those belong to the
 user; see [`08-verification.md`](08-verification.md).
 
 ## Working tree — branch `phase_3`
 
-As of 2026-08-19, `git status --porcelain` is **empty**. The whole rebuild through the weight module, and
-this handover folder itself, are committed:
+As of 2026-08-20 all of Stage 2 past the weight module is **written and verified but not committed** — the
+user commits, and nothing here stages or commits on its own. `git status --porcelain` shows twenty-four
+modified files:
+
+| File | What |
+|---|---|
+| `app/(tabs)/movement/*.tsx` (7) | the restyled module — `_layout`, `index`, `new`, `active`, `[activityId]`, `replay`, `settings` |
+| `app/(tabs)/alarms.tsx` | The Call |
+| `app/(tabs)/wallpaper.tsx` | The Oracle |
+| `app/(tabs)/tasks/new.tsx` | the `flexShrink` overflow fix, one style rule and its comment |
+| `src/domain/movement.ts` | +7 exports (365 → 663 lines) |
+| `src/domain/motivation.ts` | two doc comments, no code change |
+| `src/domain/__tests__/movement.test.ts` | +13 `it` blocks, 12 → 26 (121 → 305 lines) |
+| `HANDOVER_DOCS/*.md` (9) | this file, plus `README`, `02`, `03`, `04`, `07`, `08`, `09`, `10` |
+| `to_continue_with.md` | the root pointer's one-line resume point |
+| `README.md` (repo root) | its `npm test` comment, stale at 481/20 since the movement pass |
+
+Everything through the weight module, and the handover folder itself, is committed:
 
 | Commit | Date | What |
 |---|---|---|
@@ -73,11 +108,10 @@ this handover folder itself, are committed:
 | `92c21da` | 2026-08-18 | merge of `phase_3` from the remote |
 | `e164a93` | 2026-08-18 | the 30 Stitch designs under `media/stitch/` |
 
-`phase_3` is **level with `origin/phase_3`** (0/0) and **8 ahead / 1 behind `origin/master`**. The user
-committed and pushed all of this outside these sessions — including the two `ox-06(2)`/`ox-06(3)` commits
-made *during* the handover split — which retires three warnings the handover used to carry: "nothing is
-committed", "part of it is already in the index", and the unstaged `ui_rebuild_stitch_prompt.md` deletion.
-All three are resolved.
+`phase_3` is **level with `origin/phase_3`** (0/0) and **11 ahead / 0 behind `origin/master`** as of
+2026-08-20 — it was 8 ahead / 1 behind on 2026-08-19, so the user has merged and pushed since. That
+also retires three warnings the handover used to carry: "nothing is committed", "part of it is already
+in the index", and the unstaged `ui_rebuild_stitch_prompt.md` deletion. All three are resolved.
 
 Confirm the real state with `git status --short --branch`, `git log --oneline -5` and
 `git rev-list --left-right --count origin/master...HEAD` rather than trusting this table — the user
@@ -99,3 +133,10 @@ merges and pushes between sessions, so any commit list here dates the moment it 
    the user has not decided. Worth re-running `--check` to see whether the drift is still the same four.
 4. **Workout polish** — RPE, set edit/delete, finish notes, rest-timer threshold — remains explicitly
    deferred, and the rebuild does not add it.
+5. **The Oracle's quote set is modern, the design's is classical.** `QUOTES` in
+   `src/domain/motivation.ts` holds seven lines from Twain, Collier, Roosevelt, Mandela, Franklin, Gandhi
+   and Ashe; `5.23_the_oracle` shows *"Know thyself. — Inscribed at Delphi"*. The set was kept, per the
+   rule that design sample content is not transcribed. Replacing it with classical sources would suit the
+   lexicon and costs nothing technically — `motivation.test.ts` asserts structure, not content, and
+   `quoteForDate` works on any array length — but it changes what the app says to its user every morning,
+   so it is the user's call. Raised 2026-08-20; undecided.
