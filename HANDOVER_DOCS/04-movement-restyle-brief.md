@@ -159,6 +159,9 @@ grouped number, and never pin the locale in a test — `jest.globalSetup.js` pin
 
 ## After movement
 
-`alarms.tsx` (391 lines) and `wallpaper.tsx` (211) still need **§5.22 / §5.23** transcribing. Both
-already import `Layout.tsx` — from the **2026-08-17** pass, not the rebuild — so do not read the import
-as "already done". Then Stage 3's five new screens: Gates, Sanctum, Envoy, Pantheon, Annals.
+~~`alarms.tsx` and `wallpaper.tsx` still need §5.22 / §5.23 transcribing.~~ **Both are done** as of
+2026-08-20 — The Call (430 lines) and The Oracle (312), which closes Stage 2 at 22 of 22. Their
+departures are in
+[`03-ui-rebuild-progress.md`](03-ui-rebuild-progress.md#stage-2--the-call-and-the-oracle).
+
+Next: **Stage 3's five new screens** — Gates, Sanctum, Envoy, Pantheon, Annals.

@@ -12,9 +12,9 @@ Last updated: **2026-08-20**.
 ## The resume point
 
 Stage 2 of the Greek UI rebuild is **complete — 22 of 22 screens restyled** (`find app -name '*.tsx' !
--name '_layout.tsx'` is the denominator). The Call and The Oracle closed it out on 2026-08-20; nothing
-from the movement module onward is committed. Next: **Stage 3's five new screens** — Gates, Sanctum,
-Envoy, Pantheon, Annals — per `docs/09-ui-rebuild-plan.md`.
+-name '_layout.tsx'` is the denominator). The Call and The Oracle closed it out on 2026-08-20, and the
+whole of it is committed as `ox-07`. Next: **Stage 3's five new screens** — Gates, Sanctum, Envoy,
+Pantheon, Annals — per `docs/09-ui-rebuild-plan.md`.
 
 ## Standing constraints
 

@@ -14,8 +14,9 @@ screens** — and on any return to one of the 22 already restyled.
   renders `AppBar`.** `AppBar` takes `onBack` for a push and **omits it for a modal** — the way out of a
   modal is its own dismiss, and a back chevron there claims a screen underneath that does not exist. A
   modal's escape is an `IconButton icon="close"` in the `AppBar`'s `action` slot.
-  **Exception: `movement/active.tsx` keeps no back affordance at all** — it sets
-  `headerBackVisible: false` deliberately today, and that must survive the restyle.
+  **Exception: `movement/active.tsx` keeps no back affordance at all.** It used to carry that intent as
+  `headerBackVisible: false`, which had nothing left to hide once the native header went; the restyle
+  moved it to **`gestureEnabled: false`** in `movement/_layout.tsx`. A recording is left by finishing it.
 - **One action per tab root, as an outlined `IconButton` in `ScreenHeader`'s `action` slot.** The
   designs' docked full-width footer button is dropped: a 56pt slab above an 80pt tab bar was eating a
   fifth of the screen. Where a screen needs a second destination, it becomes a `NavRow` in the content —

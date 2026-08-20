@@ -11,7 +11,7 @@ reality, and each correction says so where the old claim used to be.
 ## The resume point, in one line
 
 Stage 2 of the Greek UI rebuild is **complete — 22 of 22 screens restyled**, The Call and The Oracle
-closing it out on 2026-08-20 (written and verified, not committed). Next is **Stage 3's five new
+closing it out on 2026-08-20 and the whole of it committed as `ox-07`. Next is **Stage 3's five new
 screens**: Gates, Sanctum, Envoy, Pantheon, Annals.
 
 ## Where everything went
