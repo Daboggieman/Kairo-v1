@@ -11,10 +11,9 @@ Last updated: **2026-08-20**.
 
 ## The resume point
 
-Stage 2 of the Greek UI rebuild is **complete — 22 of 22 screens restyled** (`find app -name '*.tsx' !
--name '_layout.tsx'` is the denominator). The Call and The Oracle closed it out on 2026-08-20, and the
-whole of it is committed as `ox-07`. Next: **Stage 3's five new screens** — Gates, Sanctum, Envoy,
-Pantheon, Annals — per `docs/09-ui-rebuild-plan.md`.
+**It lives in [`01-current-state.md`](01-current-state.md), and only there.** This index used to restate
+it and the root `to_continue_with.md` restated it again; on 2026-08-20 all three drifted out of step
+inside one session, twice. One copy is the point of the folder — do not reintroduce a second.
 
 ## Standing constraints
 
@@ -59,3 +58,10 @@ to be, this folder is what it *is*, and why.
   without running.
 - **When a decision is reversed, say so where the old one was written.** Several notes here exist
   only to stop a fixed thing being "fixed" again.
+- **One fact, one home.** A status claim repeated in a second file is a claim that will disagree with
+  itself: the resume point lived in three places on 2026-08-20 and drifted twice in one session. Link to
+  the owner instead of restating it.
+- **Write claims in the past tense about what happened, not the future tense about what will.** Both
+  stale lines the 2026-08-20 audit caught were future-tense — *"still need transcribing"*, *"must survive
+  the restyle"* — and a future-tense claim about finished work reads as current until someone opens the
+  file it describes.

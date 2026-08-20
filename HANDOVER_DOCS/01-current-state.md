@@ -80,27 +80,31 @@ user; see [`08-verification.md`](08-verification.md).
 
 ## Working tree — branch `phase_3`
 
-**Stage 2 is committed.** The user committed all 24 files as **`ox-07`** (`32870e5`) on 2026-08-20 —
-*"Stage 2 of the Greek UI rebuild: the movement module, The Call, The Oracle"*, 2,892 insertions and 724
-deletions. Nothing here stages or commits on its own; that commit was the user's.
+**All of Stage 2 is committed**, in two commits the user made on 2026-08-20: **`ox-07`** (`32870e5`) —
+*"Stage 2 of the Greek UI rebuild: the movement module, The Call, The Oracle"*, 24 files, 2,892 insertions
+and 724 deletions — and **`ox-07(2)`** (`cac8cfa`), the doc-audit fixes that followed it. Nothing here
+stages or commits on its own; both were the user's.
 
-Left in the working tree, uncommitted: **five handover files**, from the doc audit run straight after
-`ox-07`. Two of them are fixes to claims that were wrong; three are this file and the two resume pointers,
-which `ox-07` itself invalidated by turning "not committed" into history.
+**This section does not list the current tree**, deliberately: it went stale three times in one session,
+once because the commit that made it stale happened while it was being written. Run
+`git status --short --branch` — that is the answer, and it is never older than the moment you ask.
 
-| File | What |
+What `ox-07(2)` fixed is worth keeping, because both were **pre-existing misses from the movement pass**
+rather than from the Stage 2 close-out, and both were the same shape — a **future-tense claim about work
+already done**, which reads as current until someone opens the file it describes:
+
+| File | The stale claim |
 |---|---|
-| `HANDOVER_DOCS/02-ui-rebuild-conventions.md` | the `movement/active.tsx` exception still named `headerBackVisible: false` in the future tense; the restyle moved that intent to `gestureEnabled: false` in `movement/_layout.tsx` |
-| `HANDOVER_DOCS/04-movement-restyle-brief.md` | its "After movement" section still said `alarms.tsx` and `wallpaper.tsx` needed transcribing |
-| `01-current-state.md`, `README.md`, `to_continue_with.md` | this section, and the two resume pointers' "not committed" |
+| `02-ui-rebuild-conventions.md` | the `movement/active.tsx` exception still named `headerBackVisible: false` and said it "must survive the restyle"; the restyle had already moved that intent to `gestureEnabled: false` in `movement/_layout.tsx` |
+| `04-movement-restyle-brief.md` | its "After movement" section still said `alarms.tsx` (391 lines) and `wallpaper.tsx` (211) needed §5.22 / §5.23 transcribing |
 
-The first two were **pre-existing misses from the movement pass**, not from the Stage 2 close-out — worth
-knowing because they are the kind of staleness that survives a doc update: a claim written in the future
-tense about work that has since been done reads as current until someone checks it against the file.
-`ox-07` carries both in their stale form.
+The same audit found the resume point living in **three** files, drifting in two of them. It is now in this
+document only; [`README.md`](README.md) and the root `to_continue_with.md` link here instead of restating
+it, and the root file was cut to a pure redirect that holds no facts of its own.
 
 | Commit | Date | What |
 |---|---|---|
+| `cac8cfa` | 2026-08-20 | `ox-07(2)` — the doc-audit fixes: the two stale future-tense claims above, and the resume point collapsed to one copy |
 | `32870e5` | 2026-08-20 | `ox-07` — **the whole of Stage 2 past the weight module**: the movement module (7 files) + `movement.ts` + its suite, The Call, The Oracle, `motivation.ts`, the `tasks/new.tsx` `flexShrink` fix, and the handover updates |
 | `89499ba`, `c8ceed9` | 2026-08-20 | merges of PR #14 (`master`) and PR #13 (`phase_3`) |
 | `85960e2` | 2026-08-19 | `ox-06(4)` |
@@ -111,7 +115,7 @@ tense about work that has since been done reads as current until someone checks 
 | `92c21da` | 2026-08-18 | merge of `phase_3` from the remote |
 | `e164a93` | 2026-08-18 | the 30 Stitch designs under `media/stitch/` |
 
-`phase_3` is **level with `origin/phase_3`** (0/0) and **12 ahead / 0 behind `origin/master`** as of
+`phase_3` is **level with `origin/phase_3`** (0/0) and **13 ahead / 0 behind `origin/master`** as of
 2026-08-20. It was 11/0 before `ox-07` and 8 ahead / 1 behind on 2026-08-19, so the user merges and pushes
 between sessions. That also retires three warnings the handover used to carry: "nothing is committed",
 "part of it is already in the index", and the unstaged `ui_rebuild_stitch_prompt.md` deletion.
