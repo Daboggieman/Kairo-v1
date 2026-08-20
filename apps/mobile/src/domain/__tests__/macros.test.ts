@@ -1,10 +1,19 @@
 import type { FoodItem, MacroTarget, NutritionEntryWithFood } from '@/db/types';
 
 import {
+  caloriesFromMacros,
+  checkDecree,
+  describeEntry,
+  describeFood,
+  formatMacroSplit,
+  formatMealHeading,
   formatNutrition,
+  formatRemaining,
   formatServing,
+  formatStore,
   groupByMeal,
   isValidNutritionNumber,
+  MACRO_LABELS,
   nutritionFor,
   summariseEntries,
   summariseMacros,
@@ -194,5 +203,121 @@ describe('formatting and validation', () => {
     expect(isValidNutritionNumber(-1, 1000)).toBe(false);
     expect(isValidNutritionNumber(Number.POSITIVE_INFINITY, 1000)).toBe(false);
     expect(isValidNutritionNumber(1001, 1000)).toBe(false);
+  });
+});
+
+/**
+ * The grouping separator comes from the host locale, which the test run does not pin — only the
+ * timezone is fixed, in `jest.globalSetup.js`. Comparing against `toLocaleString()` tests what these
+ * functions actually decide (rounding, grouping at all, the unit and its position) without asserting
+ * that the machine running the suite is `en-US`.
+ */
+const grouped = (value: number) => value.toLocaleString();
+
+describe('the Feast lexicon', () => {
+  it('names the four stores without a definite article on any of them', () => {
+    expect(MACRO_LABELS).toEqual({
+      calories: 'Caloric Forge',
+      protein: 'Protein Den',
+      carbs: 'Granary',
+      fat: 'Fat Pool',
+    });
+  });
+
+  it('glosses each Greek meal name with the plain word it renames', () => {
+    expect(formatMealHeading('breakfast')).toBe('Dawn (Breakfast)');
+    expect(formatMealHeading('lunch')).toBe('Zenith (Lunch)');
+    expect(formatMealHeading('dinner')).toBe('Dusk (Dinner)');
+    expect(formatMealHeading('snack')).toBe('Embers (Snacks)');
+  });
+});
+
+describe('formatMacroSplit / describeFood / describeEntry', () => {
+  it('drops a trailing zero from every gram figure', () => {
+    expect(formatMacroSplit({ proteinG: 31, carbsG: 0, fatG: 3.6 })).toBe('31 P / 0 C / 3.6 F');
+    expect(formatMacroSplit({ proteinG: 31.04, carbsG: 0, fatG: 3.64 })).toBe('31 P / 0 C / 3.6 F');
+  });
+
+  it('describes a food per serving', () => {
+    expect(describeFood(food())).toBe('100 g · 165 kcal · 31 P / 0 C / 3.6 F');
+  });
+
+  it('describes an entry at the quantity it was logged at, not per serving', () => {
+    expect(describeEntry(entry('lunch', 1.5))).toBe('1.5 × 100 g · 46.5 P / 0 C / 5.4 F');
+  });
+});
+
+describe('formatStore', () => {
+  it('reports fill against the decree with the unit named once', () => {
+    const summary = summariseMacros([entry('lunch', 4)], target());
+    expect(formatStore(summary.calories, 'kcal')).toBe(`${grouped(660)} / ${grouped(2000)} kcal`);
+    expect(formatStore(summary.protein, 'g')).toBe('124 / 160 g');
+  });
+
+  it('reports the consumed figure alone when no decree has been issued', () => {
+    const summary = summariseMacros([entry('lunch', 4)], null);
+    expect(formatStore(summary.calories, 'kcal')).toBe(`${grouped(660)} kcal`);
+    expect(formatStore(summary.protein, 'g')).toBe('124 g');
+  });
+
+  it('rounds to whole units — a tenth of a gram is not a thing anyone acts on', () => {
+    const summary = summariseMacros([entry('lunch', 1)], target());
+    expect(formatStore(summary.fat, 'g')).toBe('4 / 65 g');
+  });
+});
+
+describe('formatRemaining', () => {
+  it('counts down to the decree', () => {
+    const summary = summariseMacros([entry('lunch', 4)], target());
+    expect(formatRemaining(summary.calories, 'kcal')).toBe(`${grouped(1340)} kcal left`);
+  });
+
+  it('counts up past it, without a minus sign', () => {
+    const summary = summariseMacros([entry('lunch', 20)], target());
+    expect(formatRemaining(summary.calories, 'kcal')).toBe(`${grouped(1300)} kcal over`);
+  });
+
+  it('says nothing at all when there is no decree to be under or over', () => {
+    const summary = summariseMacros([entry('lunch')], null);
+    expect(formatRemaining(summary.calories, 'kcal')).toBe('');
+  });
+});
+
+describe('caloriesFromMacros / checkDecree', () => {
+  it('applies the Atwater factors — 4 to protein and carbohydrate, 9 to fat', () => {
+    expect(caloriesFromMacros({ proteinG: 160, carbsG: 220, fatG: 65 })).toBe(2105);
+    expect(caloriesFromMacros({ proteinG: 0, carbsG: 0, fatG: 0 })).toBe(0);
+  });
+
+  it('stays quiet when the two halves of a decree agree within the tolerance', () => {
+    // 2,105 kcal from the macros, so a 2,100 kcal forge is the same decree written twice.
+    expect(checkDecree({ calories: 2100, proteinG: 160, carbsG: 220, fatG: 65 })).toEqual({
+      derived: 2105,
+      summary: `${grouped(2105)} kcal from these macros`,
+      divergence: null,
+    });
+  });
+
+  it('names the shortfall when the forge allows more than the macros account for', () => {
+    expect(checkDecree({ calories: 2600, proteinG: 160, carbsG: 220, fatG: 65 }).divergence).toBe(
+      `${grouped(495)} kcal of the forge unaccounted for`,
+    );
+  });
+
+  it('names the excess when the macros come to more than the forge allows', () => {
+    expect(checkDecree({ calories: 1800, proteinG: 160, carbsG: 220, fatG: 65 }).divergence).toBe(
+      `${grouped(305)} kcal more than the forge allows`,
+    );
+  });
+
+  it('still reports the derived total while the calorie field is empty', () => {
+    const check = checkDecree({
+      calories: Number.NaN,
+      proteinG: 160,
+      carbsG: 220,
+      fatG: 65,
+    });
+    expect(check.summary).toBe(`${grouped(2105)} kcal from these macros`);
+    expect(check.divergence).toBeNull();
   });
 });

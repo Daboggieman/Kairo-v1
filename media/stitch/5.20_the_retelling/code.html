@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE RETELLING</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Cinzel:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#001d37",
+                        "surface-container-highest": "#32353a",
+                        "primary-container": "#d79e2d",
+                        "inverse-surface": "#e1e2e9",
+                        "on-primary-container": "#523800",
+                        "on-tertiary-container": "#003f6e",
+                        "outline": "#9c8f7c",
+                        "secondary-container": "#44474a",
+                        "outline-variant": "#504535",
+                        "surface-container": "#1d2025",
+                        "error": "#ffb4ab",
+                        "primary-fixed-dim": "#f9bc4a",
+                        "secondary-fixed": "#e0e3e6",
+                        "surface-dim": "#101418",
+                        "on-secondary": "#2d3133",
+                        "tertiary": "#9fcaff",
+                        "on-secondary-fixed": "#191c1e",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed": "#d2e4ff",
+                        "on-tertiary": "#003259",
+                        "surface-tint": "#f9bc4a",
+                        "on-primary-fixed": "#271900",
+                        "inverse-primary": "#7d5700",
+                        "on-surface": "#e1e2e9",
+                        "surface-bright": "#36393f",
+                        "surface": "#101418",
+                        "on-surface-variant": "#d4c4af",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#5f4100",
+                        "tertiary-fixed-dim": "#9fcaff",
+                        "surface-container-low": "#191c21",
+                        "surface-container-lowest": "#0b0e13",
+                        "background": "#101418",
+                        "on-primary": "#422c00",
+                        "primary-fixed": "#ffdeaa",
+                        "secondary-fixed-dim": "#c4c7ca",
+                        "inverse-on-surface": "#2e3036",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "secondary": "#c4c7ca",
+                        "on-secondary-container": "#b3b5b8",
+                        "surface-container-high": "#272a2f",
+                        "tertiary-container": "#6dacf3",
+                        "on-tertiary-fixed-variant": "#00497e",
+                        "primary": "#f9bc4a",
+                        "surface-variant": "#32353a",
+                        "on-background": "#e1e2e9",
+                        "error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "container-padding": "24px",
+                        "fluting-width": "1px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "display-lg": ["Cinzel"],
+                        "headline-sm": ["Cinzel"],
+                        "display-md": ["Cinzel"],
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "0.15em", "fontWeight": "700" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "display-md": ["28px", { "lineHeight": "34px", "letterSpacing": "0.12em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .map-gradient {
+            background: linear-gradient(180deg, rgba(16,20,24,0) 0%, rgba(16,20,24,1) 100%);
+        }
+        .fluting {
+            background-image: repeating-linear-gradient(90deg, transparent, transparent 15px, #272a2f 15px, #272a2f 16px);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md overflow-hidden relative">
+<!-- Top Navigation Anchor (Task-focused, so no Bottom Nav, but keeping header consistent) -->
+<header class="fixed top-0 w-full z-50 bg-surface border-b border-outline-variant flex justify-between items-center px-container-padding h-16 shadow-none">
+<button class="flex items-center justify-center hover:opacity-80 transition-opacity duration-200">
+<span class="material-symbols-outlined text-primary">chevron_left</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm text-primary tracking-widest uppercase">THE RETELLING</h1>
+<div class="w-6"></div> <!-- Spacer for balance -->
+</header>
+<!-- Map Canvas (Upper 60%) -->
+<main class="flex-grow relative flex flex-col pt-16 h-[100vh]">
+<div class="relative h-[60%] w-full bg-surface-container-low border-b border-outline-variant overflow-hidden" data-alt="A dark, moody topographic map visualization. The terrain is rendered in deep charcoals and blacks, with subtle grey contour lines. The aesthetic is heavily inspired by brutalist architecture and tactical interfaces, completely devoid of bright colors aside from a stark, metallic bronze line tracing a complex route across the landscape. The lighting is low and dramatic, emphasizing the rugged texture of the simulated ground." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCS4AtXEvs-O5F0dEMG9VdcLfflUtbh8gjuvGImjCbZFi2ArPLSaDWqaa-tisWvBahNbSfKvS05PfsHcoOWC4o6rdQeI-1CJa2aAEn82EdoafCUE_7j6cKsdhpi51CVfS_tqhH2l7ujLodqaeqOKF4c_2_7Ywkjz_Pvpx4Far-goWG8M5pQ29_caqfmJZZSGRZnObY2uXxGXJ-8_XUEGka8NbkQOAF0R_Y7Tk7bpbMuTCTt9yyVruOv_A'); background-size: cover; background-position: center;">
+<!-- Map Gradient Overlay -->
+<div class="absolute inset-0 map-gradient z-10 pointer-events-none"></div>
+<!-- Time Pill -->
+<div class="absolute top-container-padding left-container-padding z-20 bg-surface/90 border border-outline-variant px-3 py-1 rounded-sm shadow-sm backdrop-blur-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px] text-primary">schedule</span>
+<span class="font-label-sm text-label-sm text-on-surface">00:18:24 / 00:44:02</span>
+</div>
+<!-- Simulated Route Line (SVG purely for visual representation) -->
+<svg class="absolute inset-0 w-full h-full z-10 pointer-events-none" preserveaspectratio="none" viewbox="0 0 100 100">
+<!-- Faded future route -->
+<path d="M 20 80 Q 40 50, 50 30 T 80 20" fill="none" stroke="#32353a" stroke-dasharray="2,2" stroke-width="0.5"></path>
+<!-- Solid active route -->
+<path d="M 20 80 Q 40 50, 48 35" fill="none" stroke="#d79e2d" stroke-linecap="square" stroke-width="1.5"></path>
+<!-- Current Position Marker -->
+<circle cx="48" cy="35" fill="#d79e2d" r="2" stroke="#101418" stroke-width="0.5"></circle>
+</svg>
+</div>
+<!-- Dashboard Canvas (Lower 40%) -->
+<div class="flex-grow bg-surface flex flex-col justify-between pb-8 pt-4 px-container-padding relative">
+<!-- Decorative Fluting Background -->
+<div class="absolute inset-0 fluting opacity-20 pointer-events-none"></div>
+<!-- Live Stats Row -->
+<div class="grid grid-cols-3 gap-4 border-b border-outline-variant pb-6 relative z-10">
+<div class="flex flex-col items-center">
+<span class="font-display-md text-display-md text-on-surface">3.61 <span class="text-headline-sm text-on-surface-variant">km</span></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant tracking-widest mt-1">DISTANCE</span>
+</div>
+<div class="flex flex-col items-center border-l border-r border-outline-variant">
+<span class="font-display-md text-display-md text-on-surface">5:04</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant tracking-widest mt-1">PACE /KM</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="font-display-md text-display-md text-on-surface">62 <span class="text-headline-sm text-on-surface-variant">m</span></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant tracking-widest mt-1">CLIMB</span>
+</div>
+</div>
+<!-- Scrubber Area -->
+<div class="flex flex-col gap-2 mt-6 relative z-10">
+<!-- Track -->
+<div class="h-1 w-full bg-surface-container rounded-none relative">
+<!-- Fill -->
+<div class="absolute top-0 left-0 h-full bg-primary" style="width: 42%;"></div>
+<!-- Thumb -->
+<div class="absolute top-1/2 -translate-y-1/2 w-6 h-6 bg-primary border-2 border-surface shadow-md cursor-pointer hover:scale-110 transition-transform flex items-center justify-center" style="left: 42%; transform: translate(-50%, -50%);">
+<div class="w-1 h-3 bg-on-primary"></div>
+</div>
+</div>
+<!-- Timestamps -->
+<div class="flex justify-between w-full">
+<span class="font-label-sm text-label-sm text-on-surface-variant">00:00:00</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">00:44:02</span>
+</div>
+</div>
+<!-- Control Row -->
+<div class="flex justify-between items-center mt-6 relative z-10 h-[72px]">
+<!-- Restart -->
+<button class="flex flex-col items-center justify-center w-[72px] h-full text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-3xl">replay</span>
+</button>
+<!-- Play/Pause -->
+<button class="w-[72px] h-[72px] rounded-full bg-primary flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shadow-lg border-2 border-surface">
+<span class="material-symbols-outlined text-on-primary text-4xl" style="font-variation-settings: 'FILL' 1;">pause</span>
+</button>
+<!-- Speed Control -->
+<div class="flex bg-surface-container border border-outline-variant rounded-sm overflow-hidden h-10 w-[120px]">
+<button class="flex-1 font-label-md text-label-md text-on-surface hover:bg-surface-container-high transition-colors border-r border-outline-variant">1×</button>
+<button class="flex-1 font-label-md text-label-md bg-primary-container text-on-primary-container font-bold border-r border-outline-variant">2×</button>
+<button class="flex-1 font-label-md text-label-md text-on-surface hover:bg-surface-container-high transition-colors">4×</button>
+</div>
+</div>
+<!-- Footnote -->
+<p class="font-label-sm text-label-sm text-on-surface-variant text-center mt-6 relative z-10 pb-4">
+                Replay reads only stored points. It works with no signal.
+            </p>
+</div>
+</main>
+</body></html>

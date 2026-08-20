@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE THRESHOLD</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#001d37",
+                        "surface-container-highest": "#32353a",
+                        "primary-container": "#d79e2d",
+                        "inverse-surface": "#e1e2e9",
+                        "on-primary-container": "#523800",
+                        "on-tertiary-container": "#003f6e",
+                        "outline": "#9c8f7c",
+                        "secondary-container": "#44474a",
+                        "outline-variant": "#504535",
+                        "surface-container": "#1d2025",
+                        "error": "#ffb4ab",
+                        "primary-fixed-dim": "#f9bc4a",
+                        "secondary-fixed": "#e0e3e6",
+                        "surface-dim": "#101418",
+                        "on-secondary": "#2d3133",
+                        "tertiary": "#9fcaff",
+                        "on-secondary-fixed": "#191c1e",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed": "#d2e4ff",
+                        "on-tertiary": "#003259",
+                        "surface-tint": "#f9bc4a",
+                        "on-primary-fixed": "#271900",
+                        "inverse-primary": "#7d5700",
+                        "on-surface": "#e1e2e9",
+                        "surface-bright": "#36393f",
+                        "surface": "#101418",
+                        "on-surface-variant": "#d4c4af",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#5f4100",
+                        "tertiary-fixed-dim": "#9fcaff",
+                        "surface-container-low": "#191c21",
+                        "surface-container-lowest": "#0b0e13",
+                        "background": "#101418",
+                        "on-primary": "#422c00",
+                        "primary-fixed": "#ffdeaa",
+                        "secondary-fixed-dim": "#c4c7ca",
+                        "inverse-on-surface": "#2e3036",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "secondary": "#c4c7ca",
+                        "on-secondary-container": "#b3b5b8",
+                        "surface-container-high": "#272a2f",
+                        "tertiary-container": "#6dacf3",
+                        "on-tertiary-fixed-variant": "#00497e",
+                        "primary": "#f9bc4a",
+                        "surface-variant": "#32353a",
+                        "on-background": "#e1e2e9",
+                        "error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "container-padding": "24px",
+                        "fluting-width": "1px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "display-lg": ["Cinzel"],
+                        "headline-sm": ["Cinzel"],
+                        "display-md": ["Cinzel"],
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                        "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "0.15em", "fontWeight": "700"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                        "display-md": ["28px", {"lineHeight": "34px", "letterSpacing": "0.12em", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #101418; /* surface */
+            color: #e1e2e9; /* on-surface */
+        }
+        .fluted-divider {
+            border-left: 1px solid #2A2F38; /* Custom border color representing fluting */
+        }
+        .meander-border {
+            background-image: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                #2A2F38 10px,
+                #2A2F38 20px
+            );
+            height: 4px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md antialiased pb-[120px]">
+<!-- Top Navigation -->
+<header class="flex justify-between items-center px-container-padding h-16 bg-surface border-b-4 border-primary fixed top-0 w-full z-50 flat no shadows">
+<button class="text-primary hover:opacity-80 transition-opacity duration-200">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm text-primary uppercase">THE THRESHOLD</h1>
+<div class="w-6"></div> <!-- Spacer for balance -->
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 px-container-padding max-w-2xl mx-auto space-y-8">
+<!-- Intro Text -->
+<p class="font-label-md text-label-md text-on-surface-variant max-w-[90%]">
+            Kairo records the route on this device. Nothing leaves it until the march is finished.
+        </p>
+<!-- Activity Selection -->
+<section class="space-y-4">
+<!-- DROMOS / Run -->
+<button class="w-full flex items-center justify-between p-4 h-[96px] rounded-[12px] bg-surface-container border border-outline-variant hover:border-primary transition-colors text-left group">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[32px] text-on-surface-variant group-hover:text-primary transition-colors">sprint</span>
+<div>
+<h2 class="font-headline-sm text-headline-sm uppercase text-on-surface">DROMOS</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Run</p>
+</div>
+</div>
+<div class="w-[24px] h-[24px] rounded-full border-2 border-outline-variant group-hover:border-primary flex items-center justify-center transition-colors"></div>
+</button>
+<!-- MARCH / Walk (Selected) -->
+<button class="w-full flex items-center justify-between p-4 h-[96px] rounded-[12px] bg-[#2B2110] border border-primary transition-colors text-left relative overflow-hidden">
+<!-- Active Indicator Glow -->
+<div class="absolute inset-0 bg-primary opacity-5"></div>
+<div class="flex items-center gap-4 relative z-10">
+<span class="material-symbols-outlined text-[32px] text-primary" style="font-variation-settings: 'FILL' 1;">directions_walk</span>
+<div>
+<h2 class="font-headline-sm text-headline-sm uppercase text-primary">MARCH</h2>
+<p class="font-label-sm text-label-sm text-primary">Walk</p>
+</div>
+</div>
+<div class="w-[24px] h-[24px] rounded-full border-2 border-primary flex items-center justify-center relative z-10">
+<div class="w-[12px] h-[12px] rounded-full bg-primary"></div>
+</div>
+</button>
+<!-- CHARIOT / Ride -->
+<button class="w-full flex items-center justify-between p-4 h-[96px] rounded-[12px] bg-surface-container border border-outline-variant hover:border-primary transition-colors text-left group">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[32px] text-on-surface-variant group-hover:text-primary transition-colors">pedal_bike</span>
+<div>
+<h2 class="font-headline-sm text-headline-sm uppercase text-on-surface">CHARIOT</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Ride</p>
+</div>
+</div>
+<div class="w-[24px] h-[24px] rounded-full border-2 border-outline-variant group-hover:border-primary flex items-center justify-center transition-colors"></div>
+</button>
+</section>
+<!-- Fluting Divider -->
+<div class="flex justify-center py-4">
+<div class="h-12 w-px bg-outline-variant opacity-50"></div>
+</div>
+<!-- Readiness Checks -->
+<section class="space-y-2">
+<h3 class="font-label-md text-label-md uppercase text-on-surface-variant tracking-widest pl-2">READINESS</h3>
+<div class="bg-surface-container rounded-[12px] border border-outline-variant overflow-hidden">
+<!-- Row 1 -->
+<div class="flex items-center gap-4 p-4 h-[56px] border-b border-outline-variant">
+<span class="material-symbols-outlined text-[22px] text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div class="flex-1">
+<p class="font-body-md text-body-md text-on-surface">Location Services</p>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Granted</span>
+</div>
+<!-- Row 2 -->
+<div class="flex items-center gap-4 p-4 h-[56px] border-b border-outline-variant">
+<span class="material-symbols-outlined text-[22px] text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div class="flex-1">
+<p class="font-body-md text-body-md text-on-surface">Motion Fitness</p>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Active</span>
+</div>
+<!-- Row 3 -->
+<div class="flex items-center gap-4 p-4 h-[56px]">
+<span class="material-symbols-outlined text-[22px] text-error" style="font-variation-settings: 'FILL' 1;">error</span>
+<div class="flex-1">
+<p class="font-body-md text-body-md text-on-surface">Background Sync</p>
+</div>
+<span class="font-label-sm text-label-sm text-error">Pending</span>
+</div>
+</div>
+</section>
+<!-- Status Warning -->
+<div class="bg-primary-container/20 border border-primary-container rounded-[12px] p-4 flex gap-4">
+<span class="material-symbols-outlined text-primary-container mt-1">warning</span>
+<div>
+<h4 class="font-label-md text-label-md text-primary-fixed uppercase">Expo Go test mode</h4>
+<p class="font-body-md text-[14px] text-on-surface-variant mt-1">Background recording needs a development build.</p>
+</div>
+</div>
+<!-- Units Toggle -->
+<div class="flex items-center justify-between p-4 bg-surface-container border border-outline-variant rounded-[12px]">
+<span class="font-label-md text-label-md uppercase text-on-surface-variant">UNITS</span>
+<div class="flex items-center gap-4">
+<span class="font-body-md text-body-md text-on-surface">Metric (km)</span>
+<button class="font-label-md text-label-md text-primary hover:text-primary-fixed transition-colors">Change</button>
+</div>
+</div>
+</main>
+<!-- Bottom Action Bar (Contextual FAB Replacement) -->
+<div class="fixed bottom-0 left-0 right-0 p-container-padding bg-surface/95 backdrop-blur-sm border-t border-outline-variant z-50 pb-safe">
+<button class="w-full h-[64px] bg-[#D79E2D] hover:bg-primary-fixed text-on-primary-fixed font-headline-sm text-headline-sm uppercase rounded-[8px] transition-colors flex items-center justify-center gap-2">
+<span>Begin the march</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</body></html>

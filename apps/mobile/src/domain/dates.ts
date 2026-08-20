@@ -86,3 +86,16 @@ export function isWeekday(day: number): boolean {
   const weekday = dayOfWeek(day);
   return weekday >= 1 && weekday <= 5;
 }
+
+/**
+ * "Today" or "Yesterday" for a day index, `null` for one that needs its date spelled out.
+ *
+ * Only the two words are decided here. Spelling out the date is `toLocaleDateString`'s job, which
+ * belongs at the call site: the wording is a product decision and testable, the formatting is the
+ * host's and would make any assertion about it a test of the machine's locale.
+ */
+export function relativeDayLabel(day: number, today: number): string | null {
+  if (day === today) return 'Today';
+  if (day === today - 1) return 'Yesterday';
+  return null;
+}

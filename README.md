@@ -4,7 +4,10 @@ A personal, all-in-one self-improvement app: training, nutrition, daily discipli
 motivation, movement, scripture, and music in one place. Named for Greek *kairos* —
 "the right moment."
 
-Planning docs live in [`docs/`](docs/); start with [`docs/README.md`](docs/README.md).
+Planning docs live in [`docs/`](docs/) — start with [`docs/README.md`](docs/README.md). Session handover
+docs live in [`HANDOVER_DOCS/`](HANDOVER_DOCS/) — start with
+[`HANDOVER_DOCS/README.md`](HANDOVER_DOCS/README.md). `docs/` is what the app is *meant* to be;
+`HANDOVER_DOCS/` is what it *is*, and why.
 
 ## Status
 
@@ -12,6 +15,11 @@ Planning docs live in [`docs/`](docs/); start with [`docs/README.md`](docs/READM
 authenticated replay for workouts, weight, tasks, and nutrition, plus quotes, wallpapers,
 and local reminders.
 See [`docs/06-roadmap.md`](docs/06-roadmap.md) for the full phased plan.
+
+**In progress:** a complete dark-masculine-Greek-themed UI rebuild — scope locked in
+[`docs/09-ui-rebuild-plan.md`](docs/09-ui-rebuild-plan.md), progress in
+[`HANDOVER_DOCS/01-current-state.md`](HANDOVER_DOCS/01-current-state.md). The module table below
+describes function, not the restyle.
 
 | Module | State |
 |---|---|
@@ -41,7 +49,9 @@ wallpaper generation falls back to the local quote card until an API is configur
 
 ```
 kairo/
-├── docs/            # planning package
+├── docs/            # planning package — the locked specs and plans
+├── HANDOVER_DOCS/   # running session handover — current state, conventions, history
+├── media/           # UI/UX design exports (media/stitch/, one folder per screen)
 ├── apps/
 │   ├── mobile/      # Expo React Native app (TypeScript)
 │   └── backend/     # FastAPI service (Python 3.12)
@@ -66,7 +76,7 @@ Checks:
 ```bash
 npm run typecheck
 npm run lint
-npm test                 # 350 tests across 16 suites
+npm test                 # 481 tests across 20 suites (measured 2026-08-19)
 npx expo-doctor
 ```
 
@@ -87,7 +97,7 @@ Checks:
 
 ```bash
 ruff check .
-pytest -q                # 24 tests
+pytest -q                # 28 tests
 alembic upgrade head     # verified at latest migration
 ```
 

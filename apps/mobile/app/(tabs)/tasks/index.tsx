@@ -1,30 +1,47 @@
 /**
- * Today — the tasks module's root screen.
+ * The Rites — the tasks module's root screen.
  *
  * `04-feature-specs.md` asks for a *"Today list (checkbox-style)"*, so the screen is a list of
  * tick boxes and nothing else: no calendar, no drag-to-reorder, no per-task settings inline. The
  * order comes from `splitByDueToday`, which puts unfinished work above finished and the longest
  * streak first, so the list shrinks towards the top as the day goes on.
  *
- * Tasks whose rule excludes today still appear, below a divider, greyed. Hiding them entirely
+ * Rites whose rule excludes today still appear, in their own dimmed group. Hiding them entirely
  * would make a weekends-only habit vanish for five days at a stretch and read as data loss —
  * the same reason `parseRecurrence` falls back to `daily` rather than "never".
  *
  * A `ScrollView` rather than a `FlatList`/`SectionList`: this list is bounded by how many habits
- * a person can actually keep, which is dozens, and three plain sections are far easier to read
+ * a person can actually keep, which is dozens, and three plain groups are far easier to read
  * than the equivalent section-list plumbing. The workouts history uses a `FlatList` because a
  * session log genuinely grows without limit.
+ *
+ * The design's footer button is gone: the add affordance is the outlined glyph in the header, which
+ * is where every other tab root in the design set puts its one action, and a permanently-docked
+ * 56pt slab above a 80pt tab bar was eating a fifth of the screen.
  */
 
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { randomUUID } from 'expo-crypto';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { Checkbox } from '@/components/Checkbox';
+import {
+  Card,
+  EmptyState,
+  Eyebrow,
+  IconButton,
+  Notice,
+  Pill,
+  RowGroup,
+  ScreenHeader,
+  ScreenScroll,
+  Section,
+  StatStrip,
+} from '@/components/Layout';
 import { completionDatesByTask, listArchivedTasks, listTasks, toggleCompletion } from '@/db/tasks';
 import type { Task } from '@/db/types';
 import { dayKeyFromDate } from '@/domain/dates';
@@ -36,7 +53,7 @@ import {
   type TodayTask,
 } from '@/domain/tasks';
 import { LOCAL_USER_ID } from '@/constants';
-import { colors, fontSize, radius, spacing, TAP_TARGET } from '@/theme';
+import { colors, fontSize, layout, lineHeight, spacing, TAP_TARGET } from '@/theme';
 import { requestSync } from '@/sync/scheduler';
 
 function formatToday(nowMs: number): string {
@@ -50,12 +67,14 @@ function formatToday(nowMs: number): string {
 export default function TodayScreen() {
   const db = useSQLiteContext();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [archived, setArchived] = useState<Task[]>([]);
   const [completions, setCompletions] = useState<Map<string, string[]>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  /** Whether the archived group is expanded. Collapsed by default — it is history, not today. */
+  const [showArchived, setShowArchived] = useState(false);
   /**
    * The clock everything is measured against, captured when the data loads rather than read
    * during render — `Date.now()` in a render body is impure, and here it would decide which day
@@ -65,18 +84,25 @@ export default function TodayScreen() {
   const [nowMs, setNowMs] = useState(() => Date.now());
 
   const load = useCallback(async () => {
-    const [active, archivedRows, byTask] = await Promise.all([
-      listTasks(db, LOCAL_USER_ID),
-      listArchivedTasks(db, LOCAL_USER_ID),
-      completionDatesByTask(db, LOCAL_USER_ID),
-    ]);
-    setTasks(active);
-    setArchived(archivedRows);
-    setCompletions(byTask);
-    // Refreshed alongside the rows so the list and the data always describe the same day, even
-    // if the app sat open across midnight.
-    setNowMs(Date.now());
-    setLoading(false);
+    try {
+      const [active, archivedRows, byTask] = await Promise.all([
+        listTasks(db, LOCAL_USER_ID),
+        listArchivedTasks(db, LOCAL_USER_ID),
+        completionDatesByTask(db, LOCAL_USER_ID),
+      ]);
+      setTasks(active);
+      setArchived(archivedRows);
+      setCompletions(byTask);
+      setError(null);
+      // Refreshed alongside the rows so the list and the data always describe the same day, even
+      // if the app sat open across midnight.
+      setNowMs(Date.now());
+    } catch (caught) {
+      // Without this the rejection was unhandled and the screen sat empty with no explanation.
+      setError(caught instanceof Error ? caught.message : String(caught));
+    } finally {
+      setLoading(false);
+    }
   }, [db]);
 
   useFocusEffect(
@@ -110,97 +136,160 @@ export default function TodayScreen() {
 
   const { due, notToday } = splitByDueToday(tasks, completions, nowMs);
   const doneCount = due.filter((entry) => entry.streak.doneToday).length;
+  const atRiskCount = due.filter((entry) => entry.streak.atRisk).length;
+  const bestFlame = Math.max(0, ...[...due, ...notToday].map((entry) => entry.streak.longest));
 
   return (
-    <View style={styles.screen}>
-      <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: spacing.xl }]}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.header}>
-          <Text style={styles.date}>{formatToday(nowMs)}</Text>
-          <Text style={styles.progress}>{formatProgress(doneCount, due.length)}</Text>
-        </View>
-
-        {due.map((entry) => (
-          <TaskRow
-            key={entry.task.id}
-            entry={entry}
-            onToggle={() => onToggle(entry.task)}
-            onOpen={() => router.push(`/tasks/${entry.task.id}`)}
+    <ScreenScroll>
+      <ScreenHeader
+        title="The Rites"
+        subtitle={`${formatToday(nowMs)} · ${formatProgress(doneCount, due.length)}`}
+        action={
+          <IconButton
+            icon="plus"
+            label="New rite"
+            variant="outlined"
+            onPress={() => router.push('/tasks/new')}
           />
-        ))}
+        }
+      />
 
-        {notToday.length > 0 ? (
-          <>
-            <Text style={styles.sectionTitle}>Not scheduled today</Text>
-            {notToday.map((entry) => (
+      {error ? (
+        <Notice tone="danger" title="Could not read your rites">
+          {error}
+        </Notice>
+      ) : null}
+
+      {/*
+        The strip is only honest once there is something to aggregate — three zeroes above an empty
+        list is chrome describing nothing.
+      */}
+      {tasks.length > 0 ? (
+        <StatStrip
+          items={[
+            { label: 'Kept', value: `${doneCount}/${due.length}` },
+            { label: 'Day best flame', value: `${bestFlame}` },
+            {
+              label: 'Guttering',
+              value: `${atRiskCount}`,
+              tone: atRiskCount > 0 ? 'danger' : 'text',
+            },
+          ]}
+        />
+      ) : null}
+
+      {due.length > 0 ? (
+        <Section title="Due today">
+          <RowGroup>
+            {due.map((entry) => (
               <TaskRow
                 key={entry.task.id}
                 entry={entry}
-                muted
                 onToggle={() => onToggle(entry.task)}
                 onOpen={() => router.push(`/tasks/${entry.task.id}`)}
               />
             ))}
-          </>
-        ) : null}
+          </RowGroup>
+        </Section>
+      ) : null}
 
-        {archived.length > 0 ? (
-          <>
-            <Text style={styles.sectionTitle}>Archived</Text>
-            {archived.map((task) => (
-              <Pressable
-                key={task.id}
-                onPress={() => router.push(`/tasks/${task.id}`)}
-                style={({ pressed }) => [styles.archivedRow, pressed && styles.pressed]}
-              >
-                <Text style={styles.archivedTitle} numberOfLines={1}>
-                  {task.title}
-                </Text>
-                <Text style={styles.chevron}>›</Text>
-              </Pressable>
+      {notToday.length > 0 ? (
+        <Section title="Not due today">
+          {/*
+            The whole group dims rather than each row: the rows inside it are ruled, and fading one
+            row at a time makes the rules look like they moved.
+          */}
+          <RowGroup style={styles.dimmed}>
+            {notToday.map((entry) => (
+              <TaskRow
+                key={entry.task.id}
+                entry={entry}
+                onToggle={() => onToggle(entry.task)}
+                onOpen={() => router.push(`/tasks/${entry.task.id}`)}
+              />
             ))}
-          </>
-        ) : null}
+          </RowGroup>
+        </Section>
+      ) : null}
 
-        {tasks.length === 0 && archived.length === 0 && !loading ? (
-          <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>No habits yet</Text>
-            <Text style={styles.emptyBody}>
-              Start with one you can keep. A streak is easier to protect than to rebuild.
-            </Text>
-          </View>
-        ) : null}
-      </ScrollView>
+      {archived.length > 0 ? (
+        <View style={styles.archivedGroup}>
+          <Pressable
+            onPress={() => setShowArchived((open) => !open)}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: showArchived }}
+            accessibilityLabel={`Archived rites, ${archived.length}`}
+            style={({ pressed }) => pressed && styles.pressed}
+          >
+            <Card style={styles.expander}>
+              <Eyebrow>{`Archived rites (${archived.length})`}</Eyebrow>
+              <MaterialCommunityIcons
+                name={showArchived ? 'chevron-up' : 'chevron-down'}
+                size={20}
+                color={colors.textMuted}
+              />
+            </Card>
+          </Pressable>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
-        <Button label="New task" onPress={() => router.push('/tasks/new')} />
-      </View>
-    </View>
+          {showArchived ? (
+            <RowGroup style={styles.dimmed}>
+              {archived.map((task) => (
+                <Pressable
+                  key={task.id}
+                  onPress={() => router.push(`/tasks/${task.id}`)}
+                  accessibilityRole="button"
+                  accessibilityLabel={task.title}
+                  style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+                >
+                  <Text style={styles.archivedTitle} numberOfLines={1}>
+                    {task.title}
+                  </Text>
+                  <MaterialCommunityIcons
+                    name="chevron-right"
+                    size={20}
+                    color={colors.textMuted}
+                  />
+                </Pressable>
+              ))}
+            </RowGroup>
+          ) : null}
+        </View>
+      ) : null}
+
+      {tasks.length === 0 && archived.length === 0 && !loading && !error ? (
+        <EmptyState
+          title="No rites yet"
+          body="Start with one you can keep. A flame is easier to protect than to rekindle."
+          action={<Button label="Swear a rite" onPress={() => router.push('/tasks/new')} />}
+        />
+      ) : null}
+    </ScreenScroll>
   );
 }
 
 /**
  * One tick box.
  *
- * The row is the tap target and the streak badge on the right is a second, nested one that opens
- * the detail screen — a 26px box would be a miserable thing to hit mid-morning, and the two
- * actions (tick it / look at it) are too different to share one gesture.
+ * The row is the tap target and the flame pill on the right is a second, nested one that opens The
+ * Flame — a 28px box would be a miserable thing to hit mid-morning, and the two actions (keep it /
+ * look at it) are too different to share one gesture. The design offers no route to the detail
+ * screen at all, which would strand it; the chevron is what says the pill is a door.
+ *
+ * The design also repeats the streak in the meta line ("Every day · flame 14") *and* in the pill.
+ * The meta here carries the cadence only — the same number printed twice on one row is noise, and
+ * the pill is the more legible of the two places to read it.
  */
 function TaskRow({
   entry,
-  muted = false,
   onToggle,
   onOpen,
 }: {
   entry: TodayTask;
-  muted?: boolean;
   onToggle: () => void;
   onOpen: () => void;
 }) {
   const { task, recurrence, streak } = entry;
-  const badge = formatStreak(streak.current);
+  const flame = formatStreak(streak.current);
 
   return (
     <Pressable
@@ -208,19 +297,22 @@ function TaskRow({
       accessibilityRole="checkbox"
       accessibilityState={{ checked: streak.doneToday }}
       accessibilityLabel={task.title}
-      accessibilityHint={streak.doneToday ? 'Marks this undone for today' : 'Marks this done for today'}
-      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+      accessibilityHint={streak.doneToday ? 'Marks this unkept for today' : 'Marks this kept for today'}
+      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
     >
       <Checkbox checked={streak.doneToday} highlighted={streak.atRisk} />
 
       <View style={styles.rowMain}>
         <Text
-          style={[styles.rowTitle, muted && styles.rowTitleMuted, streak.doneToday && styles.rowTitleDone]}
+          style={[styles.rowTitle, streak.doneToday && styles.rowTitleDone]}
           numberOfLines={1}
         >
           {task.title}
         </Text>
-        <Text style={styles.rowMeta} numberOfLines={1}>
+        <Text
+          style={[styles.rowMeta, streak.atRisk && styles.rowMetaAtRisk]}
+          numberOfLines={1}
+        >
           {describeRecurrence(recurrence)}
         </Text>
       </View>
@@ -228,83 +320,38 @@ function TaskRow({
       <Pressable
         onPress={onOpen}
         accessibilityRole="button"
-        accessibilityLabel={`${task.title} streak`}
+        accessibilityLabel={`${task.title} flame`}
         hitSlop={spacing.sm}
-        style={({ pressed }) => [styles.badgeArea, pressed && styles.pressed]}
+        style={({ pressed }) => [styles.flameArea, pressed && styles.pressed]}
       >
-        {badge === '' ? null : (
-          <View style={[styles.badge, streak.atRisk && styles.badgeAtRisk]}>
-            <Text style={[styles.badgeText, streak.atRisk && styles.badgeTextAtRisk]}>{badge}</Text>
-          </View>
+        {flame === '' ? null : (
+          <Pill label={flame} icon="fire" tone={streak.atRisk ? 'danger' : 'accent'} />
         )}
-        <Text style={styles.chevron}>›</Text>
+        <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textMuted} />
       </Pressable>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.lg },
-  header: { marginBottom: spacing.lg },
-  date: { color: colors.text, fontSize: fontSize.lg, fontWeight: '700' },
-  progress: { color: colors.textMuted, fontSize: fontSize.sm, marginTop: spacing.xs },
-  sectionTitle: {
-    color: colors.textMuted,
-    fontSize: fontSize.xs,
-    fontWeight: '700',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    marginTop: spacing.xl,
-    marginBottom: spacing.sm,
-  },
+  dimmed: { opacity: 0.7 },
+  archivedGroup: { gap: layout.cardGap },
+  expander: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: spacing.lg,
     minHeight: TAP_TARGET,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingHorizontal: layout.cardPadding,
+    paddingVertical: spacing.md,
   },
-  rowMain: { flex: 1 },
-  rowTitle: { color: colors.text, fontSize: fontSize.md, fontWeight: '600' },
-  rowTitleMuted: { color: colors.textMuted },
+  rowPressed: { backgroundColor: colors.surfaceRaised },
+  rowMain: { flex: 1, gap: 2 },
+  rowTitle: { color: colors.text, fontSize: fontSize.md, lineHeight: lineHeight.md },
   rowTitleDone: { color: colors.textMuted, textDecorationLine: 'line-through' },
-  rowMeta: { color: colors.textMuted, fontSize: fontSize.xs, marginTop: 2 },
-  badgeArea: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingLeft: spacing.sm },
-  badge: {
-    backgroundColor: colors.surfaceRaised,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-  },
-  badgeAtRisk: { backgroundColor: colors.accent },
-  badgeText: { color: colors.textMuted, fontSize: fontSize.xs, fontWeight: '700' },
-  badgeTextAtRisk: { color: colors.accentText },
-  chevron: { color: colors.textMuted, fontSize: fontSize.lg },
-  archivedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: TAP_TARGET,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  archivedTitle: { color: colors.textMuted, fontSize: fontSize.md, flex: 1 },
+  rowMeta: { color: colors.textMuted, fontSize: fontSize.xs, lineHeight: lineHeight.xs },
+  rowMetaAtRisk: { color: colors.danger },
+  flameArea: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  archivedTitle: { flex: 1, color: colors.textMuted, fontSize: fontSize.md, lineHeight: lineHeight.md },
   pressed: { opacity: 0.7 },
-  empty: { alignItems: 'center', paddingTop: spacing.xxl },
-  emptyTitle: { color: colors.text, fontSize: fontSize.lg, fontWeight: '600' },
-  emptyBody: {
-    color: colors.textMuted,
-    fontSize: fontSize.sm,
-    marginTop: spacing.sm,
-    textAlign: 'center',
-  },
-  footer: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.background,
-  },
 });

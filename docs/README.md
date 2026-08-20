@@ -1,5 +1,10 @@
 # Kairo — Planning Package
 
+This is the **plan**: what the app is meant to be, and the decisions that are locked. The running
+record of what is actually built — current state, conventions in force, verified test results,
+history — is a separate package in [`../HANDOVER_DOCS/`](../HANDOVER_DOCS/); start at
+[`../HANDOVER_DOCS/README.md`](../HANDOVER_DOCS/README.md) before doing any work.
+
 Read in this order:
 
 1. **00-overview.md** — vision, principles, prioritized feature list
@@ -16,6 +21,9 @@ Read in this order:
 8. **07-repo-structure.md** — proposed monorepo layout for mobile app + backend
 9. **08-phase-3-movement-plan.md** — locked scope and implementation plan for Kairo-owned
    GPS tracking, background recording, voice cues, and route replay
+10. **09-ui-rebuild-plan.md** — locked scope for the Greek-themed UI rebuild: the screen
+    lexicon, the design handoff and how to read it, the design-token changes, and the five
+    new screens — **the lexicon of display names lives only here**
 
 ## The one-paragraph summary
 Build the mobile app in React Native/Expo and the backend in Python/FastAPI +

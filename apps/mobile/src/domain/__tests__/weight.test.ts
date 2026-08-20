@@ -14,12 +14,17 @@ import type { BodyWeightEntry } from '@/db/types';
 
 import {
   dailyWeights,
+  describeVow,
   displayUnit,
   formatDelta,
+  formatVowGap,
+  formatWeight,
   goalDelta,
   movingAverage,
   summarise,
   toDisplayWeight,
+  weeklyRateKg,
+  weighings,
   withinDays,
 } from '../weight';
 
@@ -243,17 +248,17 @@ describe('withinDays', () => {
 
 describe('formatDelta', () => {
   it('signs a gain and a loss explicitly', () => {
-    expect(formatDelta(1.42, 'kg')).toBe('+1.4kg');
-    expect(formatDelta(-1.42, 'kg')).toBe('-1.4kg');
+    expect(formatDelta(1.42, 'kg')).toBe('+1.4 kg');
+    expect(formatDelta(-1.42, 'kg')).toBe('-1.4 kg');
   });
 
   it('converts to the display unit', () => {
-    expect(formatDelta(-1, 'lb')).toBe('-2.2lb');
+    expect(formatDelta(-1, 'lb')).toBe('-2.2 lb');
   });
 
   it('does not render a negative zero', () => {
     // -0.04 rounds to -0, which formats as "-0.0" and reads as a loss that did not happen.
-    expect(formatDelta(-0.04, 'kg')).toBe('0.0kg');
+    expect(formatDelta(-0.04, 'kg')).toBe('0.0 kg');
   });
 
   it('renders an em dash for no data', () => {
@@ -303,5 +308,202 @@ describe('goalDelta', () => {
   it('is null when either side is missing', () => {
     expect(goalDelta(null, 78)).toBeNull();
     expect(goalDelta(82, null)).toBeNull();
+  });
+});
+
+describe('formatWeight', () => {
+  it('renders one decimal with a space before the unit', () => {
+    expect(formatWeight(74.84, 'kg')).toBe('74.8 kg');
+  });
+
+  it('keeps a trailing zero, so a column of weights aligns', () => {
+    expect(formatWeight(72, 'kg')).toBe('72.0 kg');
+  });
+
+  it('converts to the display unit', () => {
+    expect(formatWeight(80, 'lb')).toBe('176.4 lb');
+  });
+
+  it('renders an em dash for no weight', () => {
+    expect(formatWeight(null, 'kg')).toBe('—');
+  });
+});
+
+describe('weighings', () => {
+  it('is newest first, and the earliest has nothing to compare against', () => {
+    const rows = weighings([
+      entry('2026-08-09', 80.2),
+      entry('2026-08-11', 79.8),
+      entry('2026-08-10', 80),
+    ]);
+
+    expect(rows.map((row) => row.entry.recordedAt.slice(0, 10))).toEqual([
+      '2026-08-11',
+      '2026-08-10',
+      '2026-08-09',
+    ]);
+    expect(rows[2].changeKg).toBeNull();
+  });
+
+  it('measures each row against the weighing before it', () => {
+    const rows = weighings([entry('2026-08-10', 80), entry('2026-08-11', 79.8)]);
+    expect(rows[0].changeKg).toBeCloseTo(-0.2, 5);
+  });
+
+  it('keeps both of a day two weigh-ins, unlike the chart series', () => {
+    // The deliberate difference from `dailyWeights`: the chart wants one point a day, the log
+    // wants every time you actually stood on the scale.
+    const entries = [entry('2026-08-10', 80), entry('2026-08-10', 82)];
+    expect(weighings(entries)).toHaveLength(2);
+    expect(dailyWeights(entries)).toHaveLength(1);
+  });
+
+  it('normalises units before subtracting, so a unit switch is not a 96 kg loss', () => {
+    const rows = weighings([
+      entry('2026-08-10', 176, { weightUnit: 'lb' }),
+      entry('2026-08-11', 80, { weightUnit: 'kg' }),
+    ]);
+
+    expect(rows[0].weightKg).toBe(80);
+    expect(rows[0].changeKg).toBeCloseTo(0.17, 2);
+  });
+
+  it('carries the calendar day, so the range windows the log with the chart cutoff', () => {
+    const rows = weighings([
+      entry('2026-06-01', 84),
+      entry('2026-08-10', 80.2),
+      entry('2026-08-11', 80),
+    ]);
+
+    const visible = withinDays(rows, at('2026-08-11'), 30);
+    expect(visible).toHaveLength(2);
+    // Still measured against the June weighing, which the window dropped.
+    expect(visible[1].changeKg).toBeCloseTo(-3.8, 5);
+  });
+});
+
+describe('weeklyRateKg', () => {
+  /** A trend line straight through the raw points, so the expected slope is arithmetic. */
+  function rawTrend(...entries: BodyWeightEntry[]) {
+    return movingAverage(dailyWeights(entries), 1);
+  }
+
+  it('is the trend slope scaled to seven days', () => {
+    const trend = rawTrend(entry('2026-07-28', 84), entry('2026-08-11', 80));
+    // Four kilos across a fortnight is two a week.
+    expect(weeklyRateKg(trend, at('2026-08-11'))).toBeCloseTo(-2, 5);
+  });
+
+  it('is positive when the trend is climbing', () => {
+    const trend = rawTrend(entry('2026-08-04', 80), entry('2026-08-11', 80.7));
+    expect(weeklyRateKg(trend, at('2026-08-11'))).toBeCloseTo(0.7, 5);
+  });
+
+  it('is null across less than a week, however many points there are', () => {
+    // A slope from two days multiplied up by seven is a month's prediction made from a
+    // hydration swing, which is exactly the noise this module exists to remove.
+    const trend = rawTrend(
+      entry('2026-08-09', 81),
+      entry('2026-08-10', 80.4),
+      entry('2026-08-11', 80),
+    );
+    expect(weeklyRateKg(trend, at('2026-08-11'))).toBeNull();
+  });
+
+  it('is null with one point in the period', () => {
+    const trend = rawTrend(entry('2026-08-11', 80));
+    expect(weeklyRateKg(trend, at('2026-08-11'))).toBeNull();
+  });
+
+  it('ignores points outside the period', () => {
+    // The old point is what would make the span long enough; the shorter period drops it.
+    const trend = rawTrend(entry('2026-06-01', 90), entry('2026-08-11', 80));
+    expect(weeklyRateKg(trend, at('2026-08-11'), 30)).toBeNull();
+    expect(weeklyRateKg(trend, at('2026-08-11'), 90)).not.toBeNull();
+  });
+});
+
+describe('formatVowGap', () => {
+  it('says what closing the gap takes, in either direction', () => {
+    expect(formatVowGap(2.8, 'kg')).toBe('2.8 kg to lose');
+    expect(formatVowGap(-2, 'kg')).toBe('2.0 kg to gain');
+  });
+
+  it('calls a gap that rounds away reached', () => {
+    expect(formatVowGap(0.02, 'kg')).toBe('Reached');
+    expect(formatVowGap(0, 'kg')).toBe('Reached');
+  });
+
+  it('converts to the display unit', () => {
+    expect(formatVowGap(2, 'lb')).toBe('4.4 lb to lose');
+  });
+
+  it('is null with no vow to be short of', () => {
+    expect(formatVowGap(null, 'kg')).toBeNull();
+  });
+});
+
+describe('describeVow', () => {
+  it('is null with no vow or no trend to project from', () => {
+    expect(describeVow({ goalKg: null, trendKg: 74.8, rateKgPerWeek: -0.4, unit: 'kg' })).toBeNull();
+    expect(describeVow({ goalKg: 72, trendKg: null, rateKgPerWeek: -0.4, unit: 'kg' })).toBeNull();
+  });
+
+  it('gives the distance and the time at the current rate', () => {
+    expect(describeVow({ goalKg: 72, trendKg: 74.8, rateKgPerWeek: -0.4, unit: 'kg' })).toEqual({
+      distance: '2.8 kg from your current trend of 74.8 kg',
+      eta: 'At 0.4 kg a week, about 7 weeks.',
+    });
+  });
+
+  it('counts weeks in kilograms but states them in the display unit', () => {
+    // The estimate must not change because the screen is reading in pounds.
+    expect(describeVow({ goalKg: 78, trendKg: 80, rateKgPerWeek: -0.5, unit: 'lb' })).toEqual({
+      distance: '4.4 lb from your current trend of 176.4 lb',
+      eta: 'At 1.1 lb a week, about 4 weeks.',
+    });
+  });
+
+  it('says a week rather than about 1 weeks', () => {
+    expect(
+      describeVow({ goalKg: 72, trendKg: 72.4, rateKgPerWeek: -0.5, unit: 'kg' })?.eta,
+    ).toBe('At 0.5 kg a week, about a week.');
+  });
+
+  it('stops counting past a year', () => {
+    // "About 56 weeks" is arithmetic pretending to be a forecast.
+    expect(describeVow({ goalKg: 72, trendKg: 100, rateKgPerWeek: -0.5, unit: 'kg' })?.eta).toBe(
+      'At 0.5 kg a week, over a year.',
+    );
+  });
+
+  it('gives no estimate when there is no rate yet', () => {
+    expect(describeVow({ goalKg: 72, trendKg: 74.8, rateKgPerWeek: null, unit: 'kg' })).toEqual({
+      distance: '2.8 kg from your current trend of 74.8 kg',
+      eta: 'Too few weighings yet to say how long that takes.',
+    });
+  });
+
+  it('gives no date for a flat trend rather than dividing by nearly nothing', () => {
+    expect(describeVow({ goalKg: 72, trendKg: 74.8, rateKgPerWeek: 0.01, unit: 'kg' })?.eta).toBe(
+      'Your trend is flat, so there is no date to give.',
+    );
+  });
+
+  it('says so when the trend is moving away from the vow', () => {
+    expect(describeVow({ goalKg: 72, trendKg: 74.8, rateKgPerWeek: 0.3, unit: 'kg' })?.eta).toBe(
+      'Your trend is moving away from it, at 0.3 kg a week.',
+    );
+    // Below the vow and still falling is the same mistake in the other direction.
+    expect(describeVow({ goalKg: 72, trendKg: 70, rateKgPerWeek: -0.3, unit: 'kg' })?.eta).toBe(
+      'Your trend is moving away from it, at 0.3 kg a week.',
+    );
+  });
+
+  it('reads level rather than claiming a gap of nothing', () => {
+    expect(describeVow({ goalKg: 72, trendKg: 72.01, rateKgPerWeek: -0.4, unit: 'kg' })).toEqual({
+      distance: 'Level with your current trend of 72.0 kg',
+      eta: null,
+    });
   });
 });

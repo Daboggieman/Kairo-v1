@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE ORACLE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#001d37",
+                        "surface-container-highest": "#32353a",
+                        "primary-container": "#d79e2d",
+                        "inverse-surface": "#e1e2e9",
+                        "on-primary-container": "#523800",
+                        "on-tertiary-container": "#003f6e",
+                        "outline": "#9c8f7c",
+                        "secondary-container": "#44474a",
+                        "outline-variant": "#504535",
+                        "surface-container": "#1d2025",
+                        "error": "#ffb4ab",
+                        "primary-fixed-dim": "#f9bc4a",
+                        "secondary-fixed": "#e0e3e6",
+                        "surface-dim": "#101418",
+                        "on-secondary": "#2d3133",
+                        "tertiary": "#9fcaff",
+                        "on-secondary-fixed": "#191c1e",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed": "#d2e4ff",
+                        "on-tertiary": "#003259",
+                        "surface-tint": "#f9bc4a",
+                        "on-primary-fixed": "#271900",
+                        "inverse-primary": "#7d5700",
+                        "on-surface": "#e1e2e9",
+                        "surface-bright": "#36393f",
+                        "surface": "#101418",
+                        "on-surface-variant": "#d4c4af",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#5f4100",
+                        "tertiary-fixed-dim": "#9fcaff",
+                        "surface-container-low": "#191c21",
+                        "surface-container-lowest": "#0b0e13",
+                        "background": "#101418",
+                        "on-primary": "#422c00",
+                        "primary-fixed": "#ffdeaa",
+                        "secondary-fixed-dim": "#c4c7ca",
+                        "inverse-on-surface": "#2e3036",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "secondary": "#c4c7ca",
+                        "on-secondary-container": "#b3b5b8",
+                        "surface-container-high": "#272a2f",
+                        "tertiary-container": "#6dacf3",
+                        "on-tertiary-fixed-variant": "#00497e",
+                        "primary": "#f9bc4a",
+                        "surface-variant": "#32353a",
+                        "on-background": "#e1e2e9",
+                        "error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "container-padding": "24px",
+                        "fluting-width": "1px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "display-lg": ["Cinzel"],
+                        "headline-sm": ["Cinzel"],
+                        "display-md": ["Cinzel"],
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "0.15em", "fontWeight": "700" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "display-md": ["28px", { "lineHeight": "34px", "letterSpacing": "0.12em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .fret-line {
+            background-image: repeating-linear-gradient(90deg, #d79e2d 0, #d79e2d 4px, transparent 4px, transparent 8px, #d79e2d 8px, #d79e2d 12px, transparent 12px, transparent 16px);
+            background-size: 16px 2px;
+            height: 2px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen antialiased flex flex-col items-center">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface dark:bg-surface border-b border-surface-variant flex justify-between items-center px-container-padding h-16 max-w-screen-sm">
+<button class="text-primary hover:opacity-80 transition-opacity duration-200">
+<span class="material-symbols-outlined text-[24px]">chevron_left</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm text-primary tracking-widest uppercase">THE ORACLE</h1>
+<div class="w-6"></div> <!-- Spacer for centering -->
+</header>
+<main class="w-full max-w-screen-sm px-container-padding pt-[88px] pb-32 flex flex-col gap-6">
+<!-- Hero Quote Block -->
+<section class="w-full">
+<div class="relative w-full h-[260px] bg-surface border border-outline-variant flex flex-col justify-center items-center p-6 text-center">
+<!-- Top Fret Line -->
+<div class="absolute top-0 left-0 right-0 p-1">
+<div class="fret-line"></div>
+</div>
+<h2 class="font-display-md text-display-md text-on-surface uppercase mb-4">Know thyself.</h2>
+<p class="font-label-md text-label-md text-on-surface-variant">— Inscribed at Delphi</p>
+<!-- Bottom Helmet Mark -->
+<div class="absolute bottom-4 left-1/2 -translate-x-1/2">
+<span class="material-symbols-outlined text-[16px] text-primary">sports_mma</span>
+</div>
+<!-- Bottom Fret Line -->
+<div class="absolute bottom-0 left-0 right-0 p-1">
+<div class="fret-line"></div>
+</div>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-3 text-center">
+                The oracle speaks once a day. Monday, 18 August.
+            </p>
+</section>
+<!-- The Standard Section -->
+<section class="w-full flex flex-col gap-4 mt-4">
+<h3 class="font-label-md text-label-md text-primary uppercase tracking-widest border-l border-primary pl-2">THE STANDARD</h3>
+<div class="w-full flex justify-center">
+<!-- Wallpaper Preview Card -->
+<div class="w-[112px] h-[200px] rounded-lg bg-surface-container-lowest border border-outline-variant overflow-hidden relative flex flex-col items-center justify-center p-4">
+<div class="absolute inset-0 bg-black/40"></div>
+<div class="absolute inset-0 bg-cover bg-center opacity-30" data-alt="A dark, moody abstract texture resembling ancient black stone or basalt, with subtle, dramatic lighting highlighting rough natural ridges. The aesthetic is extremely minimalist, brutalist, and suitable for a mobile wallpaper background. Deep blacks and very dark grays dominate." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCI8CmVAXjWN9spkA8nzK9IsfPG0ZPWwRvo_MKd7X57qrA9stgfSkwzTYRR1-0NEeyJ6exCwnx68CHK8T8iIoKN7TMTrvr4p-e8dP_fdZDVF-SxHKjzfC7Xif5qKiWLEGsVNRR5zN5ffRq5LOWnSJ-hXQMV9fQ56udbiuDa1U3bpziPoEC6FWRTL8u9dZYi9jHalibg-eWAe622oEBYndmDqFH50LXyzRsVVz4fYhbdDyJPJaafa2ySBA')"></div>
+<div class="relative z-10 flex flex-col items-center text-center">
+<div class="w-8 h-[1px] bg-primary mb-2"></div>
+<h4 class="font-headline-sm text-[10px] leading-tight text-on-surface uppercase">Know thyself.</h4>
+<div class="w-8 h-[1px] bg-primary mt-2"></div>
+</div>
+<div class="absolute bottom-3 left-1/2 -translate-x-1/2 z-10">
+<span class="material-symbols-outlined text-[10px] text-primary">sports_mma</span>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex flex-col gap-3 mt-4">
+<button class="w-full h-[56px] bg-primary-container text-on-primary-container font-label-md text-label-md uppercase tracking-wider hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                    Take the standard
+                </button>
+<button class="w-full h-[56px] bg-transparent border border-outline text-on-surface font-label-md text-label-md uppercase tracking-wider hover:bg-surface-variant active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                    Forge another
+                </button>
+</div>
+</section>
+</main>
+</body></html>

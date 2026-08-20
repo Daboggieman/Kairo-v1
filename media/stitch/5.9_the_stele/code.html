@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE STELE - Session Record</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&amp;family=Inter:wght@400..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#9c8f7c",
+                        "surface-variant": "#32353a",
+                        "error-container": "#93000a",
+                        "background": "#101418",
+                        "surface-container-highest": "#32353a",
+                        "on-primary-fixed": "#271900",
+                        "secondary": "#c4c7ca",
+                        "surface-tint": "#f9bc4a",
+                        "on-secondary": "#2d3133",
+                        "surface-container": "#1d2025",
+                        "inverse-primary": "#7d5700",
+                        "on-tertiary-fixed": "#001d37",
+                        "error": "#ffb4ab",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "inverse-surface": "#e1e2e9",
+                        "tertiary-fixed-dim": "#9fcaff",
+                        "outline-variant": "#504535",
+                        "surface-container-lowest": "#0b0e13",
+                        "on-primary-container": "#523800",
+                        "surface-container-low": "#191c21",
+                        "surface-container-high": "#272a2f",
+                        "on-background": "#e1e2e9",
+                        "on-surface": "#e1e2e9",
+                        "secondary-container": "#44474a",
+                        "secondary-fixed": "#e0e3e6",
+                        "on-tertiary": "#003259",
+                        "tertiary-fixed": "#d2e4ff",
+                        "tertiary-container": "#6dacf3",
+                        "primary": "#f9bc4a",
+                        "on-secondary-container": "#b3b5b8",
+                        "on-surface-variant": "#d4c4af",
+                        "primary-fixed": "#ffdeaa",
+                        "on-primary": "#422c00",
+                        "surface": "#101418",
+                        "on-tertiary-container": "#003f6e",
+                        "on-primary-fixed-variant": "#5f4100",
+                        "on-secondary-fixed": "#191c1e",
+                        "surface-bright": "#36393f",
+                        "inverse-on-surface": "#2e3036",
+                        "tertiary": "#9fcaff",
+                        "surface-dim": "#101418",
+                        "secondary-fixed-dim": "#c4c7ca",
+                        "on-error": "#690005",
+                        "primary-fixed-dim": "#f9bc4a",
+                        "on-tertiary-fixed-variant": "#00497e",
+                        "primary-container": "#d79e2d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "unit": "8px",
+                        "container-padding": "24px",
+                        "fluting-width": "1px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "display-md": ["Cinzel"],
+                        "headline-sm": ["Cinzel"],
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Cinzel"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "display-md": ["28px", { "lineHeight": "34px", "letterSpacing": "0.12em", "fontWeight": "700" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "0.15em", "fontWeight": "700" }]
+                    },
+                    "backgroundImage": {
+                        "meander": "url('data:image/svg+xml;utf8,<svg width=\"24\" height=\"8\" viewBox=\"0 0 24 8\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M0 0h6v6h-4v-4h2v2h2v-6h4v8h-6v-6h4v4h-2v-2h-2v6h-4z\" fill=\"%23f9bc4a\" fill-opacity=\"0.3\"/></svg>')"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .fluted-border-left {
+            position: relative;
+        }
+        .fluted-border-left::before {
+            content: '';
+            position: absolute;
+            left: 4px;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background-color: theme('colors.outline-variant');
+        }
+        .fluted-border-left::after {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background-color: theme('colors.outline-variant');
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-surface text-primary dark:text-primary fixed top-0 w-full z-50 border-b-4 border-primary flat no shadows flex justify-between items-center px-container-padding h-16 transition-opacity duration-200">
+<button class="text-on-surface-variant hover:opacity-80 flex items-center justify-center p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background">
+<span aria-hidden="true" class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm text-primary tracking-widest uppercase">THE STELE</h1>
+<div class="w-10"></div> <!-- Placeholder for balance -->
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-24 pb-32 px-container-padding max-w-4xl mx-auto w-full flex flex-col gap-8 overflow-y-auto">
+<!-- Hero Block: Inscribed Stone Slab -->
+<section class="bg-surface border border-surface-container-high p-6 relative fluted-border-left overflow-hidden">
+<!-- Gold Fret Line -->
+<div class="absolute top-0 left-0 right-0 h-1 bg-meander bg-repeat-x"></div>
+<div class="pl-4">
+<h2 class="font-headline-sm text-headline-sm uppercase text-on-surface mb-1">Saturday 16 August</h2>
+<p class="font-label-md text-label-md text-on-surface-variant mb-6">18:04 – 19:08</p>
+<!-- Stat Row -->
+<div class="grid grid-cols-4 gap-4">
+<div class="flex flex-col items-start border-l border-outline-variant pl-3">
+<span class="font-display-md text-display-md tabular-nums text-on-surface">1h 04m</span>
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant mt-1">DURATION</span>
+</div>
+<div class="flex flex-col items-start border-l border-outline-variant pl-3">
+<span class="font-display-md text-display-md tabular-nums text-on-surface">18</span>
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant mt-1">STRIKES</span>
+</div>
+<div class="flex flex-col items-start border-l border-outline-variant pl-3">
+<span class="font-display-md text-display-md tabular-nums text-on-surface">5,240 kg</span>
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant mt-1">TONNAGE</span>
+</div>
+<div class="flex flex-col items-start border-l border-outline-variant pl-3">
+<span class="font-display-md text-display-md tabular-nums text-on-surface">6</span>
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant mt-1">LIFTS</span>
+</div>
+</div>
+</div>
+</section>
+<!-- The Strikes Section -->
+<section class="flex flex-col gap-4">
+<h3 class="font-label-md text-label-md uppercase text-on-surface-variant tracking-widest pl-2 border-l border-primary">THE STRIKES</h3>
+<div class="bg-surface border border-surface-container-high">
+<!-- Group 1 -->
+<div class="p-4 border-b border-surface-container-high last:border-b-0">
+<div class="flex justify-between items-center mb-4 pb-2 border-b border-surface-container-low">
+<h4 class="font-body-md text-body-md font-semibold text-on-surface uppercase">Barbell Back Squat</h4>
+<span class="font-label-md text-label-md text-on-surface-variant tabular-nums">1,640 kg</span>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Set Row -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4 w-1/3">
+<div class="w-8 h-8 rounded-full border border-primary text-primary flex items-center justify-center font-display-md text-[16px]">1</div>
+<span class="font-body-md text-body-md text-on-surface">8 reps</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface tabular-nums text-right w-1/3">82.5 kg</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant w-1/3 text-right">RPE 8</span>
+</div>
+<!-- Set Row -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4 w-1/3">
+<div class="w-8 h-8 rounded-full border border-primary text-primary flex items-center justify-center font-display-md text-[16px]">2</div>
+<span class="font-body-md text-body-md text-on-surface">8 reps</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface tabular-nums text-right w-1/3">82.5 kg</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant w-1/3 text-right">RPE 8.5</span>
+</div>
+<!-- Set Row -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4 w-1/3">
+<div class="w-8 h-8 rounded-full border border-primary text-primary flex items-center justify-center font-display-md text-[16px]">3</div>
+<span class="font-body-md text-body-md text-on-surface">6 reps</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface tabular-nums text-right w-1/3">85.0 kg</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant w-1/3 text-right">RPE 9</span>
+</div>
+</div>
+</div>
+<!-- Group 2 -->
+<div class="p-4 border-b border-surface-container-high last:border-b-0">
+<div class="flex justify-between items-center mb-4 pb-2 border-b border-surface-container-low">
+<h4 class="font-body-md text-body-md font-semibold text-on-surface uppercase">Romanian Deadlift</h4>
+<span class="font-label-md text-label-md text-on-surface-variant tabular-nums">2,400 kg</span>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Set Row -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4 w-1/3">
+<div class="w-8 h-8 rounded-full border border-primary text-primary flex items-center justify-center font-display-md text-[16px]">1</div>
+<span class="font-body-md text-body-md text-on-surface">10 reps</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface tabular-nums text-right w-1/3">100.0 kg</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant w-1/3 text-right">RPE 7</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Notes Section -->
+<section class="flex flex-col gap-4">
+<h3 class="font-label-md text-label-md uppercase text-on-surface-variant tracking-widest pl-2 border-l border-primary">NOTES</h3>
+<div class="bg-surface border border-surface-container-high p-4">
+<p class="font-body-md text-body-md text-on-surface">Left shoulder felt tight on the last set.</p>
+</div>
+</section>
+<!-- Footer Actions -->
+<section class="flex gap-4 mt-8">
+<button class="flex-1 h-14 bg-transparent border border-outline-variant text-on-surface font-label-md text-label-md uppercase tracking-wider hover:bg-surface-container-high transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background">
+                EDIT
+            </button>
+<button class="flex-1 h-14 bg-transparent border border-error text-error font-label-md text-label-md uppercase tracking-wider hover:bg-error hover:text-on-error transition-colors focus:outline-none focus:ring-2 focus:ring-error focus:ring-offset-2 focus:ring-offset-background">
+                DELETE
+            </button>
+</section>
+</main>
+</body></html>

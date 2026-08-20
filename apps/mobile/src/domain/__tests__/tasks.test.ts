@@ -591,16 +591,16 @@ describe('historyGrid', () => {
 
 describe('formatProgress / formatStreak', () => {
   it('counts the day down', () => {
-    expect(formatProgress(0, 4)).toBe('0 of 4 done');
-    expect(formatProgress(4, 4)).toBe('4 of 4 done');
+    expect(formatProgress(0, 4)).toBe('0 of 4 kept');
+    expect(formatProgress(4, 4)).toBe('4 of 4 kept');
   });
 
   it('says so when nothing is scheduled', () => {
-    expect(formatProgress(0, 0)).toBe('Nothing scheduled');
+    expect(formatProgress(0, 0)).toBe('nothing due');
   });
 
-  it('hides a zero streak rather than printing "0d"', () => {
+  it('hides a zero streak rather than printing "0"', () => {
     expect(formatStreak(0)).toBe('');
-    expect(formatStreak(1)).toBe('1d');
+    expect(formatStreak(1)).toBe('1');
   });
 });

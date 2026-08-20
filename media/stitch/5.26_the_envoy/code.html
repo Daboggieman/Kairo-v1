@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE ENVOY - Sync State</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#f9bc4a",
+                        "surface-container-high": "#272a2f",
+                        "primary-fixed": "#ffdeaa",
+                        "surface-bright": "#36393f",
+                        "on-secondary-fixed": "#191c1e",
+                        "surface-container-lowest": "#0b0e13",
+                        "secondary-container": "#44474a",
+                        "secondary-fixed": "#e0e3e6",
+                        "on-secondary": "#2d3133",
+                        "surface-container-low": "#191c21",
+                        "secondary-fixed-dim": "#c4c7ca",
+                        "inverse-primary": "#7d5700",
+                        "inverse-surface": "#e1e2e9",
+                        "on-error-container": "#ffdad6",
+                        "on-background": "#e1e2e9",
+                        "tertiary-container": "#6dacf3",
+                        "surface-container": "#1d2025",
+                        "on-tertiary": "#003259",
+                        "error": "#ffb4ab",
+                        "surface-tint": "#f9bc4a",
+                        "primary": "#f9bc4a",
+                        "on-primary": "#422c00",
+                        "surface-dim": "#101418",
+                        "on-surface-variant": "#d4c4af",
+                        "on-tertiary-fixed": "#001d37",
+                        "error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "secondary": "#c4c7ca",
+                        "on-tertiary-container": "#003f6e",
+                        "inverse-on-surface": "#2e3036",
+                        "on-tertiary-fixed-variant": "#00497e",
+                        "tertiary-fixed": "#d2e4ff",
+                        "background": "#101418",
+                        "on-secondary-container": "#b3b5b8",
+                        "outline": "#9c8f7c",
+                        "on-primary-fixed-variant": "#5f4100",
+                        "surface-container-highest": "#32353a",
+                        "on-primary-fixed": "#271900",
+                        "tertiary-fixed-dim": "#9fcaff",
+                        "outline-variant": "#504535",
+                        "on-primary-container": "#523800",
+                        "on-error": "#690005",
+                        "surface": "#101418",
+                        "on-surface": "#e1e2e9",
+                        "tertiary": "#9fcaff",
+                        "surface-variant": "#32353a",
+                        "primary-container": "#d79e2d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "fluting-width": "1px",
+                        "gutter": "16px",
+                        "container-padding": "24px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "display-md": ["Cinzel"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Cinzel"],
+                        "display-lg": ["Cinzel"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-md": ["28px", { "lineHeight": "34px", "letterSpacing": "0.12em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "0.15em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #101418; color: #e1e2e9; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .fluting { width: 1px; background-color: #504535; height: 100%; }
+        .greek-key {
+            height: 4px;
+            background-image: url('data:image/svg+xml;utf8,<svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M0,0 h20 v20 h-20 z" fill="none"/><path d="M0,4 h16 v12 h-12 v-8 h8 v4 h-4 v-4" stroke="%23504535" stroke-width="1" fill="none"/></svg>');
+            background-repeat: repeat-x;
+            background-size: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface antialiased flex flex-col min-h-screen">
+<!-- Top Navigation -->
+<header class="bg-surface dark:bg-surface border-b-4 border-primary fixed top-0 w-full z-50 flex justify-between items-center px-container-padding h-16 shadow-none">
+<button class="text-primary hover:opacity-80 transition-opacity duration-200">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm text-primary tracking-widest uppercase">THE ENVOY</h1>
+<div class="w-6"></div> <!-- Spacer for centering -->
+</header>
+<div class="greek-key w-full fixed top-16 z-40"></div>
+<!-- Main Content Canvas -->
+<main class="flex-1 mt-24 mb-32 px-container-padding w-full max-w-3xl mx-auto space-y-8 pb-safe">
+<!-- Status Hero Card -->
+<section class="bg-surface border border-outline-variant rounded p-6 flex flex-col items-center justify-center text-center space-y-4">
+<div class="p-4 rounded-full bg-primary-container/10 border border-primary/20">
+<span class="material-symbols-outlined text-[40px] text-primary" style="font-variation-settings: 'FILL' 1;">shield_with_heart</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Configured</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Last ran 12 minutes ago · 214 items delivered</p>
+</div>
+</section>
+<!-- Stats Row -->
+<section class="bg-surface border border-outline-variant rounded grid grid-cols-3 overflow-hidden">
+<div class="p-4 flex flex-col items-center border-r border-outline-variant">
+<span class="font-display-md text-display-md text-on-surface">0</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mt-1">WAITING</span>
+</div>
+<div class="p-4 flex flex-col items-center border-r border-outline-variant bg-surface-container-high/30">
+<span class="font-display-md text-display-md text-primary">214</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mt-1">DELIVERED</span>
+</div>
+<div class="p-4 flex flex-col items-center">
+<span class="font-display-md text-display-md text-error">1</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mt-1">FAILED</span>
+</div>
+</section>
+<!-- The Satchel Section -->
+<section class="space-y-4">
+<h3 class="font-headline-sm text-headline-sm text-on-surface uppercase border-b border-outline-variant pb-2 inline-block">THE SATCHEL</h3>
+<div class="bg-surface border border-outline-variant rounded divide-y divide-outline-variant">
+<!-- Row 1: Sending -->
+<div class="flex items-center justify-between p-4 h-[56px] hover:bg-surface-container transition-colors">
+<div class="flex items-center space-x-4">
+<span class="material-symbols-outlined text-primary text-[22px]">fitness_center</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Forging · 17 Aug</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">queued 3 minutes ago</span>
+</div>
+</div>
+<div class="flex items-center space-x-4">
+<span class="font-label-sm text-label-sm text-primary bg-primary/10 border border-primary/20 px-2 py-1 rounded">SENDING</span>
+</div>
+</div>
+<!-- Row 2: Waiting -->
+<div class="flex items-center justify-between p-4 h-[56px] hover:bg-surface-container transition-colors">
+<div class="flex items-center space-x-4">
+<span class="material-symbols-outlined text-on-surface-variant text-[22px]">restaurant</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Feast · 17 Aug</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">queued 5 minutes ago</span>
+</div>
+</div>
+<div class="flex items-center space-x-4">
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-variant border border-outline-variant px-2 py-1 rounded">WAITING</span>
+</div>
+</div>
+<!-- Row 3: Waiting -->
+<div class="flex items-center justify-between p-4 h-[56px] hover:bg-surface-container transition-colors">
+<div class="flex items-center space-x-4">
+<span class="material-symbols-outlined text-on-surface-variant text-[22px]">fort</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Citadel · 16 Aug</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">queued 12 mins ago</span>
+</div>
+</div>
+<div class="flex items-center space-x-4">
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-variant border border-outline-variant px-2 py-1 rounded">WAITING</span>
+</div>
+</div>
+<!-- Row 4: Failed -->
+<div class="flex items-center justify-between p-4 h-[56px] bg-error/5 hover:bg-error/10 transition-colors">
+<div class="flex items-center space-x-4">
+<span class="material-symbols-outlined text-error text-[22px]">error</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Rites · 15 Aug</span>
+<span class="font-label-sm text-label-sm text-error">failed 2 hours ago</span>
+</div>
+</div>
+<div class="flex items-center space-x-4">
+<span class="font-label-sm text-label-sm text-error border border-error/50 px-2 py-1 rounded">FAILED · 3 TRIES</span>
+<button class="font-label-md text-label-md text-primary hover:text-primary-fixed uppercase tracking-wider pl-2 border-l border-outline-variant">Retry</button>
+</div>
+</div>
+</div>
+</section>
+<!-- The Road Section -->
+<section class="space-y-4">
+<h3 class="font-headline-sm text-headline-sm text-on-surface uppercase border-b border-outline-variant pb-2 inline-block">THE ROAD</h3>
+<div class="bg-surface border border-outline-variant rounded p-4 flex flex-col space-y-3">
+<div class="flex justify-between items-center border-b border-outline-variant pb-3 last:border-0 last:pb-0">
+<span class="font-body-md text-body-md text-on-surface-variant">Endpoint</span>
+<span class="font-body-md text-body-md text-on-surface font-mono">https://api.kairo.local</span>
+</div>
+<div class="flex justify-between items-center border-b border-outline-variant pb-3 last:border-0 last:pb-0">
+<span class="font-body-md text-body-md text-on-surface-variant">Token</span>
+<span class="font-body-md text-body-md text-on-surface">expires in 41 minutes</span>
+</div>
+<div class="flex justify-between items-center border-b border-outline-variant pb-3 last:border-0 last:pb-0">
+<span class="font-body-md text-body-md text-on-surface-variant">Retries</span>
+<span class="font-body-md text-body-md text-on-surface">exponential, capped at 10m</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Actions -->
+<footer class="fixed bottom-0 w-full bg-surface-container border-t border-outline-variant p-4 space-y-3 z-50">
+<button class="w-full h-[56px] bg-primary-container text-on-primary font-label-md text-label-md uppercase tracking-widest rounded hover:opacity-90 transition-opacity flex justify-center items-center">
+            Send Now
+        </button>
+<button class="w-full h-[56px] bg-transparent border border-outline-variant text-on-surface font-label-md text-label-md uppercase tracking-widest rounded hover:bg-surface-variant transition-colors flex justify-center items-center">
+            Forget Credentials
+        </button>
+</footer>
+</body></html>

@@ -56,16 +56,17 @@ The implementation is complete through the executable mobile/backend layers:
   replacement revisions and deletes enqueue idempotent removal.
 - Automated verification was green as of that date: mobile 376 tests across 18 suites, backend 28
   tests, Ruff, TypeScript, ESLint, Expo Doctor 21/21, and Android/iOS exports. Suites have been
-  added since — the mobile baseline reached 394 across 20 suites, and the 2026-08-17 reminder-helper
-  cases below should put it at 426, though that has not been measured yet. Treat
-  `to_continue_with.md` as the current count, not this line.
+  added since — the mobile baseline reached 394 across 20 suites, and the UI rebuild's domain work
+  took it to **481 across 20, measured 2026-08-19**. **No mobile test count in this file is
+  current**; `HANDOVER_DOCS/08-verification.md` holds the measured figures with their dates, and
+  anything undated there is an expectation rather than a measurement.
 
 Physical Android development-build results have not yet been provided by the user. Background
 location, screen lock, foreground-service notification, force-kill recovery, Bluetooth speech,
 battery use, and iOS native behavior remain acceptance gates. Use `personal_test.txt` for the
 required test sequence; do not mark Phase 3 complete until those results are recorded.
 
-### Pulled forward from Phase 6: UI and branding — 2026-08-17, in progress
+### Pulled forward from Phase 6: UI and branding — 2026-08-18, in progress
 
 The first physical Expo Go run made this unavoidable rather than optional. Two screens had never
 picked up the dark palette, so their text rendered black on near-black and was simply unreadable on
@@ -73,16 +74,31 @@ a device; the reminders time field used an iOS-only keyboard type and could not 
 Android at all. Fixing legibility meant owning screen structure in one place, and the user asked
 for the app icon, an intro, and a loader at the same time.
 
-Done: the icon set and in-app mark generated from the user's artwork by
+Done first: the icon set and in-app mark generated from the user's artwork by
 `apps/mobile/scripts/generate-icons.py`, with `colors.accent` sampled from it; a shared screen shell
 (`src/components/Layout.tsx`) plus `layout`/`lineHeight`/`chartColors` design tokens; the intro and
 loader (`src/components/Logo.tsx`); and three of sixteen screens restyled — Home, reminders, and
 wallpaper.
 
-Outstanding: the remaining thirteen screens — a density pass and, on each, the missing loader
-`.catch` that let a single failed query print dozens of unhandled rejections instead of one visible
-error. `to_continue_with.md` carries the file-by-file list. **Finish this before the Phase 3 device
-run**: a device pass against a half-restyled app produces findings that have to be collected twice.
+**That partial restyle is now superseded by a full rebuild.** Patching one screen at a time was
+producing a different card padding per screen and no hierarchy anywhere, so the decision was to
+rebuild the interface once, completely, as a dark Greek-themed app — same logo, same accent, every
+screen renamed on a Greek lexicon. 30 screen designs were commissioned and live in `media/stitch/`.
+The three already-restyled screens are re-done along with the rest; the outstanding items from the
+partial pass (the missing loader `.catch` on 13 screens, a hardcoded macro-colour constant, two
+stray full-screen spinners) are folded into the per-module work rather than run as a separate pass.
+Locked scope, the screen lexicon, the design-token changes, and five new screens are in
+`09-ui-rebuild-plan.md`. The running record is in `../HANDOVER_DOCS/`: the rules every remaining
+screen must follow and the per-file fold-in checklist are in
+`HANDOVER_DOCS/02-ui-rebuild-conventions.md`, and what is already restyled — with every deliberate
+departure from the designs — is in `HANDOVER_DOCS/03-ui-rebuild-progress.md`. Stage board and the
+current screen count are in `HANDOVER_DOCS/01-current-state.md`.
+
+**Finish this before the Phase 3 device run** — unchanged, and now more so: a device pass against a
+half-rebuilt app produces findings that have to be collected twice.
+
+One new dependency, `@expo-google-fonts/cinzel`, for display type only. No other native package;
+gradients, blur, and shadows in the designs are deliberately not ported.
 
 Splash-screen variety and wallpaper styles stay in Phase 6. The intro is a JS overlay, not a native
 splash — `expo-splash-screen` is deliberately not installed.
@@ -98,7 +114,7 @@ splash — `expo-splash-screen` is deliberately not installed.
 
 ## Phase 6 — Polish & release
 - App icon — **done early** from the user's own artwork, along with the in-app intro and loader; see
-  the 2026-08-17 note under Phase 3. Native splash and wallpaper style variety still open.
+  the UI and branding note under Phase 3. Native splash and wallpaper style variety still open.
 - Offline-sync edge cases (conflict handling, retry logic)
 - TestFlight / Play Console internal testing
 - Revisit the "and more" backlog now that the core app is in daily use — you'll have a

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE CALL - Kairo</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#f9bc4a",
+                        "surface-container-high": "#272a2f",
+                        "primary-fixed": "#ffdeaa",
+                        "surface-bright": "#36393f",
+                        "on-secondary-fixed": "#191c1e",
+                        "surface-container-lowest": "#0b0e13",
+                        "secondary-container": "#44474a",
+                        "secondary-fixed": "#e0e3e6",
+                        "on-secondary": "#2d3133",
+                        "surface-container-low": "#191c21",
+                        "secondary-fixed-dim": "#c4c7ca",
+                        "inverse-primary": "#7d5700",
+                        "inverse-surface": "#e1e2e9",
+                        "on-error-container": "#ffdad6",
+                        "on-background": "#e1e2e9",
+                        "tertiary-container": "#6dacf3",
+                        "surface-container": "#1d2025",
+                        "on-tertiary": "#003259",
+                        "error": "#ffb4ab",
+                        "surface-tint": "#f9bc4a",
+                        "primary": "#f9bc4a",
+                        "on-primary": "#422c00",
+                        "surface-dim": "#101418",
+                        "on-surface-variant": "#d4c4af",
+                        "on-tertiary-fixed": "#001d37",
+                        "error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "secondary": "#c4c7ca",
+                        "on-tertiary-container": "#003f6e",
+                        "inverse-on-surface": "#2e3036",
+                        "on-tertiary-fixed-variant": "#00497e",
+                        "tertiary-fixed": "#d2e4ff",
+                        "background": "#101418",
+                        "on-secondary-container": "#b3b5b8",
+                        "outline": "#9c8f7c",
+                        "on-primary-fixed-variant": "#5f4100",
+                        "surface-container-highest": "#32353a",
+                        "on-primary-fixed": "#271900",
+                        "tertiary-fixed-dim": "#9fcaff",
+                        "outline-variant": "#504535",
+                        "on-primary-container": "#523800",
+                        "on-error": "#690005",
+                        "surface": "#101418",
+                        "on-surface": "#e1e2e9",
+                        "tertiary": "#9fcaff",
+                        "surface-variant": "#32353a",
+                        "primary-container": "#d79e2d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "fluting-width": "1px",
+                        "gutter": "16px",
+                        "container-padding": "24px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "display-md": ["Cinzel"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Cinzel"],
+                        "display-lg": ["Cinzel"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-md": ["28px", { "lineHeight": "34px", "letterSpacing": "0.12em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "0.15em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .meander-border {
+            background-image: url('data:image/svg+xml;utf8,<svg width="40" height="4" viewBox="0 0 40 4" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 0H4V4H0V0ZM8 0H12V4H8V0ZM16 0H20V4H16V0ZM24 0H28V4H24V0ZM32 0H36V4H32V0Z" fill="%23d79e2d"/></svg>');
+            background-repeat: repeat-x;
+            background-position: bottom;
+            height: 4px;
+        }
+        /* Custom toggle switch styling to match design system */
+        .toggle-switch:checked {
+            background-color: #d79e2d; /* Bronze/Primary-container */
+            border-color: #d79e2d;
+        }
+        .toggle-switch:checked::after {
+            transform: translateX(100%);
+            border-color: #15181D; /* Surface color */
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased pb-[env(safe-area-inset-bottom,20px)]">
+<!-- Top Navigation (TopAppBar style structural command) -->
+<header class="flex justify-between items-center px-container-padding h-16 bg-surface border-b-4 border-primary fixed top-0 w-full z-50 flat no shadows">
+<button class="text-primary hover:opacity-80 transition-opacity duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">arrow_back_ios</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm text-primary tracking-widest uppercase">THE CALL</h1>
+<div class="w-6"></div> <!-- Spacer for balance -->
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 px-container-padding pb-32 max-w-lg mx-auto w-full flex flex-col gap-8">
+<!-- Header Block -->
+<section class="flex flex-col gap-2">
+<h2 class="font-display-md text-display-md text-on-surface uppercase">THE CALL</h2>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">Kairo speaks at the hour you name</p>
+<div class="meander-border mt-2 w-full"></div>
+</section>
+<!-- Runtime Status Block -->
+<section class="bg-[#2E1B0F] border-l-[3px] border-[#E07B39] p-4 flex flex-col gap-1">
+<h3 class="font-label-md text-label-md text-on-surface uppercase tracking-widest">Reminders will not fire here</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Local reminders only on this device.</p>
+</section>
+<!-- Form Card: Summon a New Call -->
+<section class="bg-surface border border-outline-variant p-4 flex flex-col gap-6">
+<h3 class="font-label-md text-label-md text-on-surface uppercase tracking-widest">SUMMON A NEW CALL</h3>
+<!-- Field: Name -->
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface uppercase" for="call_name">NAME</label>
+<input class="h-[56px] bg-background border border-outline-variant text-on-background focus:border-primary-container focus:ring-1 focus:ring-primary-container rounded-none px-4 font-body-md placeholder:text-on-surface-variant transition-colors" id="call_name" placeholder="Morning workout" type="text"/>
+</div>
+<!-- Field: Time -->
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface uppercase" for="call_time">TIME</label>
+<input class="h-[56px] bg-background border border-outline-variant text-on-background focus:border-primary-container focus:ring-1 focus:ring-primary-container rounded-none px-4 font-display-md text-display-md tabular-nums transition-colors tracking-widest" id="call_time" inputmode="numeric" pattern="[0-9]*" type="text" value="0700"/>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Four digits on a 24-hour clock. 1830 is half past six in the evening.</p>
+</div>
+<!-- Field: Days -->
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface uppercase">DAYS</label>
+<div class="flex justify-between items-center gap-2">
+<button class="w-[44px] h-[44px] rounded-full flex items-center justify-center font-label-md text-label-md bg-background border border-outline-variant text-on-surface-variant">S</button>
+<button class="w-[44px] h-[44px] rounded-full flex items-center justify-center font-label-md text-label-md bg-primary-container text-on-primary">M</button>
+<button class="w-[44px] h-[44px] rounded-full flex items-center justify-center font-label-md text-label-md bg-primary-container text-on-primary">T</button>
+<button class="w-[44px] h-[44px] rounded-full flex items-center justify-center font-label-md text-label-md bg-primary-container text-on-primary">W</button>
+<button class="w-[44px] h-[44px] rounded-full flex items-center justify-center font-label-md text-label-md bg-primary-container text-on-primary">T</button>
+<button class="w-[44px] h-[44px] rounded-full flex items-center justify-center font-label-md text-label-md bg-primary-container text-on-primary">F</button>
+<button class="w-[44px] h-[44px] rounded-full flex items-center justify-center font-label-md text-label-md bg-background border border-outline-variant text-on-surface-variant">S</button>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-1">No day selected repeats every day.</p>
+</div>
+<!-- Submit Action -->
+<button class="w-full h-[56px] bg-primary-container text-on-primary font-label-md text-label-md uppercase tracking-widest hover:opacity-90 active:scale-[0.98] transition-all border-none mt-2">
+                Sound the call
+            </button>
+</section>
+<!-- The Standing Calls List -->
+<section class="flex flex-col gap-4">
+<h3 class="font-label-md text-label-md text-on-surface uppercase tracking-widest">THE STANDING CALLS</h3>
+<div class="flex flex-col border-t border-outline-variant">
+<!-- Row 1 -->
+<div class="flex items-center justify-between h-[72px] border-b border-outline-variant group cursor-pointer hover:bg-surface-variant/30 transition-colors">
+<div class="flex items-center gap-4">
+<span class="font-headline-sm text-headline-sm text-on-surface tabular-nums">07:00</span>
+<div class="flex flex-col w-[1px] h-8 bg-outline-variant mx-2"></div> <!-- Fluting divider -->
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface">Morning workout</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Weekdays</span>
+</div>
+</div>
+<!-- Toggle Switch (Bronze when active) -->
+<label class="relative inline-flex items-center cursor-pointer ml-4">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#15181D] after:border-outline-variant after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container peer-checked:border-primary-container border border-outline-variant"></div>
+</label>
+</div>
+<!-- Row 2 -->
+<div class="flex items-center justify-between h-[72px] border-b border-outline-variant group cursor-pointer hover:bg-surface-variant/30 transition-colors">
+<div class="flex items-center gap-4">
+<span class="font-headline-sm text-headline-sm text-on-surface tabular-nums">18:30</span>
+<div class="flex flex-col w-[1px] h-8 bg-outline-variant mx-2"></div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface">Evening Rites</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Every Day</span>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer ml-4">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#15181D] after:border-outline-variant after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container peer-checked:border-primary-container border border-outline-variant"></div>
+</label>
+</div>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant text-center mt-2">Tap a call to edit it. Long-press to delete.</p>
+</section>
+</main>
+<!-- Navigation omitted as per 'Task-Focused' departure rule -->
+</body></html>

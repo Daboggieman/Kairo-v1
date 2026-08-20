@@ -1,11 +1,20 @@
 /**
  * The primary action control. Sized to `TAP_TARGET` because the feature spec's core
  * complaint about gym apps is fiddly buttons mid-set.
+ *
+ * Labels are uppercase and letterspaced, which is the theme's voice for anything that acts. The
+ * casing is applied here rather than left to call sites so a screen cannot pass "Save" and get a
+ * button that reads differently from every other button.
+ *
+ * `danger` is outlined rather than filled: a destructive action wants to be findable and *not*
+ * inviting, and a solid red slab at 56px tall in a dark app is the most attention-grabbing thing on
+ * the screen. Outlined keeps it unmistakably red while making the primary action the one your thumb
+ * goes to.
  */
 
 import { ActivityIndicator, Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
 
-import { colors, fontSize, radius, spacing, TAP_TARGET } from '@/theme';
+import { colors, radius, spacing, TAP_TARGET, type as typeScale } from '@/theme';
 
 type Variant = 'primary' | 'secondary' | 'danger';
 
@@ -16,6 +25,13 @@ type Props = {
   disabled?: boolean;
   loading?: boolean;
   style?: ViewStyle;
+};
+
+/** What sits *on* each variant — the spinner and the label have to agree. */
+const foreground: Record<Variant, string> = {
+  primary: colors.accentText,
+  secondary: colors.text,
+  danger: colors.danger,
 };
 
 export function Button({
@@ -42,11 +58,9 @@ export function Button({
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'secondary' ? colors.text : colors.accentText} />
+        <ActivityIndicator color={foreground[variant]} />
       ) : (
-        <Text style={[styles.label, variant === 'secondary' && styles.labelSecondary]}>
-          {label}
-        </Text>
+        <Text style={[styles.label, { color: foreground[variant] }]}>{label.toUpperCase()}</Text>
       )}
     </Pressable>
   );
@@ -62,9 +76,8 @@ const styles = StyleSheet.create({
   },
   primary: { backgroundColor: colors.accent },
   secondary: { backgroundColor: colors.surfaceRaised, borderWidth: 1, borderColor: colors.border },
-  danger: { backgroundColor: colors.danger },
+  danger: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.danger },
   pressed: { opacity: 0.75 },
   disabled: { opacity: 0.4 },
-  label: { color: colors.accentText, fontSize: fontSize.md, fontWeight: '700' },
-  labelSecondary: { color: colors.text },
+  label: { ...typeScale.label, fontWeight: '700', textAlign: 'center' },
 });

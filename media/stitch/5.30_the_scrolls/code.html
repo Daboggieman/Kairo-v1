@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE SCROLLS</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-container": "#003f6e",
+                        "on-error-container": "#ffdad6",
+                        "inverse-surface": "#e1e2e9",
+                        "surface-container-high": "#272a2f",
+                        "outline-variant": "#504535",
+                        "on-tertiary": "#003259",
+                        "primary": "#f9bc4a",
+                        "inverse-primary": "#7d5700",
+                        "on-primary-fixed-variant": "#5f4100",
+                        "on-secondary-fixed-variant": "#44474a",
+                        "on-secondary-container": "#b3b5b8",
+                        "tertiary-fixed-dim": "#9fcaff",
+                        "primary-fixed-dim": "#f9bc4a",
+                        "on-background": "#e1e2e9",
+                        "surface-container-low": "#191c21",
+                        "on-error": "#690005",
+                        "primary-container": "#d79e2d",
+                        "tertiary": "#9fcaff",
+                        "surface-container-highest": "#32353a",
+                        "surface-dim": "#101418",
+                        "surface-variant": "#32353a",
+                        "surface-tint": "#f9bc4a",
+                        "background": "#101418",
+                        "surface": "#101418",
+                        "error-container": "#93000a",
+                        "primary-fixed": "#ffdeaa",
+                        "on-secondary": "#2d3133",
+                        "on-primary-container": "#523800",
+                        "on-secondary-fixed": "#191c1e",
+                        "on-tertiary-fixed-variant": "#00497e",
+                        "surface-container-lowest": "#0b0e13",
+                        "secondary": "#c4c7ca",
+                        "secondary-container": "#44474a",
+                        "tertiary-fixed": "#d2e4ff",
+                        "on-primary": "#422c00",
+                        "outline": "#9c8f7c",
+                        "inverse-on-surface": "#2e3036",
+                        "on-primary-fixed": "#271900",
+                        "surface-bright": "#36393f",
+                        "on-surface-variant": "#d4c4af",
+                        "on-surface": "#e1e2e9",
+                        "error": "#ffb4ab",
+                        "surface-container": "#1d2025",
+                        "secondary-fixed-dim": "#c4c7ca",
+                        "secondary-fixed": "#e0e3e6",
+                        "on-tertiary-fixed": "#001d37",
+                        "tertiary-container": "#6dacf3"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "fluting-width": "1px",
+                        "container-padding": "24px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Cinzel"],
+                        "label-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-md": ["Cinzel"],
+                        "headline-sm": ["Cinzel"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "0.15em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "display-md": ["28px", { "lineHeight": "34px", "letterSpacing": "0.12em", "fontWeight": "700" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .meander-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='4' viewBox='0 0 40 4' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h4v4H0V0zm8 0h4v4H8V0zm8 0h24v4H16V0z' fill='%23D79E2D' fill-opacity='0.2' fill-rule='evenodd'/%3E%3C/svg%3E");
+            background-repeat: repeat-x;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col pt-16 pb-20 md:pb-0">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-container-padding h-16 bg-surface border-b-4 border-primary">
+<button class="text-primary hover:opacity-80 transition-opacity duration-200">
+<span class="material-symbols-outlined" data-icon="security" style="font-variation-settings: 'FILL' 1;">security</span>
+</button>
+<h1 class="font-display-md text-display-md text-primary tracking-widest uppercase">KAIRO</h1>
+<button class="text-primary hover:opacity-80 transition-opacity duration-200">
+<span class="material-symbols-outlined" data-icon="settings" style="font-variation-settings: 'FILL' 1;">settings</span>
+</button>
+</header>
+<div class="w-full h-1 meander-pattern mt-1"></div>
+<main class="flex-grow flex flex-col md:max-w-4xl md:mx-auto w-full">
+<!-- The Daily Verse -->
+<section class="px-container-padding py-8 border-b border-outline-variant/30 flex flex-col relative">
+<div class="absolute left-container-padding top-8 bottom-8 w-fluting-width bg-outline-variant/20"></div>
+<div class="pl-6">
+<h2 class="font-headline-sm text-headline-sm text-primary mb-4 uppercase tracking-widest">The Daily Verse</h2>
+<blockquote class="font-display-lg text-display-lg text-on-surface mb-6 leading-tight">
+                    "Endurance is not just the ability to bear a hard thing, but to turn it into glory."
+                </blockquote>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase">— Epictetus</p>
+</div>
+</section>
+<!-- The Scrolls Library -->
+<section class="px-container-padding py-8 flex-grow">
+<h2 class="font-headline-sm text-headline-sm text-primary mb-6 uppercase tracking-widest border-b border-primary-container pb-2 inline-block">The Scrolls</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+<!-- Scroll Card 1 -->
+<article class="bg-surface border border-outline-variant p-6 hover:border-primary transition-colors cursor-pointer group flex flex-col h-full relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-primary" data-icon="local_fire_department">local_fire_department</span>
+</div>
+<div class="flex-grow">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase mb-2 block">Essay</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-3 group-hover:text-primary transition-colors">On the Nature of Resistance</h3>
+<p class="font-body-md text-on-surface-variant line-clamp-3">
+                            To lift the weight is to defy gravity, but to lift it repeatedly is to defy the mind's desire for comfort. Resistance is the forge where true character is shaped.
+                        </p>
+</div>
+<div class="mt-6 flex justify-between items-center border-t border-outline-variant/30 pt-4">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">8 Min Read</span>
+<span class="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</article>
+<!-- Scroll Card 2 -->
+<article class="bg-surface border border-outline-variant p-6 hover:border-primary transition-colors cursor-pointer group flex flex-col h-full relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-primary" data-icon="architecture">architecture</span>
+</div>
+<div class="flex-grow">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase mb-2 block">Treatise</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-3 group-hover:text-primary transition-colors">The Architecture of the Morning</h3>
+<p class="font-body-md text-on-surface-variant line-clamp-3">
+                            How you construct your first hour dictates the structural integrity of your entire day. A foundation of discipline prevents the collapse of intent.
+                        </p>
+</div>
+<div class="mt-6 flex justify-between items-center border-t border-outline-variant/30 pt-4">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">12 Min Read</span>
+<span class="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</article>
+<!-- Scroll Card 3 -->
+<article class="bg-surface border border-outline-variant p-6 hover:border-primary transition-colors cursor-pointer group flex flex-col h-full relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-primary" data-icon="restaurant_menu">restaurant_menu</span>
+</div>
+<div class="flex-grow">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase mb-2 block">Doctrine</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-3 group-hover:text-primary transition-colors">Fuel as Function</h3>
+<p class="font-body-md text-on-surface-variant line-clamp-3">
+                            Discard the modern obsession with indulgence. Treat your nourishment as the necessary ore required to sustain the fires of your daily labors.
+                        </p>
+</div>
+<div class="mt-6 flex justify-between items-center border-t border-outline-variant/30 pt-4">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">5 Min Read</span>
+<span class="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</article>
+<!-- Scroll Card 4 -->
+<article class="bg-surface border border-outline-variant p-6 hover:border-primary transition-colors cursor-pointer group flex flex-col h-full relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-primary" data-icon="nights_stay">nights_stay</span>
+</div>
+<div class="flex-grow">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase mb-2 block">Reflection</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-3 group-hover:text-primary transition-colors">The Virtue of Silence</h3>
+<p class="font-body-md text-on-surface-variant line-clamp-3">
+                            In a world screaming for attention, silence is a weapon. Learn to sit with your thoughts before you attempt to command your actions.
+                        </p>
+</div>
+<div class="mt-6 flex justify-between items-center border-t border-outline-variant/30 pt-4">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">10 Min Read</span>
+<span class="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</article>
+</div>
+<div class="mt-8 flex justify-center">
+<button class="bg-transparent border border-outline-variant text-on-surface h-[56px] px-8 font-label-md text-label-md uppercase tracking-widest hover:border-primary hover:text-primary transition-colors">
+                    Load More Archives
+                </button>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Visible on Mobile) -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center h-20 pb-safe px-2 bg-surface-container border-t border-outline-variant md:hidden">
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="fort">fort</span>
+<span class="font-label-sm text-label-sm uppercase">CITADEL</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="task_alt">task_alt</span>
+<span class="font-label-sm text-label-sm uppercase">RITES</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="fitness_center">fitness_center</span>
+<span class="font-label-sm text-label-sm uppercase">FORGE</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary pt-2 hover:text-primary-fixed active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="restaurant">restaurant</span>
+<span class="font-label-sm text-label-sm uppercase">FEAST</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary border-t-2 border-primary pt-2 active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="balance" style="font-variation-settings: 'FILL' 1;">balance</span>
+<span class="font-label-sm text-label-sm uppercase">SCALES</span>
+</a>
+</nav>
+</body></html>

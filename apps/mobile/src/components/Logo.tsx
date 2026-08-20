@@ -49,8 +49,37 @@ export function KairoMark({ height = 96 }: { height?: number }) {
   );
 }
 
+/**
+ * Cinzel's tracking, resolved for the wordmark.
+ *
+ * The word is set wider than `type.displayMd` because it is a mark rather than a heading — 0.28em
+ * against the display face's 0.12em. Expressed as a ratio of the size rather than a fixed point
+ * value so the wordmark stays proportional wherever it is rendered, which is why the two derived
+ * values below are computed per render instead of living in the `StyleSheet`.
+ */
+const WORDMARK_TRACKING = 0.28;
+
 export function KairoWordmark({ size = fontSize.xl }: { size?: number }) {
-  return <Text style={[styles.wordmark, { fontSize: size }]}>KAIRO</Text>;
+  const letterSpacing = size * WORDMARK_TRACKING;
+  return (
+    <Text
+      style={[
+        styles.wordmark,
+        {
+          fontSize: size,
+          letterSpacing,
+          // React Native applies letter spacing after the final glyph too, which pushes the word
+          // visibly off-centre inside its own box. Half of it back as left padding puts the optical
+          // centre where it belongs. Re-measured for Cinzel: its capitals are narrower and more
+          // widely sidebeared than the platform sans this used to be set in, so the correction is a
+          // function of the tracking rather than the flat 8px it was before.
+          paddingLeft: letterSpacing / 2,
+        },
+      ]}
+    >
+      KAIRO
+    </Text>
+  );
 }
 
 /**
@@ -182,11 +211,7 @@ const styles = StyleSheet.create({
   introStack: { alignItems: 'center', gap: spacing.xl },
   wordmark: {
     color: colors.text,
-    fontWeight: '800',
-    letterSpacing: 8,
-    // Letter spacing is applied after the last glyph too, which pushes the word visibly
-    // off-centre; half of it back as padding puts the optical centre where it belongs.
-    paddingLeft: 8,
+    fontFamily: 'Cinzel_700Bold',
   },
   loaderLabel: {
     color: colors.textMuted,

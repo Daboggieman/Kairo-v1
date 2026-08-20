@@ -15,7 +15,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { colors, radius } from '@/theme';
 
-const SIZE = 26;
+const SIZE = 28;
 
 type Props = {
   checked: boolean;
