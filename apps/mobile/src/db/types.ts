@@ -169,6 +169,43 @@ export type WorkoutSessionSummary = WorkoutSession & {
   exerciseNames: string[];
 };
 
+/**
+ * One set, flattened with the two things a record needs beyond the numbers: which lift it was, and
+ * when it happened.
+ *
+ * A record is "142.5kg — Deadlift, 12 August", so the lift's name and the session's date are part of
+ * the answer, not decoration. Deliberately narrower than `WorkoutSetWithExercise`: The Pantheon reads
+ * *every* set ever logged, so it selects seven columns rather than the whole row plus a join. `rpe`,
+ * `restSeconds` and `setNumber` are not part of any record, and carrying them would make the widest
+ * read in the app wider still.
+ */
+export type RecordSet = {
+  exerciseId: string;
+  exerciseName: string;
+  reps: number;
+  weight: number;
+  weightUnit: WeightUnit;
+  /** Grouping key for "heaviest session" — two sessions can share a `startedAt`, so the id is it. */
+  sessionId: string;
+  /** The *session's* `startedAt`, not the set's — sets carry no timestamp of their own. */
+  sessionStartedAt: string;
+};
+
+/**
+ * One GPS sample reduced to the four fields an all-history read needs: which activity it belongs to,
+ * when it was taken, how high, and how far in.
+ *
+ * The counterpart of `RecordSet` on the movement side, and for the same reason — climb and a fastest
+ * segment both need every sample of every activity, which is the most expensive read The Pantheon
+ * does. `altitudeMeters` stays nullable because the platform frequently gives no altitude at all.
+ */
+export type RouteSample = {
+  activityId: string;
+  recordedAtMs: number;
+  altitudeMeters: number | null;
+  cumulativeDistanceMeters: number;
+};
+
 export type BodyWeightEntry = {
   id: string;
   userId: string;

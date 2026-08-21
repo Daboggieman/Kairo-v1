@@ -14,8 +14,10 @@ import {
   dayOfWeek,
   isWeekday,
   relativeDayLabel,
+  relativeTimeLabel,
   toDayKey,
   todayNumber,
+  untilTimeLabel,
   WEEKDAY_LABELS,
 } from '../dates';
 
@@ -131,5 +133,51 @@ describe('relativeDayLabel', () => {
   it('crosses a month boundary without special-casing it', () => {
     const first = dayNumber('2026-09-01');
     expect(relativeDayLabel(dayNumber('2026-08-31'), first)).toBe('Yesterday');
+  });
+});
+
+describe('relativeTimeLabel', () => {
+  const now = Date.parse('2026-08-21T12:00:00.000Z');
+  const ago = (ms: number) => relativeTimeLabel(now - ms, now);
+
+  it('says "just now" for anything under a minute', () => {
+    expect(ago(0)).toBe('just now');
+    expect(ago(59_000)).toBe('just now');
+  });
+
+  it('steps up through minutes, hours and days', () => {
+    expect(ago(60_000)).toBe('1 minute ago');
+    expect(ago(12 * 60_000)).toBe('12 minutes ago');
+    expect(ago(60 * 60_000)).toBe('1 hour ago');
+    expect(ago(3 * 60 * 60_000)).toBe('3 hours ago');
+    expect(ago(24 * 60 * 60_000)).toBe('1 day ago');
+    expect(ago(9 * 24 * 60 * 60_000)).toBe('9 days ago');
+  });
+
+  it('reports one unit only, rounded down', () => {
+    // 1h59m is "1 hour ago", not "1 hour 59 minutes ago" and not "2 hours ago".
+    expect(ago(119 * 60_000)).toBe('1 hour ago');
+  });
+
+  it('treats a future instant as just now rather than growing a second vocabulary', () => {
+    expect(relativeTimeLabel(now + 60_000, now)).toBe('just now');
+  });
+});
+
+describe('untilTimeLabel', () => {
+  const now = Date.parse('2026-08-21T12:00:00.000Z');
+  const until = (ms: number) => untilTimeLabel(now + ms, now);
+
+  it('says "now" for an instant that has already passed', () => {
+    expect(untilTimeLabel(now - 1000, now)).toBe('now');
+    expect(untilTimeLabel(now, now)).toBe('now');
+  });
+
+  it('steps up through the same units', () => {
+    expect(until(30_000)).toBe('in under a minute');
+    expect(until(60_000)).toBe('in 1 minute');
+    expect(until(4 * 60_000)).toBe('in 4 minutes');
+    expect(until(2 * 60 * 60_000)).toBe('in 2 hours');
+    expect(until(2 * 24 * 60 * 60_000)).toBe('in 2 days');
   });
 });

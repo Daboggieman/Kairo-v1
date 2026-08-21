@@ -151,6 +151,20 @@ export function formatWeight(weight: number, unit: WeightUnit): string {
   return `${Math.round(weight * 100) / 100}${unit}`;
 }
 
+/**
+ * A load already normalised to kg, rendered in the unit the reader chose.
+ *
+ * `formatWeight` deliberately does not convert: it prints the number it is handed with the unit it
+ * is handed, because a set is logged in a unit and is shown back in that same unit. Anything
+ * *derived* — an estimated 1RM, a heaviest-ever lift across sessions logged in both units — has been
+ * through `toKg` and no longer carries a unit of its own, so the display unit becomes a preference.
+ * That conversion is this function, and it composes over `formatWeight` rather than repeating the
+ * rounding: one figure, one formatter.
+ */
+export function formatLoad(kg: number, unit: WeightUnit): string {
+  return formatWeight(unit === 'lb' ? kgToLb(kg) : kg, unit);
+}
+
 /* ------------------------------------------------------------------------- *
  * The Forge's vocabulary
  *

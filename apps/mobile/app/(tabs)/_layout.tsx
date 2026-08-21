@@ -167,6 +167,7 @@ export default function TabsLayout() {
       />
       <Tabs.Screen name="alarms" options={{ href: null, title: 'THE CALL' }} />
       <Tabs.Screen name="wallpaper" options={{ href: null, title: 'THE ORACLE' }} />
+      <Tabs.Screen name="envoy" options={{ href: null, title: 'THE ENVOY' }} />
     </Tabs>
   );
 }

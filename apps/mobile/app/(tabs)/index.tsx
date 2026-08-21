@@ -24,6 +24,7 @@ import {
   CardHeader,
   Eyebrow,
   Fluting,
+  IconButton,
   Meander,
   NavRow,
   Notice,
@@ -143,6 +144,10 @@ export default function HomeScreen() {
         The header is the theme at its densest: fluting down the left gutter, the mark and wordmark,
         the greeting, and the Greek key underneath. `KairoMark` has to sit on `colors.background` —
         its interior is opaque, not transparent — which is why this block is not a card.
+
+        It is also the one tab root with no `ScreenHeader`, and therefore the one with no `action`
+        slot. The Sanctum's gear is placed in the brand row by hand instead: giving this block a
+        `ScreenHeader` to gain the slot would mean giving up the mark.
       */}
       <View style={styles.header}>
         <Fluting />
@@ -150,6 +155,12 @@ export default function HomeScreen() {
           <View style={styles.brandRow}>
             <KairoMark height={28} />
             <Text style={styles.brand}>KAIRO</Text>
+            <View style={styles.brandSpacer} />
+            <IconButton
+              icon="cog-outline"
+              label="The Sanctum"
+              onPress={() => router.push('/sanctum')}
+            />
           </View>
           <View>
             <Text style={styles.greeting}>{greeting(nowMs)}</Text>
@@ -308,11 +319,22 @@ export default function HomeScreen() {
       ) : null}
 
       {/*
-        Rows, not cards: neither of these holds today's numbers, and as cards they competed with the
-        four that do.
+        Rows, not cards: none of these holds today's numbers, and as cards they competed with the
+        four that do. The Pantheon and The Annals join them here rather than taking tabs of their
+        own — both are things you go and look at, not things you do daily.
       */}
       <Section title="The Outer Ward">
         <RowGroup>
+          <NavRow
+            label="The Pantheon"
+            detail="Your records, and when you set them"
+            onPress={() => router.push('/pantheon')}
+          />
+          <NavRow
+            label="The Annals"
+            detail="The week, reckoned"
+            onPress={() => router.push('/annals')}
+          />
           <NavRow label="The Oracle" onPress={() => router.push('/wallpaper')} />
           <NavRow label="The Call" onPress={() => router.push('/alarms')} />
         </RowGroup>
@@ -388,6 +410,9 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', gap: spacing.lg, paddingTop: spacing.sm },
   headerMain: { flex: 1, gap: layout.cardGap },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  /** Pushes the Sanctum's gear to the far edge without giving the wordmark `flex: 1`, which would
+      let a long brand string steal the gear's room. */
+  brandSpacer: { flex: 1 },
   brand: { color: colors.text, ...typeScale.headlineSm },
   greeting: { color: colors.text, ...typeScale.displayMd },
   date: { color: colors.textMuted, fontSize: fontSize.sm, lineHeight: lineHeight.sm },

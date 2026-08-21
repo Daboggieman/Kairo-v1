@@ -14,6 +14,7 @@ import { Suspense, useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
+import { LaunchRouter } from '@/components/LaunchRouter';
 import { AppLoader, IntroOverlay, KairoMark } from '@/components/Logo';
 import { SyncBootstrap } from '@/components/SyncBootstrap';
 import { DATABASE_NAME } from '@/constants';
@@ -73,6 +74,7 @@ export default function RootLayout() {
         {fontsSettled ? (
           <View style={styles.root}>
             <SyncBootstrap />
+            <LaunchRouter />
             <StatusBar style="light" />
             <Stack
               screenOptions={{
@@ -81,7 +83,17 @@ export default function RootLayout() {
                 contentStyle: { backgroundColor: colors.background },
               }}
             >
+              {/*
+                Every route here sets `headerShown: false` and renders its own `AppBar`. The
+                `screenOptions` above deliberately do not set it globally — they style the native
+                header for anything that still wants one — so a new root route that omits the option
+                gets two headers, which is how each of these came to be listed individually.
+              */}
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="gates" options={{ headerShown: false, gestureEnabled: false }} />
+              <Stack.Screen name="sanctum" options={{ headerShown: false }} />
+              <Stack.Screen name="pantheon" options={{ headerShown: false }} />
+              <Stack.Screen name="annals" options={{ headerShown: false }} />
             </Stack>
             <Intro />
           </View>

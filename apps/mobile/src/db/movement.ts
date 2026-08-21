@@ -14,6 +14,7 @@ import {
   type MovementPointRow,
   type MovementStatus,
   type MovementType,
+  type RouteSample,
   toMovementActivity,
   toMovementEvent,
   toMovementPoint,
@@ -393,6 +394,53 @@ export async function listMovementPoints(
     'SELECT * FROM movement_points WHERE activity_id = ? ORDER BY sequence ASC', activityId,
   );
   return rows.map(toMovementPoint);
+}
+
+/**
+ * Every accepted, unexcluded sample of every completed activity, reduced to four columns.
+ *
+ * The Pantheon's one expensive read: "greatest climb" and "fastest 5 km" are both properties of a
+ * route's *interior*, not of the activity row — `elevation_gain_meters` exists on the row but nothing
+ * writes it, and no column holds a best segment. So the samples themselves are the only source, and
+ * there is no smaller read that answers the question.
+ *
+ * Kept as cheap as an unbounded read can be: four columns rather than `SELECT *`, filtered in SQL
+ * rather than in JS, and grouped by activity by the caller off a single ordered pass.
+ *
+ * The filter is the house convention from the replay screen — `accepted` only, `excluded_by_edit`
+ * dropped, **paused samples kept**. A pause is where the ground still rises and the walk still
+ * happened; excluding it would understate a climb, and `recomputeEditedRoute` already treats an edit
+ * as the only reason to drop a sample from a route's geometry.
+ */
+export async function listRouteSamples(
+  db: SQLiteDatabase,
+  userId: string,
+): Promise<RouteSample[]> {
+  const rows = await db.getAllAsync<{
+    activity_id: string;
+    recorded_at: string;
+    altitude_meters: number | null;
+    cumulative_distance_meters: number;
+  }>(
+    `SELECT p.activity_id                 AS activity_id,
+            p.recorded_at                 AS recorded_at,
+            p.altitude_meters             AS altitude_meters,
+            p.cumulative_distance_meters  AS cumulative_distance_meters
+     FROM movement_points p
+     JOIN movement_activities a ON a.id = p.activity_id
+     WHERE a.user_id = ?
+       AND a.status = 'completed'
+       AND p.processing_state = 'accepted'
+       AND p.excluded_by_edit = 0
+     ORDER BY p.activity_id ASC, p.sequence ASC`,
+    userId,
+  );
+  return rows.map((row) => ({
+    activityId: row.activity_id,
+    recordedAtMs: Date.parse(row.recorded_at),
+    altitudeMeters: row.altitude_meters,
+    cumulativeDistanceMeters: row.cumulative_distance_meters,
+  }));
 }
 
 export async function loadMovementState(

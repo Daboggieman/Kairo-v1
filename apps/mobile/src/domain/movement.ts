@@ -182,6 +182,25 @@ export function formatMovementSpeed(speedMps: number, unit: 'metric' | 'imperial
   return unit === 'metric' ? (speedMps * 3.6).toFixed(1) : (speedMps * 2.236936).toFixed(1);
 }
 
+/** Feet to a metre, for the one figure that is read in feet wherever miles are read. */
+export const METERS_PER_FOOT = 0.3048;
+
+/**
+ * A climb, in whole metres or whole feet: "148 m", "486 ft".
+ *
+ * Whole units on purpose. Elevation gain out of raw GPS altitude carries a real uncertainty of
+ * several metres — that is what `ELEVATION_NOISE_METERS` in the Pantheon domain exists to absorb —
+ * so a decimal here would be a precision the figure does not have. The unit is spelled out beside the
+ * number rather than returned separately, unlike `formatMovementDistance`: a climb is read as one
+ * phrase, not laid out as a value-and-label pair in a stat strip.
+ */
+export function formatElevation(meters: number, unit: 'metric' | 'imperial'): string {
+  const safe = Number.isFinite(meters) ? Math.max(0, meters) : 0;
+  return unit === 'metric'
+    ? `${Math.round(safe).toLocaleString()} m`
+    : `${Math.round(safe / METERS_PER_FOOT).toLocaleString()} ft`;
+}
+
 export function movementThresholds(activityType: MovementType) {
   return thresholds[activityType];
 }

@@ -88,6 +88,32 @@ export function isWeekday(day: number): boolean {
 }
 
 /**
+ * Which day a calendar week begins on.
+ *
+ * Declared here rather than in `src/db/preferences.ts` even though it is a preference's value type,
+ * because a week boundary is a calendar fact and `startOfWeek` is the only thing that acts on it.
+ * `preferences.ts` re-exports this as `WeekStart` so there is one union and one spelling of each
+ * value — a second copy of `'monday' | 'sunday'` is free to drift from this one.
+ */
+export type WeekStartDay = 'monday' | 'sunday';
+
+/**
+ * The day index the calendar week containing `day` starts on.
+ *
+ * Integer arithmetic over day indices, like everything else here: no `Date` is constructed, so a
+ * week that spans a DST change is still exactly seven indices wide. Day 0 (1970-01-01) is a
+ * Thursday, which `dayOfWeek` already accounts for.
+ *
+ * This is a *calendar* week and is not interchangeable with `movementWeek`'s rolling seven days
+ * ending today — the two answer different questions, and `src/domain/movement.ts` says why its
+ * window is not this one.
+ */
+export function startOfWeek(day: number, weekStart: WeekStartDay): number {
+  const first = weekStart === 'sunday' ? 0 : 1;
+  return day - (((dayOfWeek(day) - first) % 7) + 7) % 7;
+}
+
+/**
  * "Today" or "Yesterday" for a day index, `null` for one that needs its date spelled out.
  *
  * Only the two words are decided here. Spelling out the date is `toLocaleDateString`'s job, which
@@ -98,4 +124,49 @@ export function relativeDayLabel(day: number, today: number): string | null {
   if (day === today) return 'Today';
   if (day === today - 1) return 'Yesterday';
   return null;
+}
+
+/**
+ * How long ago an instant was, in words: "just now", "12 minutes ago", "3 hours ago", "2 days ago".
+ *
+ * Instants, not day indices, which is why this sits apart from everything above — The Envoy cares
+ * that a sync was 12 minutes ago, and rounding that to "today" would lose the only part that
+ * matters.
+ *
+ * Deliberately coarse. One unit, no "1 hour 12 minutes": these read in a row of status lines where
+ * the question is *roughly how stale*, and a precise duration invites comparing two of them.
+ * A future instant reads as "just now" rather than growing a second vocabulary for clock skew.
+ */
+export function relativeTimeLabel(atMs: number, nowMs: number): string {
+  const seconds = Math.floor((nowMs - atMs) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} ${plural(minutes, 'minute')} ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} ${plural(hours, 'hour')} ago`;
+  const days = Math.floor(hours / 24);
+  return `${days} ${plural(days, 'day')} ago`;
+}
+
+/**
+ * How far off an instant is, in the same units and the same coarseness: "in 4 minutes".
+ *
+ * The counterpart to `relativeTimeLabel`, and a separate function rather than a sign flag because
+ * the two read differently in a sentence and the call sites know which they mean. An instant that
+ * has already passed reads as "now" — for a backing-off outbox row, that is the truth.
+ */
+export function untilTimeLabel(atMs: number, nowMs: number): string {
+  const seconds = Math.ceil((atMs - nowMs) / 1000);
+  if (seconds <= 0) return 'now';
+  if (seconds < 60) return 'in under a minute';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `in ${minutes} ${plural(minutes, 'minute')}`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `in ${hours} ${plural(hours, 'hour')}`;
+  const days = Math.floor(hours / 24);
+  return `in ${days} ${plural(days, 'day')}`;
+}
+
+function plural(count: number, unit: string): string {
+  return count === 1 ? unit : `${unit}s`;
 }

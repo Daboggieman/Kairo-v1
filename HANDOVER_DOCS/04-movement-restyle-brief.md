@@ -59,6 +59,13 @@ Checked against the real schema and the real writers, not the designs:
     threshold gate to mean anything, and inventing that gate is a feature, not a restyle.
   - This is a **real tracker gap**, not a design error. Record it as such; it is the natural companion
     to whoever implements elevation.
+  - **Update 2026-08-20 — the gap has a floor.** The *column* is unwritten, but **`altitude_meters` on
+    every sample is written** (`src/services/movementTracking.ts:81` → the insert in
+    `src/db/movement.ts`), so a gain figure is computable without a schema change; what is still
+    missing is the threshold gate this section declined to invent for a restyle. Stage 3 budgets that
+    function for The Pantheon — see
+    [`12-stage-3-brief.md`](12-stage-3-brief.md). **The two drops above stand**: they are correct
+    until that function exists, and re-adding the CLIMB cell is not Stage 3 work.
 - **`paused_seconds` is only written by `trimMovementActivity`**, so it is unreliable as a live figure.
   Derive the design's HELD cell instead: `heldSeconds = elapsedSeconds - movingSeconds`. That is true by
   construction, whatever wrote the row.

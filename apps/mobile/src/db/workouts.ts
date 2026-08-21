@@ -14,6 +14,7 @@ import { enqueue, type WorkoutSessionWire, type WorkoutSetWire } from './outbox'
 import {
   Exercise,
   ExerciseRow,
+  type RecordSet,
   toExercise,
   toWorkoutSession,
   toWorkoutSet,
@@ -184,6 +185,59 @@ export async function listSetsWithExercises(
     sessionId,
   );
   return rows.map((row) => ({ ...toWorkoutSet(row), exerciseName: row.exercise_name }));
+}
+
+/**
+ * Every set this user has ever logged, with its lift's name and its session's date.
+ *
+ * The Pantheon's read. It is unbounded on purpose — a record is by definition the best of *all* time,
+ * so a `LIMIT` here would silently turn "your heaviest ever" into "your heaviest recently", which is
+ * the kind of quiet wrong answer a records screen must not give. Six columns rather than `st.*` keeps
+ * the cost proportional to the answer; see `RecordSet`.
+ *
+ * Unlike `listSessions` above this filters by `user_id`. That reader predates the constraint and
+ * there is only ever one local user, so both return the same rows today — but a query that reads
+ * every row in the table is the wrong place to inherit that assumption.
+ *
+ * Ordered oldest-first so the *first* set to reach a given figure is the one that dates the record:
+ * matching an existing best later does not move its date.
+ */
+export async function listSetsForRecords(
+  db: SQLiteDatabase,
+  userId: string,
+): Promise<RecordSet[]> {
+  const rows = await db.getAllAsync<{
+    exercise_id: string;
+    exercise_name: string;
+    reps: number;
+    weight: number;
+    weight_unit: string;
+    session_id: string;
+    session_started_at: string;
+  }>(
+    `SELECT st.exercise_id     AS exercise_id,
+            e.name             AS exercise_name,
+            st.reps            AS reps,
+            st.weight          AS weight,
+            st.weight_unit     AS weight_unit,
+            s.id               AS session_id,
+            s.started_at       AS session_started_at
+     FROM workout_sets st
+     JOIN workout_sessions s ON s.id = st.session_id
+     JOIN exercises e        ON e.id = st.exercise_id
+     WHERE s.user_id = ?
+     ORDER BY s.started_at ASC, st.set_number ASC`,
+    userId,
+  );
+  return rows.map((row) => ({
+    exerciseId: row.exercise_id,
+    exerciseName: row.exercise_name,
+    reps: row.reps,
+    weight: row.weight,
+    weightUnit: row.weight_unit === 'lb' ? 'lb' : 'kg',
+    sessionId: row.session_id,
+    sessionStartedAt: row.session_started_at,
+  }));
 }
 
 export async function listExercises(db: SQLiteDatabase): Promise<Exercise[]> {

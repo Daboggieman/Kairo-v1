@@ -209,3 +209,69 @@ export async function pendingCount(db: SQLiteDatabase): Promise<number> {
   );
   return row?.count ?? 0;
 }
+
+/**
+ * Every queued intent, newest first — what The Envoy shows.
+ *
+ * Unlike `listDue` this does not filter on `next_attempt_at`: a row that has given up
+ * (`next_attempt_at IS NULL`) is invisible to the sync loop and is exactly the row a person opens
+ * this screen to find. The limit is a rendering bound, not a correctness one; `pendingCount` and
+ * `failedCount` are the honest totals.
+ */
+export async function listAll(db: SQLiteDatabase, limit = 100): Promise<OutboxRow[]> {
+  return db.getAllAsync<OutboxRow>(
+    `SELECT * FROM sync_outbox
+     ORDER BY id DESC
+     LIMIT ?`,
+    limit,
+  );
+}
+
+/** Rows the sync loop has given up on — the complement of `pendingCount`. */
+export async function failedCount(db: SQLiteDatabase): Promise<number> {
+  const row = await db.getFirstAsync<{ count: number }>(
+    'SELECT COUNT(*) AS count FROM sync_outbox WHERE next_attempt_at IS NULL',
+  );
+  return row?.count ?? 0;
+}
+
+/**
+ * Put a row back in the queue, due now.
+ *
+ * `attempts` is left alone on purpose: it is the row's history, and a person retrying by hand wants
+ * to keep seeing that it has already failed three times. What changes is only whether the sync loop
+ * can see the row — `markFailed` set `next_attempt_at` to NULL, and this undoes precisely that.
+ * `last_error` is cleared because it describes the previous attempt, not the pending one.
+ */
+export async function requeue(
+  db: SQLiteDatabase,
+  id: number,
+  nowIso = new Date().toISOString(),
+): Promise<void> {
+  await db.runAsync(
+    `UPDATE sync_outbox
+     SET next_attempt_at = ?, last_error = NULL
+     WHERE id = ?`,
+    nowIso,
+    id,
+  );
+}
+
+/** Every row back in the queue at once — the screen's "retry all". */
+export async function requeueAll(
+  db: SQLiteDatabase,
+  nowIso = new Date().toISOString(),
+): Promise<number> {
+  const result = await db.runAsync(
+    `UPDATE sync_outbox
+     SET next_attempt_at = ?, last_error = NULL
+     WHERE next_attempt_at IS NULL`,
+    nowIso,
+  );
+  return result.changes;
+}
+
+/** Abandon one intent. The row is the only record of it, so this is not recoverable. */
+export async function discard(db: SQLiteDatabase, id: number): Promise<void> {
+  await db.runAsync('DELETE FROM sync_outbox WHERE id = ?', id);
+}

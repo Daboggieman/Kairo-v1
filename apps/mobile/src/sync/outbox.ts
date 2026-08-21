@@ -2,6 +2,7 @@
 
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import { LOCAL_USER_ID } from '@/constants';
 import {
   listDue,
   markFailed,
@@ -18,12 +19,18 @@ import {
   type WorkoutSessionWire,
   type WorkoutSetWire,
 } from '@/db/outbox';
+import { setLastSyncAt } from '@/db/preferences';
 
 import { ApiError, createSyncClient, type SyncClient } from './client';
 import { syncConfig, type SyncConfig } from './config';
 
 const BATCH_SIZE = 20;
-const MAX_BACKOFF_MS = 60 * 60 * 1000;
+/**
+ * The ceiling on exponential backoff. Exported because The Envoy states the retry policy to the
+ * user, and a screen that describes this behaviour has to read the number that implements it —
+ * the design's own caption said "capped at 10m", which was never what this said.
+ */
+export const MAX_BACKOFF_MS = 60 * 60 * 1000;
 
 export type SyncResult = {
   status: 'disabled' | 'complete';
@@ -71,6 +78,26 @@ export async function syncOutbox(
         // Preserve operation order. A later delete must not overtake a failed create.
         break;
       }
+    }
+  }
+
+  /**
+   * The one write this module makes outside the outbox.
+   *
+   * Gated on `succeeded > 0`, not on the run merely finishing: with `SyncBootstrap` calling in every
+   * 60 seconds, "the loop ran" is true almost always and tells nobody anything, and a run that found
+   * nothing due never touched the network — stamping it would claim a freshness it has not verified.
+   * So this records the last time an intent actually reached the server, which is the question The
+   * Envoy is open to answer.
+   *
+   * The write is best-effort. Failing to record a timestamp must not turn a successful sync into a
+   * failed one.
+   */
+  if (succeeded > 0) {
+    try {
+      await setLastSyncAt(db, LOCAL_USER_ID, nowMs);
+    } catch {
+      // The delivery already happened; only the bookkeeping is missing.
     }
   }
 
