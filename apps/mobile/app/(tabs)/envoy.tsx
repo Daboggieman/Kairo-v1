@@ -29,9 +29,9 @@
  *   dropped every full-width footer slab in the rebuild.
  */
 
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -82,28 +82,47 @@ export default function EnvoyScreen() {
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
 
-  const load = useCallback(async () => {
+  /**
+   * `isCurrent` lets a caller abandon a read whose results have been superseded. The focus effect
+   * below passes one; the button handlers do not, because a press is by definition the current
+   * intent.
+   */
+  const load = useCallback(async (isCurrent: () => boolean = () => true) => {
     try {
       const [all, failures, lastSync] = await Promise.all([
         listAll(db),
         failedCount(db),
         getLastSyncAt(db, LOCAL_USER_ID),
       ]);
+      if (!isCurrent()) return;
       setRows(all);
       setFailed(failures);
       setLastSyncAtMs(lastSync);
       setNowMs(Date.now());
       setError(null);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : String(caught));
+      if (isCurrent()) setError(caught instanceof Error ? caught.message : String(caught));
     } finally {
-      setLoaded(true);
+      if (isCurrent()) setLoaded(true);
     }
   }, [db]);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  /**
+   * On focus, not on mount. The satchel is filled by every other screen in the app and drained by
+   * `SyncBootstrap` on its own 60-second timer, so what the queue held when this tab first mounted
+   * is stale by the time anyone comes back to it — the same reason the Citadel reads on focus
+   * (`app/(tabs)/index.tsx`). The `cancelled` flag stops a slow read that was already in flight when
+   * the tab lost focus from overwriting the fresh one that replaced it.
+   */
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      void load(() => !cancelled);
+      return () => {
+        cancelled = true;
+      };
+    }, [load]),
+  );
 
   /**
    * Send, then reload. `requestSync` is single-flight already, so a second press while one is in

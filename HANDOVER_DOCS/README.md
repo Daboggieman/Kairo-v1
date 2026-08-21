@@ -7,7 +7,7 @@ project history; the file at the repo root is now a pointer to this index.
 **Read [`01-current-state.md`](01-current-state.md) first.** It is the only document here that dates
 quickly. Everything else is reference and stays true until the thing it describes changes.
 
-Last updated: **2026-08-20**.
+Last updated: **2026-08-21**.
 
 ## The resume point
 
@@ -39,12 +39,12 @@ inside one session, twice. One copy is the point of the folder — do not reintr
 | [`04-movement-restyle-brief.md`](04-movement-restyle-brief.md) | The movement module as it was decided: design analysis, the decisions taken, the domain work it needed — now a record, not a to-do | Questioning why a movement screen reads the way it does |
 | [`05-design-handoff.md`](05-design-handoff.md) | The 30 Stitch designs, the dumper script, the verified 61-glyph table, the five locked decisions | Transcribing any design |
 | [`06-architecture-decisions.md`](06-architecture-decisions.md) | Project-wide decisions, the shared-SQLite rule, the Expo Go capability rule, the branding invariants | Before adding a dependency, a connection, or a native call |
-| [`07-module-reference.md`](07-module-reference.md) | Tasks, macros, Home and movement: files, schemas, and the decisions embedded in them | Changing a module's data or logic |
-| [`08-verification.md`](08-verification.md) | Commands and their measured results, machine gotchas, the lint gate, the test harness | Running or extending the checks |
+| [`07-module-reference.md`](07-module-reference.md) | Tasks, macros, Home, movement, and Stage 3's cross-module surface: files, schemas, and the decisions embedded in them | Changing a module's data or logic |
+| [`08-verification.md`](08-verification.md) | Commands and their measured results, machine gotchas, the lint gate, the expected `tsc` errors, the test harness | Running or extending the checks |
 | [`09-phase-3-acceptance.md`](09-phase-3-acceptance.md) | Phase 3 movement status and the native acceptance sequence | After the rebuild finishes |
 | [`10-project-history.md`](10-project-history.md) | Phase 1/2 record, git history, resolved device findings, the superseded 2026-08-17 pass | Archaeology — why something is the way it is |
 | [`11-module-pattern-and-hygiene.md`](11-module-pattern-and-hygiene.md) | How a new module is built here; repo hygiene, including one open security item | Adding a module, or before any git housekeeping |
-| [`12-stage-3-brief.md`](12-stage-3-brief.md) | Stage 3's five new screens as decided: the designs checked against the real schema, the figures with no source, the new domain/db work, the build order | Before writing any of the five new screens |
+| [`12-stage-3-brief.md`](12-stage-3-brief.md) | Stage 3's five new screens as decided, plus a dated build-state table of what has actually landed and what each remaining function still needs | Before writing any of the five new screens |
 
 The planning package these sit beside is [`../docs/`](../docs/) — start at
 [`../docs/README.md`](../docs/README.md). The division of labour: `docs/` is what the app is *meant*

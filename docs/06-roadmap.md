@@ -56,10 +56,12 @@ The implementation is complete through the executable mobile/backend layers:
   replacement revisions and deletes enqueue idempotent removal.
 - Automated verification was green as of that date: mobile 376 tests across 18 suites, backend 28
   tests, Ruff, TypeScript, ESLint, Expo Doctor 21/21, and Android/iOS exports. Suites have been
-  added since — the mobile baseline reached 394 across 20 suites, and the UI rebuild's domain work
-  took it to **481 across 20, measured 2026-08-19**. **No mobile test count in this file is
-  current**; `HANDOVER_DOCS/08-verification.md` holds the measured figures with their dates, and
-  anything undated there is an expectation rather than a measurement.
+  added many times since — the mobile baseline passed 394/20, then 481/20, then 494/20 — so **no
+  mobile test count in this file is current, including that sequence**;
+  `HANDOVER_DOCS/08-verification.md` holds the measured figure with its date, and anything undated
+  there is an expectation rather than a measurement. It also records the one standing exception to
+  the clean-`tsc` gate: while the UI rebuild's last screens are outstanding, `tsc` reports three
+  expected route-union errors and that is the pass mark.
 
 Physical Android development-build results have not yet been provided by the user. Background
 location, screen lock, foreground-service notification, force-kill recovery, Bluetooth speech,

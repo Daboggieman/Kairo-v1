@@ -3,6 +3,11 @@
 The repo gate is **0 TypeScript errors, 0 ESLint errors, 0 ESLint warnings, 0 failing tests.** Everything
 below states when it was last *measured*; treat an undated claim as an expectation.
 
+**One standing exception, from 2026-08-21 until Stage 3 finishes:** `tsc` reports **3 errors** and that is
+the correct result. See "The expected `tsc` errors" below before treating a non-clean typecheck as a
+regression.
+
+
 ## The commands
 
 ```sh
@@ -28,9 +33,9 @@ EXPO_NO_TELEMETRY=1 npx expo export --platform ios     --output-dir /tmp/kairo-i
 
 | Check | Result | Measured |
 |---|---|---|
-| `npm test` | **494 passed, 20 suites, 0 failures** (11–24 s, cache-dependent) | **2026-08-20** |
-| `npx tsc --noEmit` | clean, exit 0, no output | **2026-08-20** |
-| `npm run lint` | clean, banner only | **2026-08-20** |
+| `npm test` | **523 passed, 21 suites, 0 failures** (60 s cold, less warm) | **2026-08-21** |
+| `npx tsc --noEmit` | **3 errors, all expected** — see below | **2026-08-21** |
+| `npm run lint` | clean, banner only | **2026-08-21** |
 | `ruff check .` | All checks passed | 2026-08-16 |
 | `pytest -q` | 28 passed | 2026-08-16 |
 | `alembic upgrade head` | at head | 2026-08-16 |
@@ -38,13 +43,35 @@ EXPO_NO_TELEMETRY=1 npx expo export --platform ios     --output-dir /tmp/kairo-i
 | `expo export` android + ios | both successful | 2026-08-16 — **predates the rebuild** |
 | Any physical-device run | **never run** | — |
 
-The 494/20 measurement **supersedes every earlier count in this handover** — 350/16, 376/18, 394/20, the
-never-measured "426 expected", and 481/20 from 2026-08-19. The +13 over 481 is the movement module's
-domain vocabulary. **The Call and The Oracle added none** and the figure was re-measured unchanged after
-them: both screens' wording already lived in `reminders.ts` and `motivation.ts`, so a flat count there is
-the expected result, not missing coverage. Suites covered:
+The 523/21 measurement **supersedes every earlier count in this handover** — 350/16, 376/18, 394/20, the
+never-measured "426 expected", 481/20 from 2026-08-19, and 494/20 from 2026-08-20. The +29 over 494 is
+`src/domain/__tests__/envoy.test.ts` (20 cases, the new 21st suite) plus the new `dates.test.ts` cases for
+`startOfWeek`, `relativeTimeLabel` and `untilTimeLabel`. Suites covered:
 `db/{alarms,tasks,workouts,weight,macros,movement,outbox}`, `store/workoutStore`, `sync/sync`, and
-`domain/{tasks,movement,macros,weight,workouts,dashboard,reminders,motivation,chart,dates,numbers}`.
+`domain/{tasks,movement,macros,weight,workouts,dashboard,reminders,motivation,chart,dates,numbers,envoy}`.
+
+**The 2026-08-21 run took 60 s cold**, against the 11–24 s recorded for the 494-test run. The extra is
+cache state, not the 29 new cases — the figure is here so nobody reads a slow run as a hang.
+
+### The expected `tsc` errors
+
+`app.json` sets `experiments.typedRoutes`, so expo-router generates its `Href` union from the route files
+that **exist**. The Citadel already pushes three routes whose files do not:
+
+| Where | Route |
+|---|---|
+| `app/(tabs)/index.tsx:162` | `/sanctum` |
+| `app/(tabs)/index.tsx:331` | `/pantheon` |
+| `app/(tabs)/index.tsx:336` | `/annals` |
+
+All three are the same error — *not assignable to parameter of type `Href`* — and each clears the moment
+its screen file is created. That was proven when `app/gates.tsx` landed and both `/gates` errors
+disappeared with no change to the pushing code.
+
+**So: 3 is the pass mark until Stage 3 finishes, and 0 after.** Do not silence them with a cast or an
+`as never` — the union regenerates on its own, and a cast would survive the screens landing and hide the
+next real one. If you see a *fourth*, or a different message, that one is yours.
+
 
 **Division of labour:** `npm test`, `npx tsc --noEmit` and `npm run lint` are ours to run — the user
 authorised that on 2026-08-19 (*"run the required tests, the dependencies have been installed"*). Device
@@ -81,6 +108,14 @@ This config is React-Compiler-era, and the gate is zero warnings, so all four ar
 - **`react-hooks/set-state-in-effect`** rejects calling `setState` *synchronously* inside an effect. That is
   why `wallpaper.tsx` derives its status from a result tagged with its attempt number instead of storing a
   status and setting it to `'loading'` at the top of the fetch. Setting state **after an `await` is fine**.
+  **Two things about it that cost a gate failure on 2026-08-21** (`app/(tabs)/envoy.tsx`, caught only
+  because that pass linted the whole tree rather than the one new file): it **follows a direct call from an
+  effect body into a `useCallback`** and flags the setStates it finds there, even when every one is behind
+  an `await` — so `useEffect(() => { void load(); }, [load])` fails where the same `load` called from a
+  handler passes. And **it does not treat `useFocusEffect` as an effect**, which is why
+  `app/(tabs)/index.tsx` has always passed with the same shape. The house pattern is therefore
+  `useFocusEffect(useCallback(() => { let cancelled = false; void load(() => !cancelled); return () => { cancelled = true; }; }, [load]))`
+  — which is also the better behaviour for anything reading data another screen writes.
 - **`react-hooks/preserve-manual-memoization`** cost **7 errors** in the macros module alone. The fix is not
   to satisfy it — it is to **drop the manual memo**: write `onPress={() => void onSave()}` rather than
   wrapping a handler in `useCallback` the compiler then objects to.

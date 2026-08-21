@@ -21,7 +21,8 @@ kairo/
 │   │   │   └── generate-icons.py  # renders every asset above from source/
 │   │   ├── types/               # ambient declarations (e.g. *.png imports)
 │   │   ├── app/                 # Expo Router routes — see "Navigation" below
-│   │   │   ├── _layout.tsx      # SQLiteProvider + migrations
+│   │   │   ├── _layout.tsx      # SQLiteProvider + migrations + LaunchRouter
+│   │   │   ├── gates.tsx        # root routes — screens deliberately outside the tab group
 │   │   │   └── (tabs)/
 │   │   │       ├── _layout.tsx  # bottom tabs, one per module
 │   │   │       ├── index.tsx    # Home
@@ -67,6 +68,24 @@ What changed:
   anticipate: `src/domain/` (pure module logic, unit-tested without a React renderer) and
   `src/hooks/`.
 
+**Not every screen is a tab.** Three kinds of route file exist and the distinction is deliberate:
+
+| Where | What it is | Examples |
+|---|---|---|
+| `app/(tabs)/<module>/` | a feature module, one folder each | workouts, macros, movement |
+| `app/(tabs)/<name>.tsx` with `href: null` | a **hidden tab** — no bar entry, but returning from it lands back on the tab you came from | The Call, The Oracle, The Envoy |
+| `app/<name>.tsx` | a **root route**, outside the tab group entirely, so the bar is not drawn | The Gates, The Sanctum, The Pantheon, The Annals |
+
+The rule that picks between the last two: if leaving the screen should return the user to where they
+were in the app, it is a hidden tab; if the screen owns the whole surface — onboarding, settings, a
+full-screen reckoning — it is a root route. A root route registered in `app/_layout.tsx` also gets
+`headerShown: false`, because these screens draw their own `AppBar`.
+
+**`app/_layout.tsx` stays a route registry.** The onboarding redirect is
+`src/components/LaunchRouter.tsx`, a child of `SQLiteProvider` — it has to be, to read a preference at
+all, but the readable reason is that a layout which also makes decisions is where two unrelated
+concerns end up sharing a file.
+
 Why: the "one folder per feature module" convention below stops being a convention and
 becomes structural — a module without a folder under `app/` has no routes. Deep linking
 and typed routes come for free, which matters for the Phase 2 alarm and wallpaper
@@ -74,6 +93,12 @@ notifications that need to open a specific screen.
 
 Cost: route files must live in `app/`, so the module's screens and its store/db/domain code
 sit in two different trees rather than one folder per module.
+
+**`app.json` sets `experiments.typedRoutes`**, which generates an `Href` union from the route files
+that exist. That is worth knowing before it looks like a bug: a `router.push('/x')` written *before*
+`app/x.tsx` exists is a TypeScript error, and it clears by creating the file, never by casting. The
+gate therefore reads non-clean while a screen is pushed-to but unwritten — see
+`../HANDOVER_DOCS/08-verification.md` for which errors are currently expected.
 
 ## Conventions worth setting early
 - One router + one model file per feature module on the backend, one route folder under

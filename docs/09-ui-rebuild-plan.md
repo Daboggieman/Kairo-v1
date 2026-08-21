@@ -261,12 +261,19 @@ squared off.
 **The Pantheon** (`5.27`) — personal records, in a new `src/domain/pantheon.ts`. Every number is
 already in the database. It reuses `bestOneRepMax`, `sessionVolume`, `estimateOneRepMax`, and
 `toKg` from `src/domain/workouts.ts`, and `formatPace`, `formatMovementDistance`, and
-`haversineMeters` from `src/domain/movement.ts`. `elevation_gain_meters` is already stored, so
-"greatest climb" is a `MAX`. Two genuinely new pure functions: elevation gain from sample
-altitudes, and a rolling-window split for "fastest 5 km". Both unit-tested alongside the other
-domain suites. The design's footnote is kept verbatim — *"Feats are derived from your own
+`haversineMeters` from `src/domain/movement.ts`. Two genuinely new pure functions: elevation gain
+from sample altitudes, and a rolling-window split for "fastest 5 km". Both unit-tested alongside the
+other domain suites. The design's footnote is kept verbatim — *"Feats are derived from your own
 records. Nothing here is a target."* — because it is the honest description of the screen and
 stops it becoming a goals feature.
+
+> **Corrected 2026-08-21.** This section originally read *"`elevation_gain_meters` is already
+> stored, so 'greatest climb' is a `MAX`"*. The column exists but **nothing ever writes it**, so a
+> `MAX` over it returns 0 for every activity on record — the same tracker gap that removed The
+> Chronicle's CLIMB cell. The figure comes from this section's *other* sentence instead: the new
+> elevation-from-sample-altitudes function, over `altitude_meters`, which **is** written on every
+> sample. The claim is struck rather than silently edited because it was acted on once.
+> See [`../HANDOVER_DOCS/12-stage-3-brief.md`](../HANDOVER_DOCS/12-stage-3-brief.md).
 
 **The Annals** (`5.28`) — the weekly reckoning, in a new `src/domain/annals.ts`. A week
 navigator, a verdict block, four per-module aggregate cards with seven-cell day strips, a

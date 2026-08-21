@@ -46,9 +46,11 @@ Kairo backend upload only after completion.
   replacement, ownership isolation, and replay-safe deletion.
 
 Automated verification at that checkpoint: mobile typecheck/lint clean, **376 tests across 18 suites**
-(**394 across 20** after the 2026-08-17 Expo Go fix, **481 across 20** on 2026-08-19, and **494 across
-20** as measured on 2026-08-20), backend Ruff clean, **28 backend tests**, Alembic at head, Expo Doctor
-**21/21**, and both Android and iOS exports successful.
+(**394 across 20** after the 2026-08-17 Expo Go fix, **481 across 20** on 2026-08-19, **494 across 20** on
+2026-08-20, and **523 across 21** on 2026-08-21), backend Ruff clean, **28 backend tests**, Alembic at
+head, Expo Doctor **21/21**, and both Android and iOS exports successful. The current figure and the
+standing `tsc` exception are in [`08-verification.md`](08-verification.md); this list is history, kept to
+show the direction of travel.
 
 **No physical-device result has ever been returned.** Background location, screen lock, foreground-service
 notification, force-kill recovery, Bluetooth speech, battery use and iOS native behaviour all remain open

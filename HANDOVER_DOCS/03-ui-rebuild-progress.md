@@ -1,11 +1,14 @@
 # The rebuild so far — what landed, and the departures that are deliberate
 
-Stages 0, 1 and 2 are complete — **22 of 22 screens**. Every "departure from the design" below is commented
-in the file that makes it. **Do not "fix" them** — each one is a decision about the app's real data, and
-several were made twice because the first record of them was too thin to trust.
+Stages 0, 1 and 2 are complete — **22 of 22 screens** — and Stage 3 is two of five, with The Envoy and
+The Gates built. Every "departure from the design" below is commented in the file that makes it. **Do not
+"fix" them** — each one is a decision about the app's real data, and several were made twice because the
+first record of them was too thin to trust.
 
-Verified after all of it, on **2026-08-20**: `npm test` 494 passed across 20 suites, `npx tsc --noEmit`
-clean, `npm run lint` clean. No module has been run on a device yet.
+Verified after Stage 2, on **2026-08-20**: `npm test` 494 passed across 20 suites, `npx tsc --noEmit`
+clean, `npm run lint` clean. Re-measured after Stage 3's first two screens on **2026-08-21**: **523 across
+21**, lint clean, and **3 expected `tsc` errors** — the current figures and why three is the pass mark are
+in [`08-verification.md`](08-verification.md). No module has been run on a device yet.
 
 ---
 
@@ -499,4 +502,118 @@ circles need 308pt (332 with the 4pt gaps) and the screen margin leaves 327 on a
 360pt one — and **React Native's `flexShrink` defaults to 0**, unlike the web, so the row does not
 tighten: the last day runs off the edge. `dayChip: { flexShrink: 1 }` in both The Call and the New Rite.
 Anything else that lays a fixed-width control out seven-across wants the same line.
+
+## Stage 3 — The Envoy and The Gates
+
+The first two of the five new screens, built 2026-08-21 against
+[`12-stage-3-brief.md`](12-stage-3-brief.md), which decided all five before any code and holds the
+reasoning. This section records what landed and the departures; the brief holds why each figure has the
+rule it has.
+
+| File | Lines | What |
+|---|---|---|
+| `app/_layout.tsx` | +12 | registers `gates` and the three modal routes, `headerShown: false` |
+| `src/components/LaunchRouter.tsx` | 56 | **new** — the onboarding redirect |
+| `app/(tabs)/envoy.tsx` | 386 | The Envoy |
+| `src/domain/envoy.ts` | 206 | **new** — the sync vocabulary |
+| `src/domain/__tests__/envoy.test.ts` | 225 | **new** — 20 cases |
+| `app/gates.tsx` | 533 | The Gates |
+| `src/domain/dates.ts` | +71 | `startOfWeek`, `WeekStartDay`, `relativeTimeLabel`, `untilTimeLabel` |
+| `src/db/preferences.ts` | +125 | four keys and their accessors |
+
+**Test count moved 494 → 523 across 20 → 21 suites**, measured 2026-08-21. The +29 is `envoy.test.ts`
+plus the new `dates.ts` cases; both new screens' *wording* is in the domain, which is what makes it
+testable at all.
+
+**The redirect is its own component, not code in `_layout.tsx`.** `LaunchRouter` reads
+`ONBOARDING_COMPLETE` and redirects; `_layout` stays a route registry. It has to be a child of
+`SQLiteProvider` to read a preference at all, which is the mechanical reason, but the readable one is
+that a layout that also makes decisions is where two unrelated concerns end up sharing a file.
+
+**The Envoy — departures**, all one reason: *the design shows figures the app has no source for, and
+inventing a source for a diagnostics screen defeats the point of it.*
+
+- **No DELIVERED count.** `markSucceeded` deletes the row it succeeded on, so a delivered intent leaves
+  nothing behind by construction. "214 items delivered" needs a ledger table that does not exist. The
+  strip is two cells.
+- **No token row, and no "Forget Credentials".** `SyncClient` holds its token pair in a private field
+  and `createSyncClient` builds a fresh instance per run, so nothing outlives a sync to report an
+  expiry against. The device key is a build-time constant from `EXPO_PUBLIC_KAIRO_DEVICE_KEY`, not
+  something stored on the device — a "forget" button would be a no-op implying the app holds a secret
+  it could drop.
+- **The retry cap is stated as one hour, not the design's ten minutes.** `MAX_BACKOFF_MS` is
+  3,600,000, and the screen reads the constant rather than repeating the caption. `describeRetryPolicy`
+  is tested against the code, and its test says so.
+- **No SENDING state.** It exists only inside one pass of `syncOutbox`'s loop and is never written
+  down. `outboxState` distinguishes the three a query can actually answer: due, waiting, failed.
+- **"Last delivered", not "Last ran".** `LAST_SYNC_AT` is written only by a run that delivered
+  something. `SyncBootstrap` calls in every 60 seconds, so "the loop ran" is almost always true and
+  says nothing.
+- **"Send now" is the `AppBar` action**, not a docked footer button — the convention that dropped every
+  full-width footer slab in the rebuild.
+
+**It reads on focus, not on mount** (`useFocusEffect`, as The Citadel does). The satchel is filled by
+every other screen and drained by `SyncBootstrap`'s own timer, so what the queue held when the tab
+first mounted is stale by the time anyone returns to it. This was also a **lint fix**: a plain
+`useEffect` calling a `useCallback` that sets state trips `react-hooks/set-state-in-effect`, because the
+rule follows the call and sees the setState without seeing that every one is behind an `await`. The
+`cancelled` flag is not ceremony either — with focus-refetch, a slow read in flight when the tab loses
+focus really can land after the fresh one.
+
+**The Envoy has no entry point in the running app yet.** It is pushed from The Sanctum only, and The
+Sanctum is built last. The Outer Ward row the brief originally planned was dropped: the Outer Ward
+holds things you go and *look at*, and a queue you visit when something looks wrong belongs behind
+settings rather than advertised on the dashboard.
+
+**The Gates — departures:**
+
+- **Two Measures rows, not three.** One `UNIT_SYSTEM` covers weight *and* distance; the design's
+  separate KG/LB and KM/MI toggles would mean auditing every `toKg` and `formatMovementDistance` call
+  site to enable kilograms-with-miles, which nobody asked for. The locked plan resolved it the same way.
+- **The Gatekeepers have no checkboxes.** An OS grant cannot be switched back off from inside the app,
+  so a checkbox would be a control that does not control its thing. Kairo requests each permission at
+  the point of first use, deliberately, so the request arrives with a reason attached. The three rows
+  are informational, and each **reports what this runtime can actually do** — `notificationsMode`,
+  `IS_EXPO_GO`, `mediaLibraryAvailable` — in the wording `alarms.tsx` and `movement/new.tsx` already
+  use, rather than promising Expo Go what it lacks.
+- **A degraded row is `warning`-toned, never dimmed.** Dimming the row that carries the caveat is the
+  readability problem this rebuild exists to fix — the same call the Citadel's at-risk rite makes.
+- **`pagingEnabled`, not scroll-snap.** React Native has no CSS snap.
+- **The full-width buttons stay.** The rebuild dropped every *docked* footer slab; these are in the
+  content flow, and advancing is the whole purpose of each panel — as with "Set out" in
+  `movement/new.tsx`.
+- **"altered in the Citadel later" → "in The Sanctum later."** The Sanctum is where the two settings
+  live; the Citadel is only the door to it.
+
+**Two layout traps caught in the first draft, both worth not reintroducing:**
+
+- **A panel cannot be `flex: 1`.** Inside a horizontal `ScrollView` the content container is a *row*,
+  so `flex: 1` on a child sizes it along the scroll axis and collapses all three panels onto one page.
+  Both dimensions are set explicitly, and the height explicitly too — a percentage against a container
+  sized by its own children resolves to nothing.
+- **Paging measures the scroll view, not the window.** `pagingEnabled` snaps to multiples of the
+  scroll view's own frame width, which is not `useWindowDimensions().width` in landscape on a notched
+  phone; using the window would drift one inset per swipe. The page size comes from `onLayout`,
+  seeded from the window, with an equality guard because `onLayout` re-fires.
+
+**Two things The Gates does that are behaviour, not style:** a failed `ONBOARDING_COMPLETE` write keeps
+the user at The Gates rather than letting them through to a Citadel that will bounce them next launch;
+and the three dots are one `accessible` element labelled "Step 2 of 3", not three announced views.
+
+`IntroOverlay` plays over the whole stack on the first launch of a JS context, so on a genuine first
+install it plays *over* The Gates. That is what being above the stack means, and it is written in the
+file so nobody reads it as a bug and removes one of the two ceremonies.
+
+## Stage 3 — The Pantheon: groundwork only
+
+The vocabulary and both database reads have landed; `src/domain/pantheon.ts`, `app/pantheon.tsx` and
+the suite are **not written**. What exists, and the rules the remaining functions need, is the table
+and list under "Build state" in [`12-stage-3-brief.md`](12-stage-3-brief.md) — kept there rather than
+repeated here, because it is a decision record and not yet a record of what landed.
+
+One correction it forced in a **project** doc: `docs/09-ui-rebuild-plan.md` justified "greatest climb"
+as *"a `MAX`"* over `elevation_gain_meters`, which nothing writes — it would return 0 for every
+activity on record. The claim is struck in place there, with a pointer, rather than silently edited,
+because it was acted on once.
+
 

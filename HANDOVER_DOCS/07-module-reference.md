@@ -197,7 +197,7 @@ The UI was restyled on 2026-08-20; the brief that decided it is
 
 | Path | Role |
 |---|---|
-| `src/db/movement.ts` | 18 functions over schemas v7–v9 |
+| `src/db/movement.ts` | 19 functions over schemas v7–v9 |
 | `src/domain/movement.ts` | the pure tracking engine, the formatters, and the module's display vocabulary |
 | `src/services/movementTracking.ts` | the background task, permissions, start/stop |
 | `src/services/runtime.ts` | `IS_EXPO_GO`, re-exported from `movementTracking` |
@@ -208,9 +208,9 @@ Tests: `src/db/__tests__/movement.test.ts` and `src/domain/__tests__/movement.te
 **`src/db/movement.ts` entry points:** `createMovementActivity`, `getMovementActivity`,
 `getActiveMovementActivity`, `listMovementActivities`, `setMovementStatus`, `completeMovementActivity`,
 `editMovementActivity`, `trimMovementActivity`, `deleteMovementActivity`, `appendMovementPoint`,
-`listMovementPoints`, `loadMovementState`, `appendMovementEvent`, `appendNextMovementEvent`,
-`listMovementEvents`, plus the engine-state trio `createMovementEngineState` / `getMovementEngineState` /
-`updateMovementEngineState`.
+`listMovementPoints`, `listRouteSamples`, `loadMovementState`, `appendMovementEvent`,
+`appendNextMovementEvent`, `listMovementEvents`, plus the engine-state trio `createMovementEngineState` /
+`getMovementEngineState` / `updateMovementEngineState`.
 
 **`src/domain/movement.ts` exports** the types (`MovementType` = `'run' | 'walk' | 'ride'`,
 `TrackingStatus`, `MovementEventType`, `LocationSample`, `AcceptedPoint`, `MovementState`,
@@ -237,6 +237,100 @@ Three things about it that are easy to get wrong:
   the rows already stored, not an edit at the call site.
 - **`elevation_gain_meters` exists on the row and is never written.** It is a tracker gap, not a UI one,
   which is why The Chronicle has no CLIMB cell and no elevation chart — a permanent zero reads as a flat
-  route rather than an unmeasured one. Whoever implements elevation owns both.
+  route rather than an unmeasured one. Whoever implements elevation owns both. **Amended 2026-08-21:** the
+  column is still never written and a `MAX` over it is still worthless, but the *figure* is now reachable
+  without it — `altitude_meters` on each sample **is** written, `listRouteSamples` reads it, and
+  `formatElevation` (`src/domain/movement.ts`) renders it. Once The Pantheon's
+  elevation-from-sample-altitudes function exists, The Chronicle's CLIMB cell becomes re-addable from the
+  same source. Not in Stage 3.
 - **`paused_seconds` is only written by `trimMovementActivity`**, so derive held time from
   `elapsedSeconds - movingSeconds` instead of trusting it.
+- **`listMovementActivities` defaults to `limit = 100`.** Harmless for The Expedition's list; wrong for
+  anything claiming to read all of history. A caller that means "every activity" must say so explicitly —
+  see The Pantheon's note in [`12-stage-3-brief.md`](12-stage-3-brief.md).
+
+---
+
+## Stage 3's new surface — sync, preferences, and the records reads
+
+Added 2026-08-21 with The Envoy and The Gates. Grouped here rather than under a module because none of it
+belongs to one: The Envoy is about the app itself, and The Pantheon reads across every module at once.
+
+| Path | Role |
+|---|---|
+| `src/domain/envoy.ts` | pure — the sync vocabulary; 206 lines, 20 test cases |
+| `src/db/preferences.ts` | four new keys and their accessors |
+| `src/domain/dates.ts` | `startOfWeek`, `WeekStartDay`, `relativeTimeLabel`, `untilTimeLabel` |
+| `src/components/LaunchRouter.tsx` | the onboarding redirect, a child of `SQLiteProvider` |
+| `src/db/types.ts` | `RecordSet`, `RouteSample` |
+| `src/db/workouts.ts` | `listSetsForRecords` |
+| `src/db/movement.ts` | `listRouteSamples` |
+| `src/domain/workouts.ts` | `formatLoad` |
+| `src/domain/movement.ts` | `formatElevation`, `METERS_PER_FOOT` |
+
+### `src/domain/envoy.ts`
+
+`outboxState` (`due | waiting | failed`), `OUTBOX_STATE_LABELS`, `describeOutboxRow`,
+`describeSyncState`, `describeRetryPolicy`, `formatEnvoyTotals`. The screen renders these and computes
+nothing itself, which is what makes the wording testable — that is the same arrangement the movement
+module arrived at with `MOVEMENT_LABELS` and `movementPerformance`.
+
+- **Three states, because three is what a query can answer.** `SENDING` exists only inside one pass of
+  `syncOutbox`'s loop and is never written down, so it is not a state the database can be asked about.
+- **`describeRetryPolicy` takes `MAX_BACKOFF_MS` as an argument** rather than importing it. The screen
+  passes the real constant, so the caption cannot drift from the behaviour; the test passes its own, so
+  the assertion is about the sentence and not about the current cap.
+- **A delivered intent leaves no trace.** `markSucceeded` deletes its row, so any "N delivered" figure
+  needs a ledger table that does not exist. Do not add one to satisfy a design.
+
+### The four preference keys
+
+`UNIT_SYSTEM` predates these. New: `WEEK_START` (`getWeekStart`/`setWeekStart`, **Monday** default),
+`FIRST_SCREEN` (`getFirstScreen`), `ONBOARDING_COMPLETE`
+(`isOnboardingComplete`/`setOnboardingComplete`/`clearOnboardingComplete`), and `LAST_SYNC_AT`
+(`getLastSyncAt`/`setLastSyncAt`).
+
+- **`preferences` is key-value TEXT, so none of these needed a migration.** That is the property that made
+  The Gates the cheap screen it is.
+- **`LAST_SYNC_AT` is written only by a run that delivered something** (`succeeded > 0`), which is why the
+  Envoy's row reads "Last delivered". `SyncBootstrap` calls in every 60 seconds, so "the loop ran" is
+  almost always true and tells the reader nothing.
+- **`clearOnboardingComplete` exists for The Sanctum's raze**, which must put the user back at The Gates
+  rather than into an app with no data and no explanation.
+
+### `startOfWeek`
+
+`startOfWeek(day, weekStart)` in `src/domain/dates.ts`, on day indices like everything else in that
+module. `WeekStartDay` is `'sunday' | 'monday' | 'saturday'`. The Annals' week navigator and The
+Pantheon's perfect-week walk both take it from here; **`movementWeek` in `src/domain/movement.ts` stays
+rolling-7-day and must not be unified with it** — a rolling total and a calendar week answer different
+questions, and collapsing them would silently change what The Expedition's header means.
+
+### The two records reads
+
+Both are **deliberately narrower than the full row type** and both are the widest reads in the app, which
+is the whole reason they are separate functions rather than a `LIMIT`-less call to an existing one.
+
+- **`listSetsForRecords(db, userId) → RecordSet[]`** — every set ever logged, with its lift's name and its
+  session's date. **Unbounded on purpose**: a `LIMIT` turns "your heaviest ever" into "your heaviest
+  recently", which is the quiet wrong answer a records screen must not give. **Oldest-first**, so the
+  first set to reach a figure is the one that dates the record and matching a best later does not move its
+  date. `RecordSet` carries `sessionId` as well as `sessionStartedAt` because two sessions can share a
+  timestamp, and grouping "heaviest session" by the date would merge them.
+- **`listRouteSamples(db, userId) → RouteSample[]`** — accepted, un-excluded points from completed
+  activities, ordered by activity then sequence. The Pantheon's one expensive read. **Paused samples are
+  kept**: the ground still rises while a walker stands still, and dropping them would under-report a
+  climb taken during a rest.
+
+### `formatLoad` and `formatElevation`
+
+- **`formatLoad(kg, unit)`** composes over `formatWeight` rather than repeating its rounding.
+  `formatWeight` deliberately does not convert — a set is logged in a unit and shown back in that unit —
+  but anything *derived* (an estimated 1RM, a heaviest-ever across sessions logged in both units) has been
+  through `toKg` and carries no unit of its own, so the display unit becomes a preference. That is the
+  distinction the two functions encode.
+- **`formatElevation(meters, unit)`** prints whole units on purpose: `"148 m"`, `"486 ft"`. Elevation gain
+  out of raw GPS altitude carries a real uncertainty of several metres, so a decimal would claim a
+  precision the figure does not have. `METERS_PER_FOOT` is exported beside it because feet is the one
+  figure read wherever miles are.
+

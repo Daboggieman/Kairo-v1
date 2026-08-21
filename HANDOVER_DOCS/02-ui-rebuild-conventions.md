@@ -2,7 +2,8 @@
 
 Each of these was decided once, on an early module. Re-deciding them per module is how the app ends up
 looking assembled rather than designed. Stage 2 is complete, so they are binding on **Stage 3's five new
-screens** — and on any return to one of the 22 already restyled.
+screens** — and on any return to one of the 22 already restyled. The Envoy and The Gates added the last
+eight of them on 2026-08-21; the three still to build are The Pantheon, The Annals and The Sanctum.
 
 ## Structure
 
@@ -35,6 +36,27 @@ screens** — and on any return to one of the 22 already restyled.
   (332 with gaps) against the ~312–327pt a phone's screen margin leaves — and without the line the last
   one runs off the edge instead of the row tightening. Present in The Call and the New Rite; found in the
   New Rite *after* it shipped.
+- **Which kind of route a new screen is — module folder, hidden tab, or root route — is decided in
+  [`../docs/07-repo-structure.md`](../docs/07-repo-structure.md).** The short version: if leaving it
+  should return the user where they were, it is a hidden tab (`href: null`); if it owns the whole surface,
+  it is a root route under `app/`. A root route registers with `headerShown: false` and draws its own
+  `AppBar`.
+- **A screen that reads data another screen writes reads on focus, not on mount** —
+  `useFocusEffect(useCallback(…))` with a `cancelled` flag, as The Citadel, The Rites and The Envoy do.
+  Two reasons it is the convention and not a preference: the data is stale by the time anyone comes back
+  to the tab, and a plain `useEffect` that calls a `useCallback` which sets state **fails the lint gate**
+  even when every write is behind an `await`. The rule's exact behaviour is in
+  [`08-verification.md`](08-verification.md#the-four-eslint-rules-that-bite). A one-shot pushed screen
+  stays a plain effect (`tasks/[taskId].tsx`).
+- **Panels inside a horizontal `ScrollView` take explicit width *and* height — never `flex: 1`.** The
+  content container is a row, so `flex: 1` sizes a child along the *scroll* axis and collapses every page
+  onto one. A percentage height is no better: against a container sized by its own children it resolves to
+  nothing. The Gates sets both.
+- **`pagingEnabled` snaps to the scroll view's own frame, not the window.** They differ in landscape on a
+  notched phone, so a page width taken from `useWindowDimensions()` drifts one inset per swipe. Take it
+  from `onLayout` — seeded from the window so the first frame is not zero-width — with an equality guard,
+  because `onLayout` re-fires.
+
 
 ## Meaning
 
@@ -77,6 +99,21 @@ from screens already shipped:
   domain already means it, not whether the two screens match.
 - A cell the tracker never writes is dropped rather than rendered as a zero. See The Chronicle's CLIMB
   cell in [`04-movement-restyle-brief.md`](04-movement-restyle-brief.md).
+- **A control that cannot control its thing is not rendered as a control.** The Gates shows the three OS
+  permissions as informational rows with no checkboxes, because a grant cannot be revoked from inside the
+  app — and each row reports what *this runtime* can actually do (`notificationsMode`, `IS_EXPO_GO`,
+  `mediaLibraryAvailable`) rather than promising Expo Go a capability it lacks. The same rule retired The
+  Envoy's "Forget Credentials" button: the device key is a build-time constant, so the button would have
+  implied a stored secret the app could drop.
+- **A figure with no source is dropped, not invented.** The Envoy lost its DELIVERED count because
+  `markSucceeded` deletes the row it succeeded on, and its token-expiry row because no token outlives one
+  sync. On a diagnostics screen especially, a plausible number is worse than a missing one.
+- **A caption that states a threshold reads the constant.** The Envoy prints its retry cap from
+  `MAX_BACKOFF_MS` (one hour) rather than repeating the design's "ten minutes", and
+  `describeRetryPolicy` takes the value as an argument so the sentence and the behaviour cannot drift.
+- **A degraded row is toned `warning`, never dimmed.** Dimming the row that carries the caveat hides the
+  caveat — the readability failure this rebuild exists to fix.
+
 
 The full per-module list of departures is in
 [`03-ui-rebuild-progress.md`](03-ui-rebuild-progress.md) — read it before "fixing" anything that looks
@@ -108,8 +145,16 @@ opened. What remains — 4, 5, 6 — is standing guidance for Stage 3, not a bac
    last conversion — `CardHeader`, `Eyebrow`, `Chip`, `Fluting` and `IconButton` replaced bespoke styles
    and a direct `MaterialCommunityIcons` import.
 6. **Re-run `npx tsc --noEmit` and `npm run lint` after every module, and `npm test` when a domain suite
-   changed.**
+   changed.** **Lint the whole tree, not the file you just wrote** — `app/(tabs)/envoy.tsx` shipped a
+   `set-state-in-effect` error in `ox-08` because that pass linted only the other new file. And expect
+   `tsc` to report the three route-union errors listed in
+   [`08-verification.md`](08-verification.md#the-expected-tsc-errors) until the last Stage 3 screens land;
+   a fourth is yours.
 
 Two things the tab bar does **not** need: `alarms` and `wallpaper` are already `href: null` with six
-visible tabs, and both are reachable from The Citadel's Outer Ward rows. No navigation restructure. (The
-rebuild hangs the Pantheon and the Annals off that same row group.)
+visible tabs, and both are reachable from The Citadel's Outer Ward rows. `envoy` joined them as a third
+`href: null` tab in `ox-08`. No navigation restructure. The Pantheon and the Annals hang off that same
+Outer Ward row group and **their rows are already in place** (`index.tsx:331`, `:336`); The Envoy
+deliberately does not, and is reached from The Sanctum instead — see
+[`01-current-state.md`](01-current-state.md#the-resume-point--the-pantheon).
+

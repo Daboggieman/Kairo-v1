@@ -18,6 +18,66 @@ Everything below was verified on **2026-08-20** against the files it cites.
 | **The Pantheon** | `app/pantheon.tsx` | `5.27` | `src/domain/pantheon.ts` |
 | **The Annals** | `app/annals.tsx` | `5.28` | `src/domain/annals.ts` |
 
+## Build state — measured 2026-08-21
+
+This document was written before any code and remains the decision record. What has since been built
+against it:
+
+| Step | State |
+|---|---|
+| 0. `app/_layout.tsx` | **Done.** Registers `gates` and the three modal routes; `headerShown: false` so no native header lands over an `AppBar`. `src/components/LaunchRouter.tsx` (new) does the redirect. |
+| 1. `src/db/preferences.ts` | **Done.** Four keys added, no migration. `WeekStart` is a re-export of `WeekStartDay` from `src/domain/dates.ts` — one union, since `startOfWeek` is the only thing that acts on it. |
+| 2. The Envoy | **Done.** `app/(tabs)/envoy.tsx` (386 lines), `src/domain/envoy.ts` (206), `envoy.test.ts` (225). |
+| 3. The Gates | **Done.** `app/gates.tsx` (533 lines). Five departures, listed in its own header comment and in [`03-ui-rebuild-progress.md`](03-ui-rebuild-progress.md#stage-3--the-envoy-and-the-gates). |
+| 4. The Pantheon | **Groundwork only.** The vocabulary and both reads have landed (below); `src/domain/pantheon.ts`, `app/pantheon.tsx` and the suite are **not written**. |
+| 5. The Annals | Not started. |
+| 6. The Sanctum | Not started. Still needs the `expo-sharing` decision from the user. |
+
+**Two divergences from what this document says, both deliberate, both already in the code:**
+
+- **The Envoy is reached from The Sanctum only** — not from the Citadel's Outer Ward. The Outer Ward
+  holds things you go and *look at*; a queue you only visit when something looks wrong belongs behind
+  settings, and putting it on the dashboard advertises a failure mode that is normally invisible.
+  Since The Sanctum is step 6, **the Envoy currently has no entry point in the running app** — it is
+  reachable by route only until The Sanctum lands. That is expected, not a bug.
+- **`LAST_SYNC_AT` is written only when a run *delivered* something** (`succeeded > 0`), not on every
+  completed run as this document originally said. `SyncBootstrap` calls in every 60 seconds, so "the
+  loop ran" is almost always true and says nothing, and a run that found nothing due never touched the
+  network. The Envoy therefore labels it **"Last delivered"**, not "Last ran". The reasoning is on the
+  constant in `src/db/preferences.ts`.
+
+### The Pantheon groundwork that has landed
+
+All of it committed in `ox-08`, all of it exercised by nothing yet — the suite comes with the domain
+module:
+
+| Added | Where | Why it is there and not at the call site |
+|---|---|---|
+| `startOfWeek(day, weekStart)`, `type WeekStartDay` | `src/domain/dates.ts` | A week boundary is a calendar fact, and integer day arithmetic keeps a DST-spanning week exactly seven indices wide. |
+| `formatLoad(kg, unit)` | `src/domain/workouts.ts` | `formatWeight` deliberately does not convert — a set is shown in the unit it was logged in. A *derived* load (a best across sessions logged in both units) has been through `toKg` and has no unit of its own, so the display unit becomes a preference. Composes over `formatWeight`; does not repeat the rounding. |
+| `formatElevation(meters, unit)`, `METERS_PER_FOOT` | `src/domain/movement.ts` | A climb is a movement figure, so its one formatter lives with the others. Whole units only: gain derived from raw GPS altitude has no decimal to give. |
+| `RecordSet`, `RouteSample` | `src/db/types.ts` | Two narrow all-history read shapes. Both are deliberately narrower than the full row types — these are the widest reads in the app, so they select the columns the answer needs and nothing else. |
+| `listSetsForRecords(db, userId)` | `src/db/workouts.ts` | **Unbounded on purpose.** A record is the best of *all* time, so a `LIMIT` would quietly turn "your heaviest ever" into "your heaviest recently". Ordered oldest-first, so the *first* set to reach a figure is the one that dates it — matching a best later does not move its date. Filters by `user_id`, which `listSessions` above it does not. |
+| `listRouteSamples(db, userId)` | `src/db/movement.ts` | The screen's one expensive read. Four columns, filtered in SQL, ordered by activity then sequence so the caller groups in one pass. Filter is the replay screen's convention: `accepted`, not `excluded_by_edit`, **paused samples kept** — the ground still rises during a pause. |
+
+**Still to write**, and the rules each figure needs (all reasoned out, none coded):
+
+- `ELEVATION_NOISE_METERS`, and a **hysteresis** filter rather than a sum of positive deltas: the
+  reference altitude moves only when a change clears the threshold in either direction. A naive sum
+  inflates gain badly on noisy altitude, and a plain per-sample threshold discards a long steady climb
+  taken in small steps.
+- `FASTEST_SEGMENT_METERS = 5000` and a **two-pointer walk with the start point interpolated**, the
+  same interpolation rationale as `splits`. Kept metric in both unit systems: *5K* is a proper noun.
+- `RECORD_IS_NEW_WITHIN_DAYS` — the "NEW" badge's recency rule, computed against `nowMs`.
+- `perfectWeeks` — walked **backwards** from the last fully elapsed week, so the guard against a
+  corrupt `createdAt` truncates ancient history rather than recent history. A week with no scheduled
+  rite is not perfect; the current week is excluded because its remaining days are in the future.
+- `greatestFall` over the trend series, window a named constant.
+- A **flat named `Pantheon` record** (`greatest`, `forge`, `expedition`, `rites`, `scales`, `empty`)
+  rather than stringly-keyed sections, so the screen owns icons and order.
+- Dates are carried as **day indices, not formatted strings**: `src/domain/dates.ts` keeps
+  `toLocaleDateString` at the call site so no test asserts against the machine's locale.
+
 ## Build order — and why it is not the plan's
 
 The plan lists them "cheapest first". Build order is a different question from scope, and the
@@ -55,8 +115,9 @@ the module passing a raw key string.
 ## The Envoy — `app/(tabs)/envoy.tsx` (`5.26`)
 
 A hidden tab (`href: null`, joining `alarms` and `wallpaper` at
-`app/(tabs)/_layout.tsx:168-169`), pushed from the Citadel's Outer Ward and from the Sanctum. `AppBar`
-with `onBack`, exactly as those two do.
+`app/(tabs)/_layout.tsx:168-169`), pushed ~~from the Citadel's Outer Ward and~~ from the Sanctum.
+`AppBar` with `onBack`, exactly as those two do. **The Outer Ward entry was dropped when this was
+built** — see the divergences under "Build state" above.
 
 ### What the outbox really holds
 
@@ -76,6 +137,8 @@ that **resets `next_attempt_at`** to now so a failed row becomes due again.
   It is one preference write, needs no migration, and it is the single number that answers *is sync
   working?* — without it the whole hero card is decoration. Note that this makes `syncOutbox` a
   writer of preferences as well as a reader of the outbox; its existing suite should pin the write.
+  **Built narrower than this: only a run that *delivered* something writes it** (`succeeded > 0`), and
+  the label became "Last delivered". Reasoning in the divergences under "Build state" above.
 - **"Token expires in 41 minutes".** `SyncClient.tokens` is a **private field**
   (`src/sync/client.ts:24`) on an instance built fresh inside every `syncOutbox` call
   (`createSyncClient`, `src/sync/client.ts:119`). No token survives one sync and nothing parses `exp`.
@@ -343,24 +406,32 @@ chevron — dropped.
 
 ## What Stage 3 adds, in one list
 
-| Layer | Change |
-|---|---|
-| `app/_layout.tsx` | register the four root routes with `headerShown: false` + the onboarding redirect child |
-| `src/db/preferences.ts` | four keys and their typed accessors |
-| `src/db/outbox.ts` | `listAll()`, retry-resets-`next_attempt_at` |
-| `src/db/macros.ts` | two range readers |
-| `src/db/maintenance.ts` | **new** — `exportEverything`, `razeLocalData` |
-| `src/sync/outbox.ts` | write `LAST_SYNC_AT` on completion |
-| `src/components/LineChart.tsx` | `showAxis`, `pointsDashArray` |
-| `src/domain/envoy.ts` | **new** — sync vocabulary |
-| `src/domain/pantheon.ts` | **new** — records, incl. elevation-from-samples and the rolling 30-day fall |
-| `src/domain/annals.ts` | **new** — the calendar week, the four aggregates, the verdict generator |
-| `app/(tabs)/index.tsx` | Sanctum `IconButton` in the brand row; Outer Ward 2 rows → 4 |
-| `app/(tabs)/_layout.tsx` | `envoy` as a third `href: null` tab |
-| dependency | **`expo-sharing` — the user's decision, not taken here** |
+| Layer | Change | State |
+|---|---|---|
+| `app/_layout.tsx` | register the four root routes with `headerShown: false` + the onboarding redirect child | done |
+| `src/components/LaunchRouter.tsx` | **new** — holds the redirect, so `_layout` stays a route registry | done |
+| `src/db/preferences.ts` | four keys and their typed accessors | done |
+| `src/db/outbox.ts` | `listAll()`, retry-resets-`next_attempt_at` | done |
+| `src/db/types.ts` | `RecordSet`, `RouteSample` — the two all-history read shapes | done |
+| `src/db/workouts.ts` | `listSetsForRecords` | done |
+| `src/db/movement.ts` | `listRouteSamples` | done |
+| `src/db/macros.ts` | two range readers | to do |
+| `src/db/maintenance.ts` | **new** — `exportEverything`, `razeLocalData` | to do |
+| `src/sync/outbox.ts` | write `LAST_SYNC_AT` — on a run that *delivered*, not on every completion | done |
+| `src/components/LineChart.tsx` | `showAxis`, `pointsDashArray` | to do |
+| `src/domain/dates.ts` | `startOfWeek`, `WeekStartDay` | done |
+| `src/domain/workouts.ts` | `formatLoad` | done |
+| `src/domain/movement.ts` | `formatElevation`, `METERS_PER_FOOT` | done |
+| `src/domain/envoy.ts` | **new** — sync vocabulary | done |
+| `src/domain/pantheon.ts` | **new** — records, incl. elevation-from-samples and the rolling 30-day fall | to do |
+| `src/domain/annals.ts` | **new** — the calendar week, the four aggregates, the verdict generator | to do |
+| `app/(tabs)/index.tsx` | Sanctum `IconButton` in the brand row; Outer Ward 2 rows → 4 | done |
+| `app/(tabs)/_layout.tsx` | `envoy` as a third `href: null` tab | done |
+| dependency | **`expo-sharing` — the user's decision, not taken here** | open |
 
 Three new domain suites mean the test count will move well past 494. **Measure it; do not predict it**
-— see [`08-verification.md`](08-verification.md).
+— see [`08-verification.md`](08-verification.md). One of the three has landed: **523 tests across 21
+suites**, measured 2026-08-21.
 
 ## Icons
 
