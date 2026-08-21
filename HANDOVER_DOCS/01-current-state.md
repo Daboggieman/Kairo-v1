@@ -19,14 +19,14 @@ colour/spacing substitution table, the token changes, the five new screens, the 
 | **Stage 0 — foundations** | **Done.** Theme tokens, Cinzel, all 25 `Layout` primitives, `Button`, `Checkbox`, `Logo`. |
 | **Stage 1 — shell** | **Done.** `app/(tabs)/_layout.tsx` is the six-tab Canon bar. |
 | **Stage 2 — 22 screens** | **Done — 22 of 22.** The Citadel (1), the tasks module (3), the workouts module (4), the macros module (3), the weight module (3), the movement module (6), The Call and The Oracle (2) — plus each module's `_layout.tsx`. |
-| **Stage 3 — 5 new screens** | **In progress — 2 of 5 built.** The Envoy and The Gates landed 2026-08-21 (plus `LaunchRouter` and the route registrations). The Pantheon has its vocabulary and both database reads but no domain module and no screen. The Annals and The Sanctum are not started. Scoped for all five in [`12-stage-3-brief.md`](12-stage-3-brief.md). |
+| **Stage 3 — 5 new screens** | **Implemented — 5 of 5.** The Envoy, Gates, Pantheon, Annals and Sanctum now exist in the working tree. Device acceptance remains. |
 
 Detail on what landed and why: [`03-ui-rebuild-progress.md`](03-ui-rebuild-progress.md). The rules the
 Stage 3 screens must follow: [`02-ui-rebuild-conventions.md`](02-ui-rebuild-conventions.md).
 
-## The resume point — The Pantheon
+## The resume point — native acceptance
 
-Stage 3 is **two screens in**. The Envoy (`app/(tabs)/envoy.tsx`, 386 lines) and The Gates
+Stage 3 implementation is complete in the working tree. Next is the user-run native acceptance sequence: a wipe-and-reinstall through The Gates, then a Sanctum export/raze round-trip. The Envoy (`app/(tabs)/envoy.tsx`, 386 lines) and The Gates
 (`app/gates.tsx`, 533) were built 2026-08-21 against [`12-stage-3-brief.md`](12-stage-3-brief.md),
 along with `src/components/LaunchRouter.tsx` (56), `src/domain/envoy.ts` (206) and its 20-case suite,
 the four new preference keys, and `startOfWeek` / `relativeTimeLabel` / `untilTimeLabel` in

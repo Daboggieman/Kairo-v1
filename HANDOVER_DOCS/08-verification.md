@@ -33,8 +33,8 @@ EXPO_NO_TELEMETRY=1 npx expo export --platform ios     --output-dir /tmp/kairo-i
 
 | Check | Result | Measured |
 |---|---|---|
-| `npm test` | **523 passed, 21 suites, 0 failures** (60 s cold, less warm) | **2026-08-21** |
-| `npx tsc --noEmit` | **3 errors, all expected** — see below | **2026-08-21** |
+| `npm test` | **532 passed, 24 suites, 0 failures** | **2026-08-21** |
+| `npx tsc --noEmit` | **clean** | **2026-08-21** |
 | `npm run lint` | clean, banner only | **2026-08-21** |
 | `ruff check .` | All checks passed | 2026-08-16 |
 | `pytest -q` | 28 passed | 2026-08-16 |

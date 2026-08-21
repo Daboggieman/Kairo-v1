@@ -3,7 +3,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { AppBar, Card, CardHeader, EmptyState, Eyebrow, Notice, ScreenScroll, Section, StatStrip } from '@/components/Layout';
+import { AppBar, Card, CardHeader, EmptyState, Eyebrow, Notice, Screen, ScreenScroll, Section, StatStrip } from '@/components/Layout';
 import { LogoLoader } from '@/components/Logo';
 import { LOCAL_USER_ID } from '@/constants';
 import { listTasks, completionDatesByTask } from '@/db/tasks';
@@ -45,8 +45,9 @@ export default function PantheonScreen() {
   }, [db]));
 
   return (
-    <ScreenScroll>
+    <Screen>
       <AppBar title="The Pantheon" onBack={() => router.back()} />
+      <ScreenScroll>
       {error ? <Notice tone="danger" title="Could not read your feats">{error}</Notice> : null}
       {loading && !data ? <LogoLoader size={80} /> : null}
       {data && data.stats.length > 0 ? <StatStrip items={data.stats} /> : null}
@@ -54,7 +55,8 @@ export default function PantheonScreen() {
       {data && data.movement.greatestClimb ? <Section title="The Expedition"><Card><CardHeader title="Greatest climb" /><Text style={styles.hero}>{data.movement.greatestClimb.displayValue}</Text></Card></Section> : null}
       {data && data.records.length === 0 && !data.movement.greatestClimb && data.stats.length === 0 ? <EmptyState title="No feats recorded" body="Feats are derived from your own records. Nothing here is a target." /> : null}
       <Text style={styles.footnote}>Feats are derived from your own records. Nothing here is a target.</Text>
-    </ScreenScroll>
+      </ScreenScroll>
+    </Screen>
   );
 }
 

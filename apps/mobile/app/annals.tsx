@@ -3,7 +3,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { AppBar, Card, CardHeader, IconButton, Notice, RowGroup, ScreenScroll, Section, StatStrip } from '@/components/Layout';
+import { AppBar, Card, CardHeader, IconButton, Notice, RowGroup, Screen, ScreenScroll, Section, StatStrip } from '@/components/Layout';
 import { LogoLoader } from '@/components/Logo';
 import { LOCAL_USER_ID } from '@/constants';
 import { getWeekStart } from '@/db/preferences';
@@ -50,8 +50,9 @@ export default function AnnalsScreen() {
     return () => { cancelled = true; };
   }, [db, offset]));
 
-  return <ScreenScroll>
+  return <Screen>
     <AppBar title="The Annals" onBack={() => router.back()} />
+    <ScreenScroll>
     <View style={styles.navigator}>
       <IconButton icon="chevron-left" label="Previous week" onPress={() => setOffset((value) => value - 1)} />
       <Text style={styles.week}>{state?.label ?? 'The week'}</Text>
@@ -64,7 +65,8 @@ export default function AnnalsScreen() {
       <Section title="The Feast"><StatStrip items={[{ label: 'Offerings', value: String(state.offerings) }, { label: 'Calories', value: Math.round(state.calories).toLocaleString() }, { label: 'Decrees', value: String(state.targets) }]} /></Section>
       <Section title="The week"><RowGroup>{Array.from({ length: 7 }, (_, index) => <View key={index} style={styles.day}><Text style={styles.dayLabel}>{dayKeyFromNumber(todayNumber(Date.now()) - 6 + index).slice(5)}</Text></View>)}</RowGroup></Section>
     </> : null}
-  </ScreenScroll>;
+    </ScreenScroll>
+  </Screen>;
 }
 
 function formatRange(start: number, end: number): string {
