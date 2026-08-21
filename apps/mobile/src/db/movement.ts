@@ -117,6 +117,9 @@ export async function getActiveMovementActivity(
   return row ? toMovementActivity(row) : null;
 }
 
+/** SQLite treats a negative LIMIT as unbounded. Records screens must opt into that visibly. */
+export const NO_LIMIT = -1;
+
 export async function listMovementActivities(
   db: SQLiteDatabase,
   userId: string,
