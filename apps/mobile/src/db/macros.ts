@@ -204,6 +204,33 @@ export async function listNutritionEntriesForDate(
   }));
 }
 
+/** All nutrition entries in an inclusive local-date range, oldest first. */
+export async function listNutritionEntriesBetween(
+  db: SQLiteDatabase,
+  userId: string,
+  fromDate: string,
+  toDate: string,
+): Promise<NutritionEntryWithFood[]> {
+  const rows = await db.getAllAsync<JoinedEntryRow>(
+    `SELECT e.*, f.id AS food_id, f.user_id AS food_user_id, f.name AS food_name,
+            f.calories_per_serving AS food_calories_per_serving,
+            f.protein_g AS food_protein_g, f.carbs_g AS food_carbs_g,
+            f.fat_g AS food_fat_g, f.serving_label AS food_serving_label,
+            f.created_at AS food_created_at
+     FROM nutrition_entries e JOIN food_items f ON f.id = e.food_item_id
+     WHERE e.user_id = ? AND e.logged_date BETWEEN ? AND ?
+     ORDER BY e.logged_date ASC, e.logged_at ASC`,
+    userId, fromDate, toDate,
+  );
+  return rows.map((row) => ({
+    ...toNutritionEntry(row),
+    food: toFoodItem({ id: row.food_id, user_id: row.food_user_id, name: row.food_name,
+      calories_per_serving: row.food_calories_per_serving, protein_g: row.food_protein_g,
+      carbs_g: row.food_carbs_g, fat_g: row.food_fat_g, serving_label: row.food_serving_label,
+      created_at: row.food_created_at }),
+  }));
+}
+
 export async function deleteNutritionEntry(
   db: SQLiteDatabase,
   id: string,
@@ -244,6 +271,20 @@ export async function getMacroTargetForDate(
     date,
   );
   return row ? toMacroTarget(row) : null;
+}
+
+/** Effective-dated targets that apply within an inclusive range. */
+export async function listMacroTargetsBetween(
+  db: SQLiteDatabase,
+  userId: string,
+  fromDate: string,
+  toDate: string,
+): Promise<MacroTarget[]> {
+  const rows = await db.getAllAsync<MacroTargetRow>(
+    `SELECT * FROM macro_targets WHERE user_id = ? AND effective_date BETWEEN ? AND ?
+     ORDER BY effective_date ASC, created_at ASC`, userId, fromDate, toDate,
+  );
+  return rows.map(toMacroTarget);
 }
 
 /** Saves one effective-dated target, updating a repeated save on the same date. */

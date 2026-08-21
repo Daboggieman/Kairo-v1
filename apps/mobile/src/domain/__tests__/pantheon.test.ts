@@ -1,4 +1,4 @@
-import { elevationGainMeters, fastestSegmentSeconds, greatestWeightFall } from '../pantheon';
+import { elevationGainMeters, fastestSegmentSeconds, greatestWeightFall, perfectWeeks } from '../pantheon';
 
 describe('pantheon', () => {
   it('filters altitude noise with hysteresis', () => {
@@ -18,5 +18,9 @@ describe('pantheon', () => {
       { id: 'a', userId: 'u', recordedAt: '2026-08-01T12:00:00Z', weight: 80, weightUnit: 'kg', note: null },
       { id: 'b', userId: 'u', recordedAt: '2026-08-02T12:00:00Z', weight: 78, weightUnit: 'kg', note: null },
     ], Date.parse('2026-08-03T12:00:00Z'))).toBe(1);
+  });
+
+  it('does not count an empty scheduled week as perfect', () => {
+    expect(perfectWeeks([], new Map(), 1, Date.parse('2026-08-21T12:00:00Z'))).toBe(0);
   });
 });
