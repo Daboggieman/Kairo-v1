@@ -30,7 +30,7 @@ Stage 3 implementation is complete in the working tree. Next is the user-run nat
 (`app/gates.tsx`, 533) were built 2026-08-21 against [`12-stage-3-brief.md`](12-stage-3-brief.md),
 along with `src/components/LaunchRouter.tsx` (56), `src/domain/envoy.ts` (206) and its 20-case suite,
 the four new preference keys, and `startOfWeek` / `relativeTimeLabel` / `untilTimeLabel` in
-`src/domain/dates.ts`. **The test count moved 494 → 523 across 20 → 21 suites.** What landed and every
+`src/domain/dates.ts`. **The test count is now 532 across 24 suites.** What landed and every
 departure taken:
 [`03-ui-rebuild-progress.md`](03-ui-rebuild-progress.md#stage-3--the-envoy-and-the-gates). A per-step
 build table, including what is still to write:
@@ -42,8 +42,7 @@ point in the running app**, which is expected and clears when The Sanctum lands.
 written only by a run that *delivered* something (`succeeded > 0`), so its row is labelled "Last
 delivered", not "Last ran".
 
-**Next: The Pantheon** (`src/domain/pantheon.ts` + `app/pantheon.tsx` + a suite). Its **groundwork has
-landed** and its domain module has not:
+The Pantheon, Annals and Sanctum are now implemented, tested, and present in the working tree:
 
 | Landed | Still to write |
 |---|---|
@@ -63,9 +62,8 @@ explicitly at the Pantheon's call site so the cap is visible in the code that wa
 
 Two things still need the user, and neither is started:
 
-- **`expo-sharing` is not installed**, and The Sanctum's "export everything" cannot hand a file to
-  the user without it (RN's own `Share` takes a message string on Android). A dependency is a
-  decision here, so it is flagged, not taken. **Ask before starting The Sanctum**, not during.
+- **Native acceptance** remains user-owned: device smoke tests, Expo export, Expo Doctor, and the
+  wipe/reinstall plus Sanctum export/raze round-trip have not been run after this implementation.
 - **The Oracle's quote set** — open item 5 below, unchanged.
 
 **Where The Sanctum is reached from is now settled**, and was an open question here on 2026-08-20: it
@@ -102,9 +100,9 @@ Run from `apps/mobile`, after The Envoy and The Gates and the Pantheon groundwor
 
 | Check | Result |
 |---|---|
-| `npx jest` | **21 suites passed, 523 tests passed, 0 failures** (60 s cold, less warm) |
+| `npx jest` | **24 suites passed, 532 tests passed, 0 failures** |
 | `npx eslint .` | clean, exit 0 — the gate is 0 errors / 0 warnings |
-| `npx tsc --noEmit` | **3 errors, all expected** — see below |
+| `npx tsc --noEmit` | **clean** |
 
 Suites covered: `db/{alarms,tasks,workouts,weight,macros,movement,outbox}`, `store/workoutStore`,
 `sync/sync`, and
