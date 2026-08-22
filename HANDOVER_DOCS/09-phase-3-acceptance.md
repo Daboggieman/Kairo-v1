@@ -47,14 +47,20 @@ Kairo backend upload only after completion.
 
 Automated verification at that checkpoint: mobile typecheck/lint clean, **376 tests across 18 suites**
 (**394 across 20** after the 2026-08-17 Expo Go fix, **481 across 20** on 2026-08-19, **494 across 20** on
-2026-08-20, and **523 across 21** on 2026-08-21), backend Ruff clean, **28 backend tests**, Alembic at
-head, Expo Doctor **21/21**, and both Android and iOS exports successful. The current figure and the
-standing `tsc` exception are in [`08-verification.md`](08-verification.md); this list is history, kept to
-show the direction of travel.
+2026-08-20, **532 across 24** on 2026-08-21, then **534 across 24**, **538 across 24**, and **554 across
+24** on 2026-08-22), backend Ruff clean, **28 backend tests** rising to **35** on 2026-08-22, Alembic at
+head, and both Android and iOS exports successful. The post-rebuild 2026-08-22 Expo Doctor run is
+**20/21**, with only nine one-patch-behind Expo dependencies failing version alignment. Current results
+are in [`08-verification.md`](08-verification.md); this list is history, kept to show the direction of
+travel.
 
-**No physical-device result has ever been returned.** Background location, screen lock, foreground-service
-notification, force-kill recovery, Bluetooth speech, battery use and iOS native behaviour all remain open
-acceptance gates. `personal_test.txt` is the current Phase 2/3 runbook.
+**User reported the native acceptance pass successful on 2026-08-22.** The report covered the rebuilt
+screens and Sanctum flows. The detailed `personal_test.txt` evidence matrix was not returned, so this is
+recorded as a user report rather than a claim that every Android background, screen-lock, force-kill,
+Bluetooth, battery, and iOS gate was independently observed here.
+
+The user later confirmed the Android development-build checks passed: background and screen-lock
+recording, the foreground-service notification, and force-kill recovery of persisted activity state.
 
 ## Code entry points
 
@@ -101,5 +107,31 @@ higher-revision edit, delete, and cross-user isolation.
 **5. Later iOS native integration and physical validation** against the same product contract.
 
 Native reminder delivery / permission prompts and Wallpaper Save-to-Photos also deserve a physical smoke
-test, but they are **Phase 2 follow-ups, not Phase 3 blockers**. Workout polish (RPE, set edit/delete,
-finish notes, rest-timer threshold) stays explicitly deferred.
+test, but they are **Phase 2 follow-ups, not Phase 3 blockers**. Workout polish is now implemented:
+RPE entry, inline set edit/delete, finish notes, and selectable 60/90/120-second rest targets.
+
+**Step 4 gained two routes it must now cover.** Inline set edit and delete originally replayed through
+the bulk create route, `POST /workouts/{id}/sets`, which returns **409** for a known set id whose fields
+differ — exactly what an edit is — and the mobile outbox treats 409 as terminal. So the first edit or
+delete after a sync marked its outbox row failed forever, and the server kept the pre-edit values with no
+error anywhere. Fixed on 2026-08-22 by adding `PATCH` and `DELETE /workouts/{workout_id}/sets/{set_id}`
+(idempotent, ownership-checked, seven backend cases) and matching `replay()` branches.
+
+**Correction, 2026-08-22:** an earlier version of this paragraph called the bug *latent* "because
+`apps/mobile` has no `.env`, so `syncConfig.apiUrl` is null and `syncOutbox` returns `disabled`". That
+is wrong. `apps/mobile/.env` **does** exist — untracked, holding a real LAN
+`EXPO_PUBLIC_KAIRO_API_URL` and an `EXPO_PUBLIC_KAIRO_DEVICE_KEY` matching the backend's. Sync was
+enabled on any run from this checkout, so the bug was **live**, not latent, and every set edited or
+deleted after a sync stranded its outbox row. Nothing was lost locally — SQLite is authoritative — but
+the server diverged silently. The claim is recorded here rather than deleted because it was the stated
+reason for deferring the proof to a device run.
+
+**The replay is now proven off-device**, so this step no longer carries it alone:
+`apps/mobile/e2e/workoutSetSync.e2e.ts` drives `createSession` → `addSet` → `updateSet` → `deleteSet`
+through the real `syncOutbox` against a running backend and reads the server back after each drain. Run
+it with `npm run test:e2e` from `apps/mobile` with the backend up; measured **5 passed** on 2026-08-22,
+with the server log showing `PATCH … 200` and `DELETE … 204`. It is opt-in and outside `npm test`, so
+the suite never depends on a server. What that leaves for this step is the **on-device** transport: edit
+a synced set and delete another from the phone, drain, and confirm both landed and `pendingCount`
+reached 0.
+

@@ -17,6 +17,8 @@ import {
   type TaskWire,
   type WeightEntryWire,
   type WorkoutSessionWire,
+  type WorkoutSetDeleteWire,
+  type WorkoutSetUpdateWire,
   type WorkoutSetWire,
 } from '@/db/outbox';
 import { setLastSyncAt } from '@/db/preferences';
@@ -122,6 +124,24 @@ async function replay(client: SyncClient, row: OutboxRow): Promise<void> {
   }
 
   if (row.entity_type === 'workout_set') {
+    if (row.operation === 'delete') {
+      const { session_id: sessionId } = parsePayload<WorkoutSetDeleteWire>(row, 'workout set');
+      await client.delete(
+        `/api/v1/workouts/${encodeURIComponent(sessionId)}/sets/${encodeURIComponent(row.entity_id)}`,
+      );
+      return;
+    }
+    if (row.operation === 'update') {
+      const { session_id: sessionId, ...update } = parsePayload<WorkoutSetUpdateWire>(
+        row,
+        'workout set',
+      );
+      await client.patch(
+        `/api/v1/workouts/${encodeURIComponent(sessionId)}/sets/${encodeURIComponent(row.entity_id)}`,
+        update,
+      );
+      return;
+    }
     const payload = parsePayload<WorkoutSetWire>(row, 'workout set');
     const { session_id: sessionId, ...setPayload } = payload;
     await client.post(`/api/v1/workouts/${encodeURIComponent(sessionId)}/sets`, [setPayload]);

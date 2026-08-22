@@ -18,6 +18,7 @@ import {
   addSet,
   createCustomExercise,
   createSession,
+  deleteSet,
   endSession,
   getExercise,
   getSession,
@@ -26,6 +27,7 @@ import {
   listSessions,
   listSetsWithExercises,
   searchExercises,
+  updateSet,
 } from '../workouts';
 import type { WorkoutSetRow } from '../types';
 
@@ -203,6 +205,71 @@ describe('workouts query layer', () => {
       await db.runAsync('DELETE FROM workout_sessions WHERE id = ?', 's1');
 
       expect(await listSetsWithExercises(db, 's1')).toEqual([]);
+    });
+  });
+
+  describe('set corrections', () => {
+    beforeEach(async () => {
+      await createSession(db, { id: 's1', userId: USER, startedAt: '2026-08-10T10:00:00.000Z' });
+    });
+
+    /** The enqueued intent, minus the create row `addSet` leaves ahead of it. */
+    async function corrections() {
+      return db.getAllAsync<{ operation: string; entity_id: string; payload: string | null }>(
+        `SELECT operation, entity_id, payload FROM sync_outbox
+         WHERE entity_type = 'workout_set' AND operation <> 'upsert' ORDER BY id`,
+      );
+    }
+
+    it('writes the correction and enqueues an update, not an upsert', async () => {
+      /**
+       * The operation is the whole point of the assertion. An `upsert` replays through the
+       * bulk create route, which answers 409 for a known id whose fields differ — terminal
+       * in the outbox, so the edit was dropped and the server kept the pre-edit values.
+       */
+      await addSet(db, setRow({
+        id: 'set-1', session_id: 's1', exercise_id: 'seed-back-squat',
+        reps: 5, weight: 100, weight_unit: 'kg', rpe: null, rest_seconds: 90,
+      }));
+
+      await updateSet(db, {
+        id: 'set-1', reps: 6, weight: 102.5, weight_unit: 'kg', rpe: 8.5, rest_seconds: 90,
+      });
+
+      const [set] = await listSetsWithExercises(db, 's1');
+      expect(set).toMatchObject({ reps: 6, weight: 102.5, rpe: 8.5, restSeconds: 90 });
+      const rows = await corrections();
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toMatchObject({ operation: 'update', entity_id: 'set-1' });
+      expect(JSON.parse(rows[0].payload as string)).toEqual({
+        session_id: 's1', reps: 6, weight: 102.5, weight_unit: 'kg', rpe: 8.5, rest_seconds: 90,
+      });
+    });
+
+    it('enqueues a delete carrying its session id rather than a null payload', async () => {
+      /**
+       * `parsePayload` rejects a missing payload with a terminal 422, so a null-payload
+       * delete stranded its row where `listDue` could never see it again. The session id
+       * is what the nested DELETE route needs, and the row is gone by the time replay runs.
+       */
+      await addSet(db, setRow({ id: 'set-1', session_id: 's1', exercise_id: 'seed-deadlift' }));
+
+      await deleteSet(db, 'set-1');
+
+      expect(await listSetsWithExercises(db, 's1')).toEqual([]);
+      const rows = await corrections();
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toMatchObject({ operation: 'delete', entity_id: 'set-1' });
+      expect(JSON.parse(rows[0].payload as string)).toEqual({ session_id: 's1' });
+    });
+
+    it('enqueues nothing for a set id that does not exist', async () => {
+      await deleteSet(db, 'no-such-set');
+      await updateSet(db, {
+        id: 'no-such-set', reps: 1, weight: 1, weight_unit: 'kg', rpe: null, rest_seconds: null,
+      });
+
+      expect(await corrections()).toEqual([]);
     });
   });
 

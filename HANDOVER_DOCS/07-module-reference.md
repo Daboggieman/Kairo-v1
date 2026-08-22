@@ -283,6 +283,39 @@ module arrived at with `MOVEMENT_LABELS` and `movementPerformance`.
 - **A delivered intent leaves no trace.** `markSucceeded` deletes its row, so any "N delivered" figure
   needs a ledger table that does not exist. Do not add one to satisfy a design.
 
+### The workout-set correction path — added 2026-08-22
+
+An inline set edit or delete is its **own intent**, end to end. Four files carry it:
+
+| Path | What it contributes |
+|---|---|
+| `src/db/workouts.ts` | `updateSet` enqueues operation `update`; `deleteSet` enqueues `delete`. Both read `session_id` and `user_id` back out of the row first, because the delete needs the session id *before* the row is gone. |
+| `src/db/outbox.ts` | `WorkoutSetUpdateWire` (the mutable fields + `session_id`) and `WorkoutSetDeleteWire` (`session_id` alone). |
+| `src/sync/outbox.ts` | `replay()` branches on `operation` before falling through to the create path: `PATCH` and `DELETE /api/v1/workouts/{session}/sets/{set}`. |
+| `apps/backend/app/api/workouts.py` | `update_set`, `delete_set`, and the shared `owned_set` guard. |
+
+Three decisions worth not undoing:
+
+- **A correction does not go through the bulk create route.** `POST /workouts/{id}/sets` returns **409**
+  for a known set id whose fields differ — which is what every edit is — and the outbox treats 409 as
+  terminal, so `markFailed` set `next_attempt_at = NULL` and the row left `listDue` forever. The edit was
+  lost silently: local showed the new values, the server kept the old ones, and nothing surfaced an error.
+  This was the shape of the bug before the routes existed.
+- **The delete carries a payload rather than `null`.** `parsePayload` rejects a missing payload with a
+  terminal 422, so a null-payload delete stranded its row the same way. `{ session_id }` is also exactly
+  what the nested URL needs, so there is nothing arbitrary about it.
+- **Both routes are idempotent, and `DELETE` returns 204 on an absent set.** A re-delivered intent must
+  not fail — the set already being gone is the outcome that intent wanted. Same rule as `delete_movement`.
+  `WorkoutSetUpdate` deliberately omits `session_id`, `exercise_id` and `set_number`: moving a set to
+  another session or exercise is a different intent, and no screen offers it.
+
+**This path is the one thing in the app with an end-to-end proof.** `apps/mobile/e2e/workoutSetSync.e2e.ts`
+(`npm run test:e2e`, needs a running backend) drives all four functions above through the real
+`syncOutbox` and reads the server back after each drain, including both re-delivery cases. Unit tests
+inject a fake `fetch` and can only prove the client agrees with itself; a wrong path or a mismatched field
+name survives them. Details and the run conditions are in
+[`08-verification.md`](08-verification.md#the-end-to-end-sync-proof--npm-run-teste2e-added-2026-08-22).
+
 ### The four preference keys
 
 `UNIT_SYSTEM` predates these. New: `WEEK_START` (`getWeekStart`/`setWeekStart`, **Monday** default),
@@ -301,7 +334,7 @@ module arrived at with `MOVEMENT_LABELS` and `movementPerformance`.
 ### `startOfWeek`
 
 `startOfWeek(day, weekStart)` in `src/domain/dates.ts`, on day indices like everything else in that
-module. `WeekStartDay` is `'sunday' | 'monday' | 'saturday'`. The Annals' week navigator and The
+module. `WeekStartDay` is `'sunday' | 'monday'`. The Annals' week navigator and The
 Pantheon's perfect-week walk both take it from here; **`movementWeek` in `src/domain/movement.ts` stays
 rolling-7-day and must not be unified with it** — a rolling total and a calendar week answer different
 questions, and collapsing them would silently change what The Expedition's header means.
@@ -333,4 +366,3 @@ is the whole reason they are separate functions rather than a `LIMIT`-less call 
   out of raw GPS altitude carries a real uncertainty of several metres, so a decimal would claim a
   precision the figure does not have. `METERS_PER_FOOT` is exported beside it because feet is the one
   figure read wherever miles are.
-

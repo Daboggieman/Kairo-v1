@@ -86,6 +86,34 @@ export type WorkoutSetWire = {
   rest_seconds: number | null;
 };
 
+/**
+ * A set correction: the mutable fields, plus the session the PATCH URL is nested under.
+ *
+ * Deliberately not a `WorkoutSetWire`. Replaying an edit through the bulk create route
+ * returns 409 — the backend rejects a known id whose fields differ, which is what every
+ * edit is — and the outbox treats 409 as terminal, so the row failed once and stayed
+ * failed. `set_number` and `exercise_id` are absent because a correction cannot move a
+ * set to another exercise or reorder it.
+ */
+export type WorkoutSetUpdateWire = {
+  session_id: string;
+  reps: number;
+  weight: number;
+  weight_unit: 'kg' | 'lb';
+  rpe: number | null;
+  rest_seconds: number | null;
+};
+
+/**
+ * A set deletion carries the session id and nothing else.
+ *
+ * It is a payload rather than `null` for two reasons: the DELETE route is nested under
+ * its workout, and `parsePayload` rejects a missing payload with a terminal 422 — so a
+ * null-payload delete stranded its outbox row permanently and the set was never removed
+ * from the server.
+ */
+export type WorkoutSetDeleteWire = { session_id: string };
+
 export type MovementActivityWire = {
   id: string;
   activity_type: 'run' | 'walk' | 'ride';

@@ -42,6 +42,21 @@ class WorkoutSetCreate(SQLModel):
     rest_seconds: int | None = None
 
 
+class WorkoutSetUpdate(SQLModel):
+    """The mutable half of a set — what an in-session correction can change.
+
+    `session_id`, `exercise_id` and `set_number` are deliberately absent. A correction
+    re-enters reps, weight, unit, RPE or rest; moving a set to another session or
+    another exercise is a different intent, and the app offers no way to express it.
+    """
+
+    reps: int | None = None
+    weight: float | None = None
+    weight_unit: str | None = None
+    rpe: float | None = None
+    rest_seconds: int | None = None
+
+
 class WorkoutSetRead(SQLModel):
     id: uuid.UUID
     session_id: uuid.UUID

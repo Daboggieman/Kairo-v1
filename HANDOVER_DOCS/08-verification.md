@@ -3,9 +3,8 @@
 The repo gate is **0 TypeScript errors, 0 ESLint errors, 0 ESLint warnings, 0 failing tests.** Everything
 below states when it was last *measured*; treat an undated claim as an expectation.
 
-**One standing exception, from 2026-08-21 until Stage 3 finishes:** `tsc` reports **3 errors** and that is
-the correct result. See "The expected `tsc` errors" below before treating a non-clean typecheck as a
-regression.
+Stage 3 is implemented and TypeScript is clean. The former three typed-route errors cleared when the
+Pantheon, Annals and Sanctum route files landed.
 
 
 ## The commands
@@ -16,13 +15,16 @@ npm run typecheck              # tsc --noEmit
 npm run lint                   # eslint .
 npm test                       # jest (add -- --runInBand if a suite interferes)
 
+# Mobile end-to-end — from apps/mobile, with the backend running
+npm run test:e2e               # 5 passed; needs a live backend, see below
+
 # Backend — from apps/backend
 source .venv/bin/activate
 ruff check .                   # All checks passed!
-pytest -q                      # 28 passed
+pytest -q                      # 35 passed
 alembic upgrade head           # reaches head (idempotent)
 
-# Native / packaging — the user's to run
+# Native / packaging
 EXPO_NO_TELEMETRY=1 npx expo-doctor
 EXPO_NO_TELEMETRY=1 npx expo export --platform android --output-dir /tmp/kairo-android-export
 EXPO_NO_TELEMETRY=1 npx expo export --platform ios     --output-dir /tmp/kairo-ios-export
@@ -33,50 +35,108 @@ EXPO_NO_TELEMETRY=1 npx expo export --platform ios     --output-dir /tmp/kairo-i
 
 | Check | Result | Measured |
 |---|---|---|
-| `npm test` | **532 passed, 24 suites, 0 failures** | **2026-08-21** |
-| `npx tsc --noEmit` | **clean** | **2026-08-21** |
-| `npm run lint` | clean, banner only | **2026-08-21** |
-| `ruff check .` | All checks passed | 2026-08-16 |
-| `pytest -q` | 28 passed | 2026-08-16 |
-| `alembic upgrade head` | at head | 2026-08-16 |
-| `expo-doctor` | 21/21 | 2026-08-16 — **predates the rebuild** |
-| `expo export` android + ios | both successful | 2026-08-16 — **predates the rebuild** |
-| Any physical-device run | **never run** | — |
+| `npm test` | **554 passed, 24 suites, 0 failures** | **2026-08-22** |
+| `npx tsc --noEmit` | **clean** | **2026-08-22** |
+| `npm run lint` | clean, banner only | **2026-08-22** |
+| `ruff check .` | All checks passed | **2026-08-22** |
+| `pytest -q` | **35 passed** | **2026-08-22** |
+| `alembic upgrade head` | reached `7e3b9a1c2d44` from an empty SQLite database | **2026-08-22** |
+| `expo-doctor` | **20/21; dependency-version check failed for 9 one-patch-behind Expo packages** | **2026-08-22** |
+| `expo export` android | **successful; 53 assets** (`/tmp/kairo-android-export`) | **2026-08-22** |
+| `expo export` ios | **successful; 49 assets** (`/tmp/kairo-ios-export`) | **2026-08-22** |
+| Physical-device acceptance | **user reported successful** | **2026-08-22** |
+| `npm run test:e2e` | **5 passed** against a live backend on `127.0.0.1:8000` | **2026-08-22** |
 
-The 523/21 measurement **supersedes every earlier count in this handover** — 350/16, 376/18, 394/20, the
-never-measured "426 expected", 481/20 from 2026-08-19, and 494/20 from 2026-08-20. The +29 over 494 is
-`src/domain/__tests__/envoy.test.ts` (20 cases, the new 21st suite) plus the new `dates.test.ts` cases for
-`startOfWeek`, `relativeTimeLabel` and `untilTimeLabel`. Suites covered:
-`db/{alarms,tasks,workouts,weight,macros,movement,outbox}`, `store/workoutStore`, `sync/sync`, and
-`domain/{tasks,movement,macros,weight,workouts,dashboard,reminders,motivation,chart,dates,numbers,envoy}`.
+### The end-to-end sync proof — `npm run test:e2e`, added 2026-08-22
 
-**The 2026-08-21 run took 60 s cold**, against the 11–24 s recorded for the 494-test run. The extra is
-cache state, not the 29 new cases — the figure is here so nobody reads a slow run as a hang.
+`apps/mobile/e2e/workoutSetSync.e2e.ts` is the only check here that needs a **running backend**. It drives
+`createSession` → `addSet` → `updateSet` → `deleteSet` through the real `syncOutbox`, and after each drain
+it **reads the server back** — so it catches the class of bug a mocked `fetch` cannot: a path the client
+builds correctly that the server routes nowhere, a field name off by an underscore, a status the outbox
+misreads as terminal. Five cases: the create, the PATCH correction, the same correction twice, the DELETE,
+and a re-delivered DELETE.
 
-### The expected `tsc` errors
+Three things about it worth knowing before running or extending it:
+
+- **It is opt-in and outside `npm test`.** `package.json`'s `testMatch` covers only `.test.ts`/`.test.tsx`;
+  the `test:e2e` script overrides `--testMatch` to `**/e2e/**/*.e2e.ts`. The suite must never depend on a
+  server being up, which is why the file is not named `.test.ts`.
+- **Credentials come from `apps/mobile/.env`**, the same values the app uses, unless `KAIRO_E2E_API_URL` /
+  `KAIRO_E2E_DEVICE_KEY` are set. A `.env` pointing at a LAN IP is rewritten to `127.0.0.1` for this
+  process, because that address is right for a phone and wrong for a backend bound to loopback.
+- **It uses `node:http`, not `fetch`.** `jest-expo` replaces `globalThis.fetch` with Expo's native-backed
+  implementation, which without the native module resolves to an object with no `status` and a falsy `ok` —
+  measured against a healthy backend, in both the default and the `node` test environments, and `undici` is
+  not in the tree. So the file adapts `node:http` behind the `Response` shape the client touches. It is a
+  real socket, not a mock; what is substituted is the transport, not the contract.
+
+**Start the backend first**, or the run fails with a message telling you to:
+`source .venv/bin/activate && uvicorn app.main:app --host 127.0.0.1 --port 8000` from `apps/backend`.
+Verify with `curl -s http://127.0.0.1:8000/health` — note the path is `/health`, **not**
+`/api/v1/health`, which 404s.
+
+**It writes to whichever backend it is pointed at.** Ids are fresh UUIDs per run so runs cannot collide,
+and the set is removed by the case that proves deletion. The *session* row is left behind: there is no
+`DELETE /api/v1/workouts/{id}`, and adding one so a test could tidy up would be the test dictating the API.
+Point it at a development backend.
+
+**A pass was confirmed against the server's own log**, not only against the assertions:
+`PATCH …/sets/… 200` twice, `DELETE …/sets/… 204` twice — the second of each being the re-delivery, which
+is the idempotency both route docstrings claim.
+
+
+The 554/24 measurement **supersedes every earlier count in this handover** — 350/16, 376/18, 394/20, the
+never-measured "426 expected", 481/20 from 2026-08-19, 494/20 from 2026-08-20, 534/24, and 538/24 taken
+earlier on 2026-08-22. (The older docs recorded 534 under both 2026-08-21 and 2026-08-22 and were never
+reconciled; it is superseded either way, so the disagreement was closed by deletion rather than by
+picking one.)
+
+**Where the +16 over 538 went, and the one case that is not accounted for.** Fifteen are the Annals
+ledger: `domain/__tests__/annals.test.ts` went from **3 cases to 18**, verified against
+`git show HEAD:apps/mobile/src/domain/__tests__/annals.test.ts`. The remaining **+1 is not attributable
+to this pass** — four test files differ from `HEAD` in the working tree (`db/workouts.test.ts` +3,
+`sync/sync.test.ts` +1, `store/workoutStore.test.ts` +2, `domain/annals.test.ts` +15, so `HEAD` itself
+would measure 533), and the 538 figure cannot be reconciled against that without re-measuring a checkout.
+**Treat 538 as superseded, not as explained.** It is recorded this way rather than quietly rounded because
+the folder's own rule is that an unexplained count is how a fabricated one gets in.
+
+The earlier +4 over 534 was the workout-set sync coverage: one `sync.test.ts` case asserting the PATCH
+and DELETE replay, and three `db/workouts.test.ts` cases asserting what a correction enqueues. Suites
+covered:
+`db/{alarms,tasks,workouts,weight,macros,movement,outbox,maintenance}`, `store/workoutStore`, `sync/sync`,
+and
+`domain/{tasks,movement,macros,weight,workouts,dashboard,reminders,motivation,chart,dates,numbers,envoy,annals,pantheon}`.
+
+**Backend went 28 → 35** in the same pass: seven cases covering the two new workout-set routes —
+field-preserving PATCH, clearing RPE, PATCH idempotence, idempotent DELETE, cross-user isolation, a set
+id under the wrong workout, and a missing set.
+
+**Run time varies with cache state, not case count.** The same 24 suites have been measured at 10.6 s,
+17.0 s and 60 s on the same machine within one day. A slow run is not a hang.
+
+### Historical typed-route errors — all cleared
 
 `app.json` sets `experiments.typedRoutes`, so expo-router generates its `Href` union from the route files
-that **exist**. The Citadel already pushes three routes whose files do not:
+that **exist**. Through 2026-08-21 the Citadel pushed three routes whose files did not yet exist:
 
-| Where | Route |
-|---|---|
-| `app/(tabs)/index.tsx:162` | `/sanctum` |
-| `app/(tabs)/index.tsx:331` | `/pantheon` |
-| `app/(tabs)/index.tsx:336` | `/annals` |
+| Where | Route | Cleared by |
+|---|---|---|
+| `app/(tabs)/index.tsx:162` | `/sanctum` | `app/sanctum.tsx` |
+| `app/(tabs)/index.tsx:331` | `/pantheon` | `app/pantheon.tsx` |
+| `app/(tabs)/index.tsx:336` | `/annals` | `app/annals.tsx` |
 
-All three are the same error — *not assignable to parameter of type `Href`* — and each clears the moment
-its screen file is created. That was proven when `app/gates.tsx` landed and both `/gates` errors
-disappeared with no change to the pushing code.
+All three were the same error — *not assignable to parameter of type `Href`* — and each cleared the moment
+its screen file was created, with no change to the pushing code. That was first proven when `app/gates.tsx`
+landed and both `/gates` errors disappeared the same way.
 
-**So: 3 is the pass mark until Stage 3 finishes, and 0 after.** Do not silence them with a cast or an
-`as never` — the union regenerates on its own, and a cast would survive the screens landing and hide the
-next real one. If you see a *fourth*, or a different message, that one is yours.
+Kept here because the shape recurs: a `router.push` written before its screen is a **tsc error that fixes
+itself**, so do not silence one with a cast. A route file should clear its own generated union entry. The
+pass mark is 0 TypeScript errors, and it is currently met — any error you see now is yours.
 
 
-**Division of labour:** `npm test`, `npx tsc --noEmit` and `npm run lint` are ours to run — the user
-authorised that on 2026-08-19 (*"run the required tests, the dependencies have been installed"*). Device
-runs, `expo export` and `expo-doctor` remain **theirs**. Report readiness; never claim a native gate passed
-without their evidence.
+**Division of labour:** `npm test`, `npx tsc --noEmit`, `npm run lint`, `expo export` and `expo-doctor`
+may be run here; the user explicitly requested the packaging checks on 2026-08-22. Physical-device
+runs remain theirs. Never claim a device gate passed without their evidence.
 
 ## This machine
 
@@ -96,7 +156,8 @@ cd apps/mobile && npm install                           # fresh clone
 cd apps/backend && python3 -m venv .venv && source .venv/bin/activate && pip install -e '.[dev]'
 ```
 
-`apps/backend/.venv` is **currently absent** — recreate it before any backend check.
+`apps/backend/.venv` **exists** as of 2026-08-22 and the `pytest`/`ruff` figures above were measured
+through it. It is untracked, so a fresh clone still needs the line above.
 
 ## The four ESLint rules that bite
 

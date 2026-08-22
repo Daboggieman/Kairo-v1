@@ -207,7 +207,12 @@ export default function MarchScreen() {
     latitude: point.latitude,
     longitude: point.longitude,
   }));
-  const latest = coordinates.at(-1);
+  const rawCoordinates = points.map((point) => ({
+    latitude: point.latitude,
+    longitude: point.longitude,
+  }));
+  const latest = coordinates.at(-1) ?? rawCoordinates.at(-1);
+  const hasAccurateFix = coordinates.length > 0;
   const paused = activity.status === 'manually_paused' || activity.status === 'auto_paused';
   const distance = formatMovementDistance(activity.distanceMeters, units);
   const performance = movementPerformance(activity, units);
@@ -239,6 +244,12 @@ export default function MarchScreen() {
             <Text style={styles.muted}>Waiting for a GPS fix</Text>
           </View>
         )}
+
+        {latest && !hasAccurateFix ? (
+          <View style={styles.fixNotice}>
+            <Text style={styles.fixNoticeText}>Waiting for an accurate GPS fix</Text>
+          </View>
+        ) : null}
 
         {activity.status === 'auto_paused' ? (
           <View style={styles.autoPaused}>
@@ -342,4 +353,15 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
   },
   autoPaused: { position: 'absolute', left: spacing.md, top: spacing.md },
+  fixNotice: {
+    position: 'absolute',
+    left: spacing.md,
+    right: spacing.md,
+    bottom: spacing.md,
+    alignItems: 'center',
+    padding: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: radius.sm,
+  },
+  fixNoticeText: { color: colors.textMuted, fontSize: fontSize.sm, lineHeight: lineHeight.sm },
 });

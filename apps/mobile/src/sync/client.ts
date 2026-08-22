@@ -109,7 +109,13 @@ async function apiError(response: Response): Promise<ApiError> {
   let detail = response.statusText || `HTTP ${response.status}`;
   try {
     const body = (await response.json()) as { detail?: unknown };
-    if (typeof body.detail === 'string') detail = body.detail;
+    if (typeof body.detail === 'string') {
+      detail = body.detail;
+    } else if (body.detail !== undefined) {
+      // FastAPI/Pydantic validation returns an array of field errors. Preserve it instead of
+      // collapsing the useful location/message data to an opaque HTTP status.
+      detail = JSON.stringify(body.detail);
+    }
   } catch {
     // A proxy or offline gateway may return non-JSON; the status remains actionable.
   }

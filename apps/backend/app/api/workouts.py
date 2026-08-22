@@ -3,7 +3,7 @@
 import uuid
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlmodel import Session, select
 
 from app.core.auth import get_current_user
@@ -19,6 +19,7 @@ from app.schemas.workout import (
     WorkoutSessionUpdate,
     WorkoutSetCreate,
     WorkoutSetRead,
+    WorkoutSetUpdate,
 )
 
 router = APIRouter(tags=["workouts"], dependencies=[Depends(get_current_user)])
@@ -179,3 +180,71 @@ def add_sets(
     for item in created:
         session.refresh(item)
     return created
+
+
+def owned_set(
+    session: Session, workout_id: uuid.UUID, set_id: uuid.UUID, user: User
+) -> WorkoutSet | None:
+    """The set, but only if it sits in this workout and this workout is the caller's.
+
+    Both halves matter. Checking the session's owner is what isolates one user's sets
+    from another's, and checking `session_id` stops a correct set id under the wrong
+    workout from being edited through a URL that misdescribes it.
+    """
+    workout_set = session.get(WorkoutSet, set_id)
+    if workout_set is None or workout_set.session_id != workout_id:
+        return None
+    workout = session.get(WorkoutSession, workout_id)
+    if workout is None or workout.user_id != user.id:
+        return None
+    return workout_set
+
+
+@router.patch("/workouts/{workout_id}/sets/{set_id}", response_model=WorkoutSetRead)
+def update_set(
+    workout_id: uuid.UUID,
+    set_id: uuid.UUID,
+    payload: WorkoutSetUpdate,
+    session: Session = Depends(get_session),
+    user: User = Depends(get_current_user),
+) -> WorkoutSet:
+    """A correction to a set that has already been synced.
+
+    `add_sets` cannot carry this. It raises 409 when an id already exists with any
+    differing field, which is exactly what an edit is, and the mobile outbox treats
+    409 as terminal — so an edit replayed through the create route marked its row
+    failed and never retried, leaving the server on the pre-edit values.
+
+    Replaying the same PATCH twice sets the same values, so no id bookkeeping is
+    needed to make it safe.
+    """
+    workout_set = owned_set(session, workout_id, set_id, user)
+    if workout_set is None:
+        raise HTTPException(status_code=404, detail="Workout set not found")
+    for key, value in payload.model_dump(exclude_unset=True).items():
+        setattr(workout_set, key, value)
+    session.add(workout_set)
+    session.commit()
+    session.refresh(workout_set)
+    return workout_set
+
+
+@router.delete("/workouts/{workout_id}/sets/{set_id}", status_code=204)
+def delete_set(
+    workout_id: uuid.UUID,
+    set_id: uuid.UUID,
+    session: Session = Depends(get_session),
+    user: User = Depends(get_current_user),
+) -> Response:
+    """Idempotent, like `delete_movement`: an absent set is a 204, not a 404.
+
+    The outbox treats 404 as terminal, so a re-delivered delete must not fail. The
+    second attempt is the same intent arriving twice — the set being gone is the
+    outcome it wanted, not an error.
+    """
+    workout_set = owned_set(session, workout_id, set_id, user)
+    if workout_set is None:
+        return Response(status_code=204)
+    session.delete(workout_set)
+    session.commit()
+    return Response(status_code=204)

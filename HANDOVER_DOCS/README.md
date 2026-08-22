@@ -7,7 +7,7 @@ project history; the file at the repo root is now a pointer to this index.
 **Read [`01-current-state.md`](01-current-state.md) first.** It is the only document here that dates
 quickly. Everything else is reference and stays true until the thing it describes changes.
 
-Last updated: **2026-08-21**.
+Last updated: **2026-08-22**.
 
 ## The resume point
 
@@ -20,8 +20,8 @@ inside one session, twice. One copy is the point of the folder — do not reintr
 - **Do not create or amend commits unless the user asks.** That includes not staging, not tidying the
   index, and not committing "while you're in there". The user commits and pushes outside these
   sessions.
-- **Device runs, `expo export`, and `expo-doctor` are the user's to run.** Report readiness; do not
-  claim a native gate passed without their evidence. Automated checks (`npm test`,
+- **Physical device runs remain the user's to run.** Report readiness; do not claim a device gate
+  passed without their evidence. Packaging checks (`expo export`, `expo-doctor`) and automated checks (`npm test`,
   `npx tsc --noEmit`, `npm run lint`) are ours to run — the user authorised that explicitly on
   2026-08-19: *"run the required tests, the dependencies have been installed"*.
 - **The scope of the UI rebuild is locked in `docs/09-ui-rebuild-plan.md`**, and the Greek display
@@ -40,11 +40,11 @@ inside one session, twice. One copy is the point of the folder — do not reintr
 | [`05-design-handoff.md`](05-design-handoff.md) | The 30 Stitch designs, the dumper script, the verified 61-glyph table, the five locked decisions | Transcribing any design |
 | [`06-architecture-decisions.md`](06-architecture-decisions.md) | Project-wide decisions, the shared-SQLite rule, the Expo Go capability rule, the branding invariants | Before adding a dependency, a connection, or a native call |
 | [`07-module-reference.md`](07-module-reference.md) | Tasks, macros, Home, movement, and Stage 3's cross-module surface: files, schemas, and the decisions embedded in them | Changing a module's data or logic |
-| [`08-verification.md`](08-verification.md) | Commands and their measured results, machine gotchas, the lint gate, the expected `tsc` errors, the test harness | Running or extending the checks |
+| [`08-verification.md`](08-verification.md) | Commands and their measured results, machine gotchas, the lint gate, and the test harness | Running or extending the checks |
 | [`09-phase-3-acceptance.md`](09-phase-3-acceptance.md) | Phase 3 movement status and the native acceptance sequence | After the rebuild finishes |
 | [`10-project-history.md`](10-project-history.md) | Phase 1/2 record, git history, resolved device findings, the superseded 2026-08-17 pass | Archaeology — why something is the way it is |
 | [`11-module-pattern-and-hygiene.md`](11-module-pattern-and-hygiene.md) | How a new module is built here; repo hygiene, including one open security item | Adding a module, or before any git housekeeping |
-| [`12-stage-3-brief.md`](12-stage-3-brief.md) | Stage 3's five new screens as decided, plus a dated build-state table of what has actually landed and what each remaining function still needs | Before writing any of the five new screens |
+| [`12-stage-3-brief.md`](12-stage-3-brief.md) | Stage 3's five new screens, the build-state table with what is and is not wired, and deliberate departures | Reviewing Stage 3 decisions |
 
 The planning package these sit beside is [`../docs/`](../docs/) — start at
 [`../docs/README.md`](../docs/README.md). The division of labour: `docs/` is what the app is *meant*

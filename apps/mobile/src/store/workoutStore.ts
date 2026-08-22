@@ -65,6 +65,8 @@ type WorkoutState = {
   startSession: (database: SQLiteDatabase) => Promise<string>;
   selectExercise: (exercise: Exercise) => void;
   logSet: (database: SQLiteDatabase, set: NewSet) => Promise<void>;
+  updateSet: (database: SQLiteDatabase, setId: string, set: Omit<NewSet, 'exerciseId'>) => Promise<void>;
+  deleteSet: (database: SQLiteDatabase, setId: string) => Promise<void>;
   endSession: (database: SQLiteDatabase, notes?: string | null) => Promise<void>;
   discardRestTimer: () => void;
 };
@@ -171,6 +173,34 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
       ],
       restStartedAt: Date.now(),
     }));
+  },
+
+  async updateSet(database, setId, changes) {
+    const existing = get().sets.find((set) => set.id === setId);
+    if (!existing) throw new Error(`unknown workout set: ${setId}`);
+    await db.updateSet(database, {
+      id: setId,
+      reps: changes.reps,
+      weight: changes.weight,
+      weight_unit: changes.weightUnit,
+      rpe: changes.rpe ?? null,
+      rest_seconds: existing.restSeconds,
+    });
+    set((state) => ({
+      sets: state.sets.map((row) => row.id === setId ? {
+        ...row,
+        reps: changes.reps,
+        weight: changes.weight,
+        weightUnit: changes.weightUnit,
+        rpe: changes.rpe ?? null,
+      } : row),
+    }));
+  },
+
+  async deleteSet(database, setId) {
+    if (!get().sets.some((set) => set.id === setId)) throw new Error(`unknown workout set: ${setId}`);
+    await db.deleteSet(database, setId);
+    set((state) => ({ sets: state.sets.filter((row) => row.id !== setId) }));
   },
 
   async endSession(database, notes = null) {

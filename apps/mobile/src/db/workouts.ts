@@ -9,7 +9,13 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { LB_PER_KG } from '@/domain/workouts';
-import { enqueue, type WorkoutSessionWire, type WorkoutSetWire } from './outbox';
+import {
+  enqueue,
+  type WorkoutSessionWire,
+  type WorkoutSetDeleteWire,
+  type WorkoutSetUpdateWire,
+  type WorkoutSetWire,
+} from './outbox';
 
 import {
   Exercise,
@@ -100,6 +106,47 @@ export async function addSet(db: SQLiteDatabase, set: WorkoutSetRow): Promise<vo
     };
     await enqueue(tx, { userId: session.user_id, entityType: 'workout_set', entityId: set.id, operation: 'upsert', payload });
   }
+  });
+}
+
+export async function updateSet(
+  db: SQLiteDatabase,
+  set: Pick<WorkoutSetRow, 'id' | 'reps' | 'weight' | 'weight_unit' | 'rpe' | 'rest_seconds'>,
+): Promise<void> {
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    await tx.runAsync(
+      `UPDATE workout_sets SET reps = ?, weight = ?, weight_unit = ?, rpe = ?, rest_seconds = ? WHERE id = ?`,
+      set.reps, set.weight, set.weight_unit, set.rpe, set.rest_seconds, set.id,
+    );
+    const row = await tx.getFirstAsync<{ session_id: string; user_id: string }>(
+      `SELECT st.session_id, s.user_id FROM workout_sets st JOIN workout_sessions s ON s.id = st.session_id WHERE st.id = ?`,
+      set.id,
+    );
+    if (row) {
+      const payload: WorkoutSetUpdateWire = {
+        session_id: row.session_id,
+        reps: set.reps,
+        weight: set.weight,
+        weight_unit: set.weight_unit === 'lb' ? 'lb' : 'kg',
+        rpe: set.rpe,
+        rest_seconds: set.rest_seconds,
+      };
+      await enqueue(tx, { userId: row.user_id, entityType: 'workout_set', entityId: set.id, operation: 'update', payload });
+    }
+  });
+}
+
+export async function deleteSet(db: SQLiteDatabase, setId: string): Promise<void> {
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    const row = await tx.getFirstAsync<{ session_id: string; user_id: string }>(
+      `SELECT st.session_id, s.user_id FROM workout_sets st JOIN workout_sessions s ON s.id = st.session_id WHERE st.id = ?`,
+      setId,
+    );
+    await tx.runAsync('DELETE FROM workout_sets WHERE id = ?', setId);
+    if (row) {
+      const payload: WorkoutSetDeleteWire = { session_id: row.session_id };
+      await enqueue(tx, { userId: row.user_id, entityType: 'workout_set', entityId: setId, operation: 'delete', payload });
+    }
   });
 }
 

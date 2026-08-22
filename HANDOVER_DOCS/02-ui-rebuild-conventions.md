@@ -1,9 +1,8 @@
 # The rebuild's conventions — follow these for the remaining screens
 
 Each of these was decided once, on an early module. Re-deciding them per module is how the app ends up
-looking assembled rather than designed. Stage 2 is complete, so they are binding on **Stage 3's five new
-screens** — and on any return to one of the 22 already restyled. The Envoy and The Gates added the last
-eight of them on 2026-08-21; the three still to build are The Pantheon, The Annals and The Sanctum.
+looking assembled rather than designed. Stage 2 is complete, so they bind all five Stage 3 screens and
+any return to one of the 22 already restyled. Stage 3 added its final screens on 2026-08-21.
 
 ## Structure
 
@@ -146,15 +145,14 @@ opened. What remains — 4, 5, 6 — is standing guidance for Stage 3, not a bac
    and a direct `MaterialCommunityIcons` import.
 6. **Re-run `npx tsc --noEmit` and `npm run lint` after every module, and `npm test` when a domain suite
    changed.** **Lint the whole tree, not the file you just wrote** — `app/(tabs)/envoy.tsx` shipped a
-   `set-state-in-effect` error in `ox-08` because that pass linted only the other new file. And expect
-   `tsc` to report the three route-union errors listed in
-   [`08-verification.md`](08-verification.md#the-expected-tsc-errors) until the last Stage 3 screens land;
-   a fourth is yours.
+   `set-state-in-effect` error in `ox-08` because that pass linted only the other new file. **The pass
+   mark is 0 errors.** TypeScript is clean now that every Stage 3 route file exists, so the three
+   route-union errors that stood from 2026-08-21 are gone and any error you see is yours — history in
+   [`08-verification.md`](08-verification.md).
 
 Two things the tab bar does **not** need: `alarms` and `wallpaper` are already `href: null` with six
 visible tabs, and both are reachable from The Citadel's Outer Ward rows. `envoy` joined them as a third
 `href: null` tab in `ox-08`. No navigation restructure. The Pantheon and the Annals hang off that same
 Outer Ward row group and **their rows are already in place** (`index.tsx:331`, `:336`); The Envoy
 deliberately does not, and is reached from The Sanctum instead — see
-[`01-current-state.md`](01-current-state.md#the-resume-point--the-pantheon).
-
+[`01-current-state.md`](01-current-state.md#the-resume-point--continued-product-work).

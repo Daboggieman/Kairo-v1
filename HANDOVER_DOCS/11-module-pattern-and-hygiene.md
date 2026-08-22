@@ -78,8 +78,9 @@ leaving the secrets readable in history.
 - **`.claude/` at the repo root is machine-local tool config** holding settings from other projects in this
   workspace. It was staged accidentally by a `git add` once, unstaged before committing, and is now
   gitignored so it cannot happen again.
-- `kairo_backend.egg-info/` and `.venv/` are untracked, which is correct. **`.venv` is currently absent** and
-  needs recreating before any backend check.
+- `kairo_backend.egg-info/` and `.venv/` are untracked, which is correct. **`.venv` exists** as of
+  2026-08-22 and the current Ruff and `pytest` figures were measured through it; a fresh clone still
+  recreates it.
 - **`expo` had been floating on `"latest"`** in `apps/mobile/package.json` and is now pinned to the SDK 57
   range like everything else. Expo-managed packages use a **tilde** range by convention here;
   `react-native-svg` went in with a caret and was corrected.

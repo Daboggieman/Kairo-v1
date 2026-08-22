@@ -1,14 +1,14 @@
 # The rebuild so far — what landed, and the departures that are deliberate
 
-Stages 0, 1 and 2 are complete — **22 of 22 screens** — and Stage 3 is two of five, with The Envoy and
-The Gates built. Every "departure from the design" below is commented in the file that makes it. **Do not
+Stages 0, 1 and 2 are complete — **22 of 22 screens** — and Stage 3 is complete — **5 of 5 screens**.
+Every "departure from the design" below is commented in the file that makes it. **Do not
 "fix" them** — each one is a decision about the app's real data, and several were made twice because the
 first record of them was too thin to trust.
 
-Verified after Stage 2, on **2026-08-20**: `npm test` 494 passed across 20 suites, `npx tsc --noEmit`
-clean, `npm run lint` clean. Re-measured after Stage 3's first two screens on **2026-08-21**: **523 across
-21**, lint clean, and **3 expected `tsc` errors** — the current figures and why three is the pass mark are
-in [`08-verification.md`](08-verification.md). No module has been run on a device yet.
+Verified after Stage 3 completion, the workout-polish sync fix and the Annals ledger on **2026-08-22**:
+`npm test` **554 passed across 24 suites**, `npx tsc --noEmit` clean, and `npm run lint` clean. Device evidence is
+**user-reported**, not measured here — see
+[`01-current-state.md`](01-current-state.md#verification--measured-2026-08-22), which owns that claim.
 
 ---
 
@@ -154,8 +154,8 @@ the band does not change height when the first set is logged.
   cannot change it silently records pounds as kilograms.
 - **The Anvil drops "Add another lift."** In this data model it and the card's own "Change" are one
   function — `selectExercise`.
-- **The Anvil's set rows carry the estimated 1RM; The Stele's carry RPE and/or rest.** Nothing writes RPE
-  yet while `logSet` records rest, so the design's RPE-only column would be blanks.
+- **The Anvil's set rows carry the estimated 1RM plus recorded RPE when entered; The Stele's carry RPE
+  and/or rest.** RPE is optional and persisted with each set.
 - **The Armory drops the muscle-group filter chips.** `seed.ts` stores **eleven** raw groups, not the
   design's six, and a custom lift has `muscleGroup: null` — mapping ours onto theirs is a taxonomy
   decision hiding inside a UI pass, on a library of thirty rows the search box already filters. It also
@@ -163,8 +163,8 @@ the band does not change height when the first set is logged.
   actually picked.
 - **The Stele lays its four figures out 2×2, not 1×4.** `5.9_the_stele` is a `max-w-4xl` desktop layout;
   four display numbers across a phone gives each ~80pt.
-- **The Stele has no EDIT/DELETE footer.** Set edit and delete are deferred work, and the plan locks this
-  pass to copy, structure and type.
+- **Set corrections are available inline in The Anvil.** Editing preserves the recorded rest interval;
+  deletion confirms and queues a durable sync delete. The Stele remains a read-only historical view.
 
 ## Stage 2 — the macros module
 
@@ -521,9 +521,10 @@ rule it has.
 | `src/domain/dates.ts` | +71 | `startOfWeek`, `WeekStartDay`, `relativeTimeLabel`, `untilTimeLabel` |
 | `src/db/preferences.ts` | +125 | four keys and their accessors |
 
-**Test count moved 494 → 523 across 20 → 21 suites**, measured 2026-08-21. The +29 is `envoy.test.ts`
-plus the new `dates.ts` cases; both new screens' *wording* is in the domain, which is what makes it
-testable at all.
+**The current measured count is 554 tests across 24 suites**, measured 2026-08-22 — see
+[`08-verification.md`](08-verification.md), which owns it. Added coverage includes Pantheon, Annals, and
+Sanctum maintenance/domain cases, the four workout-set sync cases added the same day, and the fifteen
+that took the Annals ledger suite from 3 cases to 18.
 
 **The redirect is its own component, not code in `_layout.tsx`.** `LaunchRouter` reads
 `ONBOARDING_COMPLETE` and redirects; `_layout` stays a route registry. It has to be a child of
@@ -560,8 +561,8 @@ rule follows the call and sees the setState without seeing that every one is beh
 `cancelled` flag is not ceremony either — with focus-refetch, a slow read in flight when the tab loses
 focus really can land after the fresh one.
 
-**The Envoy has no entry point in the running app yet.** It is pushed from The Sanctum only, and The
-Sanctum is built last. The Outer Ward row the brief originally planned was dropped: the Outer Ward
+**The Envoy has no Outer Ward entry by design.** It is pushed from The Sanctum only. The Outer Ward row
+the brief originally planned was dropped: the Outer Ward
 holds things you go and *look at*, and a queue you visit when something looks wrong belongs behind
 settings rather than advertised on the dashboard.
 
@@ -604,16 +605,14 @@ and the three dots are one `accessible` element labelled "Step 2 of 3", not thre
 install it plays *over* The Gates. That is what being above the stack means, and it is written in the
 file so nobody reads it as a bug and removes one of the two ceremonies.
 
-## Stage 3 — The Pantheon: groundwork only
+## Stage 3 — The Pantheon, The Annals and The Sanctum
 
-The vocabulary and both database reads have landed; `src/domain/pantheon.ts`, `app/pantheon.tsx` and
-the suite are **not written**. What exists, and the rules the remaining functions need, is the table
-and list under "Build state" in [`12-stage-3-brief.md`](12-stage-3-brief.md) — kept there rather than
-repeated here, because it is a decision record and not yet a record of what landed.
+The three remaining screens are implemented. Pantheon has all-history records and tested movement
+calculations; Annals has calendar-week navigation, macro range reads and tested verdict wording; Sanctum
+has system details, measure controls, Herald/Envoy/Record navigation, export/sharing, and raze maintenance
+with notification cancellation and exercise reseeding.
 
 One correction it forced in a **project** doc: `docs/09-ui-rebuild-plan.md` justified "greatest climb"
 as *"a `MAX`"* over `elevation_gain_meters`, which nothing writes — it would return 0 for every
 activity on record. The claim is struck in place there, with a pointer, rather than silently edited,
 because it was acted on once.
-
-

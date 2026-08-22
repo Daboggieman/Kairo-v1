@@ -9,6 +9,7 @@ import {
   trimMovementActivity,
 } from '@/db/movement';
 import { addEntry, deleteEntry } from '@/db/weight';
+import { addSet, createSession, deleteSet, updateSet } from '@/db/workouts';
 import { clearCompletion, createTask, deleteTask, setArchived, setCompletion } from '@/db/tasks';
 import {
   addNutritionEntry,
@@ -56,6 +57,20 @@ async function addWeight(db: TestDatabase, id = 'weight-sync') {
 }
 
 describe('authenticated sync client', () => {
+  it('preserves structured validation details from the API', async () => {
+    const fetchMock = fetchSequence([
+      { status: 200, body: tokens() },
+      { status: 422, body: { detail: [{ loc: ['body', 'points', 0, 'sequence'], msg: 'invalid' }] } },
+    ]);
+    const client = new SyncClient(
+      { apiUrl: 'http://api.test', deviceKey: 'device-key' },
+      fetchMock,
+    );
+
+    await expect(client.put('/api/v1/movements/activity-1', { id: 'activity-1' }))
+      .rejects.toThrow('[{"loc":["body","points",0,"sequence"],"msg":"invalid"}]');
+  });
+
   it('authenticates, refreshes once on 401, and retries the request', async () => {
     const fetchMock = fetchSequence([
       { status: 200, body: tokens() },
@@ -296,5 +311,53 @@ describe('outbox replay', () => {
       ['http://api.test/api/v1/macro-targets', 'PUT'],
       ['http://api.test/api/v1/nutrition-entries/nutrition-sync', 'DELETE'],
     ]);
+  });
+
+  it('replays a set correction as a PATCH and a set deletion as a DELETE', async () => {
+    /**
+     * The regression this locks down: `updateSet` and `deleteSet` originally enqueued
+     * an `upsert` and a null-payload `delete`, and `replay` had no branch for either.
+     * The edit reached the bulk create route and came back 409 — the backend rejects a
+     * known id whose fields differ — while the delete never got that far, because
+     * `parsePayload` rejects a missing payload with a 422. Both statuses are terminal,
+     * so each correction marked its row failed with `next_attempt_at = NULL`, which
+     * `listDue` cannot see: the row was stranded and the server kept the old values.
+     */
+    await createSession(db, {
+      id: 'session-sync', userId: LOCAL_USER_ID, startedAt: '2026-08-22T07:00:00.000Z',
+    });
+    await addSet(db, {
+      id: 'set-sync', session_id: 'session-sync', exercise_id: 'seed-back-squat',
+      set_number: 1, reps: 5, weight: 100, weight_unit: 'kg', rpe: null, rest_seconds: 90,
+    });
+    await updateSet(db, {
+      id: 'set-sync', reps: 6, weight: 102.5, weight_unit: 'kg', rpe: 8.5, rest_seconds: 90,
+    });
+    await deleteSet(db, 'set-sync');
+    expect(await pendingCount(db)).toBe(4);
+
+    const fetchMock = fetchSequence([
+      { status: 200, body: tokens() }, { status: 201 }, { status: 201 },
+      { status: 200 }, { status: 204 },
+    ]);
+    const client = new SyncClient(
+      { apiUrl: 'http://api.test', deviceKey: 'device-key' }, fetchMock,
+    );
+
+    const result = await syncOutbox(db, { client, nowMs: Date.now() + 1000 });
+    const calls = (fetchMock as jest.Mock).mock.calls.slice(1);
+
+    expect(result).toMatchObject({ processed: 4, succeeded: 4, failed: 0 });
+    expect(calls.map(([url, init]) => [url, init.method])).toEqual([
+      ['http://api.test/api/v1/workouts', 'POST'],
+      ['http://api.test/api/v1/workouts/session-sync/sets', 'POST'],
+      ['http://api.test/api/v1/workouts/session-sync/sets/set-sync', 'PATCH'],
+      ['http://api.test/api/v1/workouts/session-sync/sets/set-sync', 'DELETE'],
+    ]);
+    // The PATCH carries only the mutable fields — no id, session_id, set_number or exercise_id.
+    expect(JSON.parse(calls[2][1].body)).toEqual({
+      reps: 6, weight: 102.5, weight_unit: 'kg', rpe: 8.5, rest_seconds: 90,
+    });
+    expect(await pendingCount(db)).toBe(0);
   });
 });

@@ -1,7 +1,7 @@
 KAIRO V1 - PHASE 2 AND PHASE 3 PHYSICAL TEST RUNBOOK
 ====================================================
 
-Last updated: 2026-08-19
+Last updated: 2026-08-22
 Branch: phase_3
 Project: /home/student/Kairo-v1
 Mobile app: /home/student/Kairo-v1/apps/mobile
@@ -29,18 +29,16 @@ The product contract is:
 - Raw GPS points are retained; route trims exclude points and recompute derived metrics.
 
 
-READ THIS FIRST - THE UI IS MID-REBUILD AS OF 2026-08-19
---------------------------------------------------------
+READ THIS FIRST - IMPLEMENTATION COMPLETE; DEVICE EVIDENCE STILL REQUIRED
+--------------------------------------------------------------------------
 
 The screen-by-screen restyle of 2026-08-17 was superseded by a complete rebuild: a dark
 masculine Greek-themed interface, same logo and same accent, every screen renamed on a Greek
 lexicon. Scope is locked in docs/09-ui-rebuild-plan.md.
 
-Progress as of 2026-08-19: Stage 0 (tokens, primitives) and Stage 1 (the tab shell) are done,
-and 15 of 22 existing screens are restyled. The movement module - the six screens under
-apps/mobile/app/(tabs)/movement/ - is next and has not been touched, so every screen this
-runbook's sections 5-8 exercise is still on the old styling. Stage 3 adds five new screens that
-do not exist yet.
+Current implementation status: Stage 0, Stage 1, all 22 Stage 2 screens, and all five Stage 3
+screens are complete. Workout polish is also implemented: RPE entry, finish notes, selectable
+rest targets, and inline set edit/delete. The Oracle uses the classical quote set.
 
 Current state and the stage board: HANDOVER_DOCS/01-current-state.md. The rules a screen must
 satisfy to count as done, including the loader `.catch` that turns a failed query into one
@@ -48,10 +46,10 @@ visible error instead of dozens of unhandled rejections:
 HANDOVER_DOCS/02-ui-rebuild-conventions.md. Which screens have had it applied, and every
 deliberate departure from the designs: HANDOVER_DOCS/03-ui-rebuild-progress.md.
 
-Do not run sections 4-8 end to end until the rebuild is finished. Findings collected against a
-half-rebuilt app have to be collected again. What is worth running now is section 2, section 3,
-and the launch and legibility checks at the top of section 4 - those are what the rebuild is
-meant to fix, and they are cheap to repeat.
+Run the complete sequence below against the current build. The user previously reported the
+rebuilt screens and Sanctum flows working on 2026-08-22, but the detailed evidence matrix has not
+been returned, so record each device result explicitly rather than treating that report as a
+complete substitute for this runbook.
 
 
 1. RECORD THE TEST ENVIRONMENT
@@ -80,7 +78,7 @@ From the repository, run:
 
    cd /home/student/Kairo-v1/apps/mobile
    npm install
-   npm run typecheck
+   npx tsc --noEmit
    npm run lint
    npm test -- --runInBand
    EXPO_NO_TELEMETRY=1 npx expo-doctor
@@ -91,12 +89,10 @@ Expected mobile baseline:
 
 - TypeScript exits with code 0.
 - ESLint exits with code 0 and no warnings.
-- Jest reports 481 tests across 20 suites passing - measured 2026-08-19, and the figure to
-  expect. It supersedes the 394-across-20 and the never-measured "426 expected" that this
-  runbook used to quote. The UI rebuild's domain suites will keep raising it, so a higher
-  number with 0 failures is progress, not a discrepancy; a lower one is a real result worth
-  reporting. HANDOVER_DOCS/08-verification.md carries the measured figures with their dates.
-- Expo Doctor reports 21/21 checks passing.
+- Jest reports **534 tests across 24 suites passing**, measured 2026-08-22. A different count is
+  a real result worth reporting; HANDOVER_DOCS/08-verification.md carries the history.
+- Expo Doctor currently reports **20/21**: only the dependency-version check fails because nine
+  Expo packages are intentionally one patch behind. Do not upgrade them for this test.
 - Android and iOS exports complete successfully.
 
 Backend preflight:
@@ -143,7 +139,7 @@ Expected Metro output on a healthy Expo Go launch:
   longer provide full access to the media library." Expo Go itself prints this, and it confirms
   the media-library native module is present and responding. Not a failure; record it and
   continue.
-- These two Metro lines are environment noise, not app failures:
+   - These two Metro lines are environment noise, not app failures:
   - "An unknown error occurred while installing React Native DevTools ... chrome-sandbox".
     Only the `j` debugger is affected. Fix it with:
        sudo chown root:root "$HOME/.cache/dotslash/64/ed7915e5fef86802e862c274e17f780fa75388/React Native DevTools-linux-x64/chrome-sandbox"
@@ -195,6 +191,14 @@ Workouts:
 2. Log a decimal weight such as `62.5`; also test `62,5` if the device locale uses commas.
 3. Background Expo Go briefly, return, and confirm the active workout still displays.
 4. Finish the workout and confirm it appears in history and on Home.
+5. During an active workout, enter an optional RPE from 1 to 10 and confirm it appears with the
+   set. Try an invalid value and confirm it is rejected.
+6. Edit a logged set inline and confirm reps, weight, unit, and RPE persist after reload.
+7. Delete a logged set, confirm the destructive confirmation appears, and confirm the set is gone
+   after reload.
+8. Enter optional finish notes and confirm they appear on the completed session detail.
+9. Select 60s, 90s, and 120s rest targets and confirm the rest progress threshold follows the
+   selected value.
 
 Weight:
 
@@ -428,28 +432,37 @@ Do not clear app data before collecting evidence. Do not modify source code duri
 
 Mark each item PASS, FAIL, or NOT AVAILABLE:
 
-   [ ] Automated mobile preflight
-   [ ] Automated backend preflight
-   [ ] Intro, loader, and screen legibility
-   [ ] Launcher icon (development build only)
-   [ ] Phase 2 module regression
-   [ ] Reminder entry, scheduling, and delivery
-   [ ] Wallpaper states and save
-   [ ] Expo Go foreground movement
-   [ ] Manual pause/resume
-   [ ] Autopause/auto-resume
-   [ ] Voice settings and threshold cues
-   [ ] History/detail
-   [ ] Trim and metadata editing
-   [ ] Offline route replay
-   [ ] Android background and screen lock
-   [ ] Android foreground-service notification
-   [ ] Android force-kill recovery contract
-   [ ] Bluetooth speech
-   [ ] Android battery observation
-   [ ] Backend upload/replay/edit/delete
-   [ ] Cross-user isolation
-   [ ] iOS native validation
+   [PASS] Automated mobile preflight
+   [PASS] Automated backend preflight
+   [PASS] Intro, loader, and screen legibility
+   [PASS] Launcher icon (development build only)
+   [PASS] Phase 2 module regression
+   [PASS] Workout RPE, set edit/delete, finish notes, and rest target
+   [PARTIALLY] Reminder entry, scheduling, and delivery
+   [PARTIALLY] Wallpaper states and save
+   [FAILED] Expo Go foreground movement
+   [PASS] Manual pause/resume
+   [PASS] Autopause/auto-resume
+   [PASS] Voice settings and threshold cues
+   [PASS] History/detail
+   [UNTESTED] Trim and metadata editing
+   [UNTESTED] Offline route replay
+   [PASS] Android background and screen lock
+   [PASS] Android foreground-service notification
+   [PASS] Android force-kill recovery contract
+   [PASS] Bluetooth speech
+   [PASS] Android battery observation
+   [FAILED] Backend upload/replay/edit/delete
+   [UNTESTED] Cross-user isolation
+   [PASS] iOS native validation
+
+   NOTED:
+      - Wallpaper could not be confirmed because no wallpaper was available to test.
+      - Reminders currently produce only a notification tone. Requested follow-up: default alarm
+        ringtone plus user-selectable ringtone, a dedicated alarm page integrated with Rites, and
+        a standard clock area with timer, stopwatch, and alarms.
+      - Movement could not be completed: the screen remains on "Waiting for a GPS fix", shows no
+        map visual, and the timer does not advance.
 
 Phase 3 can be marked complete only when all required items are PASS. iOS may be recorded as
 NOT AVAILABLE only if the agreed release gate remains Android-first; it must remain an explicit

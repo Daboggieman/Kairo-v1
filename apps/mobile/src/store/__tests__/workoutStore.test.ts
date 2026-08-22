@@ -236,6 +236,34 @@ describe('useWorkoutStore', () => {
     });
   });
 
+  describe('set corrections', () => {
+    it('updates a persisted set and mirrors the correction into state', async () => {
+      const store = actions();
+      await store.startSession(db);
+      await store.logSet(db, { exerciseId: 'seed-back-squat', reps: 5, weight: 100, weightUnit: 'kg' });
+      const setId = useWorkoutStore.getState().sets[0].id;
+
+      await store.updateSet(db, setId, { reps: 6, weight: 102.5, weightUnit: 'kg', rpe: 8.5 });
+
+      expect(useWorkoutStore.getState().sets[0]).toMatchObject({ reps: 6, weight: 102.5, rpe: 8.5 });
+      await store.hydrate(db);
+      expect(useWorkoutStore.getState().sets[0]).toMatchObject({ reps: 6, weight: 102.5, rpe: 8.5 });
+    });
+
+    it('deletes a persisted set and removes it from state', async () => {
+      const store = actions();
+      await store.startSession(db);
+      await store.logSet(db, { exerciseId: 'seed-back-squat', reps: 5, weight: 100, weightUnit: 'kg' });
+      const setId = useWorkoutStore.getState().sets[0].id;
+
+      await store.deleteSet(db, setId);
+
+      expect(useWorkoutStore.getState().sets).toEqual([]);
+      await store.hydrate(db);
+      expect(useWorkoutStore.getState().sets).toEqual([]);
+    });
+  });
+
   describe('endSession', () => {
     it('closes the session and clears the store', async () => {
       const store = actions();

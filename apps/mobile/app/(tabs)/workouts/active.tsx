@@ -28,7 +28,7 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import {
@@ -66,6 +66,7 @@ import { useWorkoutStore } from '@/store/workoutStore';
 import { colors, fontSize, layout, lineHeight, spacing, type as typeScale } from '@/theme';
 
 const UNITS: WeightUnit[] = ['kg', 'lb'];
+const REST_TARGETS = [60, 90, 120] as const;
 
 const UNIT_NAMES: Record<WeightUnit, string> = { kg: 'Kilograms', lb: 'Pounds' };
 
@@ -86,10 +87,20 @@ export default function AnvilScreen() {
   const hydrate = useWorkoutStore((state) => state.hydrate);
   const logSet = useWorkoutStore((state) => state.logSet);
   const endSession = useWorkoutStore((state) => state.endSession);
+  const updateSet = useWorkoutStore((state) => state.updateSet);
+  const deleteSet = useWorkoutStore((state) => state.deleteSet);
 
   const [reps, setReps] = useState('8');
   const [weight, setWeight] = useState('0');
   const [unit, setUnit] = useState<WeightUnit>('kg');
+  const [rpe, setRpe] = useState('');
+  const [notes, setNotes] = useState('');
+  const [restTarget, setRestTarget] = useState<(typeof REST_TARGETS)[number]>(90);
+  const [editingSetId, setEditingSetId] = useState<string | null>(null);
+  const [editReps, setEditReps] = useState('');
+  const [editWeight, setEditWeight] = useState('');
+  const [editRpe, setEditRpe] = useState('');
+  const [editUnit, setEditUnit] = useState<WeightUnit>('kg');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   /** The last set of the current lift, kept only to print "Last time" under its name. */
@@ -134,12 +145,15 @@ export default function AnvilScreen() {
 
   const parsedReps = Number.parseInt(reps, 10);
   const parsedWeight = parseDecimalInput(weight);
+  const parsedRpe = rpe.trim() === '' ? null : parseDecimalInput(rpe);
+  const validRpe = parsedRpe === null || (Number.isFinite(parsedRpe) && parsedRpe >= 1 && parsedRpe <= 10);
   const canLog =
     !!currentExercise &&
     Number.isFinite(parsedReps) &&
     parsedReps > 0 &&
     Number.isFinite(parsedWeight) &&
-    parsedWeight >= 0;
+    parsedWeight >= 0 &&
+    validRpe;
 
   const onLogSet = useCallback(async () => {
     if (!canLog || !currentExercise) return;
@@ -150,6 +164,7 @@ export default function AnvilScreen() {
         reps: parsedReps,
         weight: parsedWeight,
         weightUnit: unit,
+        rpe: parsedRpe,
       });
       setError(null);
     } catch (caught) {
@@ -157,16 +172,47 @@ export default function AnvilScreen() {
     } finally {
       setSaving(false);
     }
-  }, [canLog, currentExercise, db, logSet, parsedReps, parsedWeight, unit]);
+  }, [canLog, currentExercise, db, logSet, parsedReps, parsedRpe, parsedWeight, unit]);
 
   const onFinish = useCallback(async () => {
     try {
-      await endSession(db);
+      await endSession(db, notes.trim() || null);
       router.replace('/workouts');
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught));
     }
-  }, [db, endSession, router]);
+  }, [db, endSession, notes, router]);
+
+  const beginEdit = (set: WorkoutSet) => {
+    setEditingSetId(set.id);
+    setEditReps(String(set.reps));
+    setEditWeight(String(set.weight));
+    setEditRpe(set.rpe == null ? '' : String(set.rpe));
+    setEditUnit(set.weightUnit);
+  };
+
+  const saveEdit = async () => {
+    if (!editingSetId) return;
+    const nextReps = Number.parseInt(editReps, 10);
+    const nextWeight = parseDecimalInput(editWeight);
+    const nextRpe = editRpe.trim() === '' ? null : parseDecimalInput(editRpe);
+    if (!Number.isFinite(nextReps) || nextReps <= 0 || !Number.isFinite(nextWeight) || nextWeight < 0 || (nextRpe !== null && (!Number.isFinite(nextRpe) || nextRpe < 1 || nextRpe > 10))) {
+      setError('Enter valid reps, weight, and an RPE from 1 to 10.');
+      return;
+    }
+    try {
+      await updateSet(db, editingSetId, { reps: nextReps, weight: nextWeight, weightUnit: editUnit, rpe: nextRpe });
+      setEditingSetId(null);
+      setError(null);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : String(caught));
+    }
+  };
+
+  const confirmDelete = (setId: string) => Alert.alert('Delete this strike?', 'This cannot be undone.', [
+    { text: 'Cancel', style: 'cancel' },
+    { text: 'Delete', style: 'destructive', onPress: () => void deleteSet(db, setId).catch((caught: unknown) => setError(caught instanceof Error ? caught.message : String(caught))) },
+  ]);
 
   if (!sessionId) {
     return (
@@ -199,7 +245,7 @@ export default function AnvilScreen() {
         onBack={() => router.back()}
         action={<SessionElapsed startedAt={startedAt} style={styles.barClock} />}
       />
-      <RestTimer startedAt={restStartedAt} />
+      <RestTimer startedAt={restStartedAt} targetSeconds={restTarget} />
 
       <ScreenScroll>
         {error ? (
@@ -278,6 +324,15 @@ export default function AnvilScreen() {
                 ))}
               </View>
 
+              <Field
+                label="RPE (optional)"
+                hint="1–10"
+                value={rpe}
+                onChangeText={setRpe}
+                keyboardType="decimal-pad"
+                selectTextOnFocus
+              />
+
               <Button
                 label={`Strike — log set ${nextSetNumber(sets, currentExercise.id)}`}
                 onPress={() => void onLogSet()}
@@ -288,6 +343,20 @@ export default function AnvilScreen() {
           ) : null}
         </Card>
 
+        <Section title="Rest target">
+          <View style={styles.restTargets}>
+            {REST_TARGETS.map((seconds) => (
+              <Chip
+                key={seconds}
+                label={`${seconds}s`}
+                selected={restTarget === seconds}
+                onPress={() => setRestTarget(seconds)}
+                style={styles.restTarget}
+              />
+            ))}
+          </View>
+        </Section>
+
         {groups.length > 0 ? (
           <>
             <Meander style={styles.ornament} />
@@ -297,15 +366,28 @@ export default function AnvilScreen() {
                 <Card key={group.exerciseId}>
                   <CardHeader title={group.exerciseName} tone="accent" />
                   <View style={styles.strikes}>
-                    {group.sets.map((set) => (
+                    {group.sets.map((set) => editingSetId === set.id ? (
+                      <View key={set.id} style={styles.editRow}>
+                        <Field label="Reps" value={editReps} onChangeText={setEditReps} keyboardType="number-pad" style={styles.editField} />
+                        <Field label={`Weight (${editUnit})`} value={editWeight} onChangeText={setEditWeight} keyboardType="decimal-pad" style={styles.editField} />
+                        <Field label="RPE" value={editRpe} onChangeText={setEditRpe} keyboardType="decimal-pad" style={styles.editField} />
+                        <View style={styles.editActions}>
+                          <Button label="Save" onPress={() => void saveEdit()} />
+                          <Button label="Cancel" variant="secondary" onPress={() => setEditingSetId(null)} />
+                        </View>
+                      </View>
+                    ) : (
                       <View key={set.id} style={styles.strikeRow}>
                         <View style={styles.strikeNumber}>
                           <Text style={styles.strikeNumberText}>{set.setNumber}</Text>
                         </View>
-                        <Text style={styles.strikeDetail} numberOfLines={1}>
-                          {`${set.reps} reps · ${formatWeight(set.weight, set.weightUnit)}`}
-                        </Text>
-                        <Text style={styles.strikeMeta}>{formatOneRepMax(set)}</Text>
+                        <Pressable style={({ pressed }) => [styles.strikeBody, pressed && styles.pressed]} onPress={() => beginEdit(set)} accessibilityRole="button" accessibilityLabel={`Edit set ${set.setNumber}`}>
+                          <Text style={styles.strikeDetail} numberOfLines={1}>
+                            {`${set.reps} reps · ${formatWeight(set.weight, set.weightUnit)}`}
+                          </Text>
+                          <Text style={styles.strikeMeta}>{set.rpe == null ? formatOneRepMax(set) : `RPE ${set.rpe} · ${formatOneRepMax(set)}`}</Text>
+                        </Pressable>
+                        <Pressable onPress={() => confirmDelete(set.id)} accessibilityRole="button" accessibilityLabel={`Delete set ${set.setNumber}`} hitSlop={8}><Text style={styles.deleteGlyph}>×</Text></Pressable>
                       </View>
                     ))}
                   </View>
@@ -315,7 +397,17 @@ export default function AnvilScreen() {
           </>
         ) : null}
 
-        <Button label="Finish session" variant="danger" onPress={() => void onFinish()} />
+        <Card>
+          <Field
+            label="Finish notes (optional)"
+            value={notes}
+            onChangeText={setNotes}
+            placeholder="How did the session feel?"
+            multiline
+            numberOfLines={3}
+          />
+          <Button label="Finish session" variant="danger" onPress={() => void onFinish()} />
+        </Card>
       </ScreenScroll>
     </KeyboardAvoidingView>
   );
@@ -332,6 +424,8 @@ const styles = StyleSheet.create({
   entryField: { flex: 1 },
   unitRow: { flexDirection: 'row', gap: spacing.sm },
   unitChip: { flex: 1 },
+  restTargets: { flexDirection: 'row', gap: spacing.sm },
+  restTarget: { flex: 1 },
   strikes: { gap: spacing.md },
   strikeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   /** The circled ordinal from the design — a struck number, not a bullet. */
@@ -346,12 +440,17 @@ const styles = StyleSheet.create({
   },
   strikeNumberText: { color: colors.accent, ...typeScale.eyebrow, fontWeight: '700' },
   strikeDetail: { flex: 1, color: colors.text, fontSize: fontSize.md, lineHeight: lineHeight.md },
+  strikeBody: { flex: 1 },
   strikeMeta: {
     color: colors.textMuted,
     fontSize: fontSize.xs,
     lineHeight: lineHeight.xs,
     fontVariant: ['tabular-nums'],
   },
+  deleteGlyph: { color: colors.danger, fontSize: fontSize.xl, lineHeight: fontSize.xl },
+  editRow: { gap: spacing.sm },
+  editField: { flex: 1 },
+  editActions: { flexDirection: 'row', gap: spacing.sm },
   ornament: { opacity: 0.5 },
   pressed: { opacity: 0.7 },
 });

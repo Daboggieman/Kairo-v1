@@ -18,7 +18,7 @@ Everything below was verified on **2026-08-20** against the files it cites.
 | **The Pantheon** | `app/pantheon.tsx` | `5.27` | `src/domain/pantheon.ts` |
 | **The Annals** | `app/annals.tsx` | `5.28` | `src/domain/annals.ts` |
 
-## Build state — measured 2026-08-21
+## Build state — measured 2026-08-22
 
 This document was written before any code and remains the decision record. What has since been built
 against it:
@@ -29,17 +29,16 @@ against it:
 | 1. `src/db/preferences.ts` | **Done.** Four keys added, no migration. `WeekStart` is a re-export of `WeekStartDay` from `src/domain/dates.ts` — one union, since `startOfWeek` is the only thing that acts on it. |
 | 2. The Envoy | **Done.** `app/(tabs)/envoy.tsx` (386 lines), `src/domain/envoy.ts` (206), `envoy.test.ts` (225). |
 | 3. The Gates | **Done.** `app/gates.tsx` (533 lines). Five departures, listed in its own header comment and in [`03-ui-rebuild-progress.md`](03-ui-rebuild-progress.md#stage-3--the-envoy-and-the-gates). |
-| 4. The Pantheon | **Groundwork only.** The vocabulary and both reads have landed (below); `src/domain/pantheon.ts`, `app/pantheon.tsx` and the suite are **not written**. |
-| 5. The Annals | Not started. |
-| 6. The Sanctum | Not started. Still needs the `expo-sharing` decision from the user. |
+| 4. The Pantheon | **Done.** Domain, screen and suite landed. |
+| 5. The Annals | **Complete — screen, domain, range readers and suite.** `weekLedger` (`src/domain/annals.ts`) returns the seven day rows and the totals as sums of those rows, so the reckoning card and the day strip cannot disagree; `app/annals.tsx` renders `ledger.days` and feeds the same ledger to `describeVerdict`. The two unwired figures — a hardcoded `{ kept: 0, due: 0, macroDaysOver: 0 }` and a strip anchored on **today** rather than the selected range — were closed 2026-08-22. Reasoning in [`01-current-state.md`](01-current-state.md#open-items--none-of-them-blocking), item 4. |
+| 6. The Sanctum | **Done.** Screen, maintenance services, sharing adapter and suite landed. |
 
-**Two divergences from what this document says, both deliberate, both already in the code:**
+**Two divergences from what this document originally said remain deliberate:**
 
 - **The Envoy is reached from The Sanctum only** — not from the Citadel's Outer Ward. The Outer Ward
   holds things you go and *look at*; a queue you only visit when something looks wrong belongs behind
   settings, and putting it on the dashboard advertises a failure mode that is normally invisible.
-  Since The Sanctum is step 6, **the Envoy currently has no entry point in the running app** — it is
-  reachable by route only until The Sanctum lands. That is expected, not a bug.
+  The Sanctum now provides the Envoy's intended entry point.
 - **`LAST_SYNC_AT` is written only when a run *delivered* something** (`succeeded > 0`), not on every
   completed run as this document originally said. `SyncBootstrap` calls in every 60 seconds, so "the
   loop ran" is almost always true and says nothing, and a run that found nothing due never touched the
@@ -261,7 +260,7 @@ JSON is solved. **Handing the file to the user is not.** There is no `expo-shari
 `package.json`, and RN's own `Share` takes a message string on Android — a whole-database dump as a
 message is not a file.
 
-**Recommendation: `npx expo install expo-sharing`**, lazily required and shape-checked exactly like
+**Installed as `expo-sharing ~57.0.13`**, lazily required and shape-checked exactly like
 `src/services/mediaLibrary.ts`, so a runtime without it disables the row instead of killing the
 screen. It is Expo-bundled, so it stays inside `expo install`'s version management.
 [`06-architecture-decisions.md`](06-architecture-decisions.md) asks that a dependency be a decision
@@ -371,9 +370,13 @@ accept that; the date range beneath it (*"11 – 17 August"*) is unambiguous eit
   existing contract.
 - **`LineChart` lacks the two props the plan names.** Its `Props` type
   (`src/components/LineChart.tsx:45`) has `points`, `trend`, `goal`, `height`, `formatValue`,
-  `emptyLabel` — no `showAxis`, no `pointsDashArray`. Add them optional, and keep every bit of geometry
-  in the tested `src/domain/chart.ts`; that split is the whole reason the chart is hand-rolled.
-  Previous-versus-current maps straight onto `points` (thin, muted) and `trend` (accent).
+  `emptyLabel` — no `showAxis`, no `pointsDashArray`. **Still true, and now a decision rather than a
+  gap:** the Annals screen as built draws no chart at all, so nothing needed the props and they were not
+  invented for a caller that does not exist. `LineChart`'s only consumer remains The Scales
+  (`app/(tabs)/weight/index.tsx:337`). If the Annals week view later gains its previous-versus-current
+  chart, add them optional then, and keep every bit of geometry in the tested `src/domain/chart.ts` —
+  that split is the whole reason the chart is hand-rolled. Previous-versus-current maps straight onto
+  `points` (thin, muted) and `trend` (accent).
 - The day strips are **plain views, not SVG**, per the plan.
 
 ### The verdict block must not take the design's left rule
@@ -415,23 +418,23 @@ chevron — dropped.
 | `src/db/types.ts` | `RecordSet`, `RouteSample` — the two all-history read shapes | done |
 | `src/db/workouts.ts` | `listSetsForRecords` | done |
 | `src/db/movement.ts` | `listRouteSamples` | done |
-| `src/db/macros.ts` | two range readers | to do |
-| `src/db/maintenance.ts` | **new** — `exportEverything`, `razeLocalData` | to do |
+| `src/db/macros.ts` | two range readers | done |
+| `src/db/maintenance.ts` | **new** — `exportEverything`, `razeLocalData` | done |
 | `src/sync/outbox.ts` | write `LAST_SYNC_AT` — on a run that *delivered*, not on every completion | done |
-| `src/components/LineChart.tsx` | `showAxis`, `pointsDashArray` | to do |
+| `src/components/LineChart.tsx` | `showAxis`, `pointsDashArray` | **not built — no caller**, see [Data gaps](#data-gaps) |
 | `src/domain/dates.ts` | `startOfWeek`, `WeekStartDay` | done |
 | `src/domain/workouts.ts` | `formatLoad` | done |
 | `src/domain/movement.ts` | `formatElevation`, `METERS_PER_FOOT` | done |
 | `src/domain/envoy.ts` | **new** — sync vocabulary | done |
-| `src/domain/pantheon.ts` | **new** — records, incl. elevation-from-samples and the rolling 30-day fall | to do |
-| `src/domain/annals.ts` | **new** — the calendar week, the four aggregates, the verdict generator | to do |
+| `src/domain/pantheon.ts` | **new** — records, incl. elevation-from-samples and the rolling 30-day fall | done |
+| `src/domain/annals.ts` | **new** — the calendar week, aggregates, and verdict generator | done |
 | `app/(tabs)/index.tsx` | Sanctum `IconButton` in the brand row; Outer Ward 2 rows → 4 | done |
 | `app/(tabs)/_layout.tsx` | `envoy` as a third `href: null` tab | done |
-| dependency | **`expo-sharing` — the user's decision, not taken here** | open |
+| dependency | **`expo-sharing ~57.0.13`** | installed; native acceptance pending |
 
-Three new domain suites mean the test count will move well past 494. **Measure it; do not predict it**
-— see [`08-verification.md`](08-verification.md). One of the three has landed: **523 tests across 21
-suites**, measured 2026-08-21.
+Stage 3 added domain and database suites. The measured result is **554 tests across 24 suites**, measured
+2026-08-22 — the count [`08-verification.md`](08-verification.md) owns, and the one that supersedes the
+538/24 and 534/24 this section carried before. **Measure it; do not predict it.**
 
 ## Icons
 
