@@ -231,6 +231,7 @@ export default function ChronicleScreen() {
         userId: LOCAL_USER_ID,
         name: name.trim() || null,
         activityType,
+        eventId: randomUUID(),
         updatedAt: new Date().toISOString(),
       });
       await load();

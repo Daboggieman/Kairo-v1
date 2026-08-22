@@ -139,9 +139,21 @@ describe('movement query layer', () => {
     await setMovementStatus(db, 'm1', LOCAL_USER_ID, 'recording', '2026-08-16T10:00:01.000Z');
     const completed = await completeMovementActivity(db, { id: 'm1', userId: LOCAL_USER_ID, endedAt: '2026-08-16T11:00:00.000Z' });
     expect(completed.status).toBe('completed');
-    const edited = await editMovementActivity(db, { id: 'm1', userId: LOCAL_USER_ID, name: 'Sunday ride', activityType: 'ride', updatedAt: '2026-08-16T11:01:00.000Z' });
+    const edited = await editMovementActivity(db, { id: 'm1', userId: LOCAL_USER_ID, name: 'Sunday ride', activityType: 'ride', eventId: '11111111-2222-4333-8444-555555555555', updatedAt: '2026-08-16T11:01:00.000Z' });
     expect(edited).toMatchObject({ name: 'Sunday ride', activityType: 'ride', revision: 2 });
     expect((await listMovementActivities(db, LOCAL_USER_ID))[0].revision).toBe(2);
+    /**
+     * The `edited` event must carry the id the caller supplied, verbatim.
+     *
+     * It used to be minted here as `` `${id}-edit-${Date.parse(updatedAt)}` ``, which is not a UUID,
+     * and the server's `MovementEventWrite.id` is one — so the whole aggregate came back `422`, which
+     * `isTerminal` reads as permanent, and every rename stranded its outbox row while SQLite showed
+     * the edit applied. `e2e/movementSync.e2e.ts` measures that end to end, but it needs a running
+     * backend and is outside `npm test`; this is the guard that runs on every commit.
+     */
+    const events = await listMovementEvents(db, 'm1');
+    const editEvent = events.find((event) => event.eventType === 'edited');
+    expect(editEvent?.id).toBe('11111111-2222-4333-8444-555555555555');
   });
 
   it('trims by excluding raw points and recomputes summaries without deleting them', async () => {

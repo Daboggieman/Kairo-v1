@@ -203,10 +203,21 @@ function toMovementActivityWire(
   };
 }
 
+/**
+ * Rename or re-type a completed activity, bumping the revision and recording an `edited` event.
+ *
+ * **`eventId` must be a UUID, and is the caller's to supply** — as `trimMovementActivity` has always
+ * required. It used to be minted here as `` `${id}-edit-${Date.parse(updatedAt)}` ``, which is not a
+ * UUID, and the server's `MovementEventWrite.id` is one: the whole aggregate came back `422`, the
+ * outbox read that as terminal, and the rename never reached the server while SQLite showed it
+ * applied. Found on 2026-08-22 by `e2e/movementSync.e2e.ts`, the first thing to drive this path
+ * against a real backend.
+ */
 export async function editMovementActivity(
   db: SQLiteDatabase,
   input: {
-    id: string; userId: string; name: string | null; activityType: MovementType; updatedAt: string;
+    id: string; userId: string; name: string | null; activityType: MovementType;
+    eventId: string; updatedAt: string;
   },
 ): Promise<MovementActivity> {
   await db.withExclusiveTransactionAsync(async (tx) => {
@@ -224,7 +235,7 @@ export async function editMovementActivity(
       `INSERT INTO movement_events
        (id, activity_id, sequence, event_type, occurred_at, payload_json)
        VALUES (?, ?, ?, 'edited', ?, ?)`,
-      `${input.id}-edit-${Date.parse(input.updatedAt)}`,
+      input.eventId,
       input.id, sequenceRow?.next_sequence ?? 0, input.updatedAt,
       JSON.stringify({ name: input.name, activityType: input.activityType }),
     );
